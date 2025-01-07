@@ -1,45 +1,30 @@
-import {
-  loadHTMLContent,
-  loadScript,
-} from "/src/helper/content_loader_helper.js";
-import { COMPONENTS } from "/src/constant/component_constant.js";
-
-/**
- * Dynamically loads a component by fetching its HTML content and JavaScript file
- *
- * @param {string} componentName - The name of the component to load (e.g. 'header', 'sidebar')
- * @returns {Promise<void>} A promise that resolves when the component is loaded
- *
- * @example
- * // Load the header component
- * await loadComponent('header');
- *
- * @description
- * The function performs the following steps:
- * 1. Constructs the file path using the component name
- * 2. Loads the HTML content from componentName.html
- * 3. Injects the HTML into the container with id "{componentName}-container"
- * 4. Loads and executes the associated JavaScript file
- *
- * @requires
- * - loadHTMLContent from content_loader_helper.js
- * - loadScript from content_loader_helper.js
- * - A container element with id "{componentName}-container" must exist in the DOM
- */
-const loadComponent = async (componentName) => {
-  const fileName = `/src/component/${componentName}/${componentName}`;
-  const htmlContent = await loadHTMLContent(`${fileName}.html`);
-  document.getElementById(`${componentName}-container`).innerHTML = htmlContent;
-  loadScript(`${fileName}.js`);
-};
+import { BASEPATH } from "/src/constant/basepath.js";
+import { COMPONENTS } from "/src/constant/component.js";
+import { TARGET_ID } from "/src/constant/target_id.js";
+import { loadComponent } from "/src/helper/content_loader_helper.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
   try {
-    await Promise.all([
-      loadComponent(COMPONENTS.HEADER),
-      loadComponent(COMPONENTS.SIDEBAR),
-      loadComponent(COMPONENTS.FOOTER),
-    ]);
+    await loadComponent({
+      componentName: COMPONENTS.HEADER,
+      basePath: BASEPATH.COMPONENT,
+      targetId: TARGET_ID.HEADER,
+    }),
+      await loadComponent({
+        componentName: COMPONENTS.SIDEBAR,
+        basePath: BASEPATH.COMPONENT,
+        targetId: TARGET_ID.SIDEBAR,
+      }),
+      await loadComponent({
+        componentName: COMPONENTS.FOOTER,
+        basePath: BASEPATH.COMPONENT,
+        targetId: TARGET_ID.FOOTER,
+      });
+    await loadComponent({
+      componentName: COMPONENTS.DETAILS,
+      basePath: BASEPATH.PAGES,
+      targetId: TARGET_ID.DATA_OUTPUT,
+    });
   } catch (error) {
     document.getElementById(
       "errorDisplay"
