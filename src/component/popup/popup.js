@@ -2,7 +2,7 @@ import {
   loadHTMLContent,
   loadScript,
 } from "/src/helper/content_loader_helper.js";
-import { COMPONENTS } from "/src/constant/constant.js";
+import { COMPONENTS } from "/src/constant/component_constant.js";
 
 /**
  * Dynamically loads a component by fetching its HTML content and JavaScript file
