@@ -1,0 +1,39 @@
+/**
+ * Sends an HTTP request to the specified URL.
+ * @param {string} url - The API endpoint URL.
+ * @param {string} method - The HTTP method (e.g., "GET", "POST", "PUT", "DELETE").
+ * @param {Object} [payload=null] - The request body data for POST and PUT requests.
+ * @param {Object} [customHeaders] - Optional customHeaders for the request.
+ * @returns {Promise<Object|null>} The JSON response from the server if successful, or null if status is 204.
+ * @throws Will throw an error if the request fails.
+ */
+export async function apiRequest(url, method, payload = null, customHeaders) {
+  // Construct the request options
+
+  const headers = customHeaders ? customHeaders : { "Content-Type": "application/json" };
+  const options = {
+    method,
+    headers,
+  };
+
+  // Add payload to options if provided
+  if (payload) {
+    options.body = JSON.stringify(payload);
+  }
+
+  try {
+    const response = await fetch(url, options);
+
+    // Check for HTTP errors
+    if (!response.ok) {
+      const errorMessage = await response.text();
+      throw new Error(`Error ${response.status}: ${errorMessage}`);
+    }
+
+    // Return response as JSON or null for 204 No Content
+    return response.status === 204 ? null : await response.json();
+  } catch (error) {
+    console.error("API request failed:", error.message);
+    throw error; // Propagate the error for further handling
+  }
+}

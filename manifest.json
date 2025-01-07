@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "Phising Prevention",
+  "version": "1.0",
+  "description": "Personal shield against phishing attacks! We detect and block fraudulent emails, protecting your sensitive data.",
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "storage",
+    "webNavigation",
+    "management",
+    "geolocation"
+  ],
+  "action": {
+    "default_popup": "/src/component/popup/popup.html",
+    "default_icon": {
+      "16": "/src/icons/icon16.png",
+      "48": "/src/icons/icon48.png",
+      "128": "/src/icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["/src/pages/app/app.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  
+  "host_permissions": ["https://apis.mail.yahoo.com/*"]
+}
+
+
+
