@@ -2,34 +2,25 @@ import {
   loadHTMLContent,
   loadScript,
 } from "/src/helper/content_loader_helper.js";
+import { COMPONENTS } from "/src/constant/constant.js";
+
+const loadComponent = async (componentName) => {
+  const fileName = `/src/component/${componentName}/${componentName}`;
+  const htmlContent = await loadHTMLContent(`${fileName}.html`);
+  document.getElementById(`${componentName}-container`).innerHTML = htmlContent;
+  loadScript(`${fileName}.js`);
+};
 
 document.addEventListener("DOMContentLoaded", async () => {
-  const loader = document.getElementById("loader");
-  loader.style.display = "block";
-
   try {
-    const headerHtml = await loadHTMLContent(
-      "/src/component/header/header.html"
-    );
-    document.getElementById("header-container").innerHTML = headerHtml;
-    loadScript("/src/component/header/header.js");
-
-    const sidebarHtml = await loadHTMLContent(
-      "/src/component/sidebar/sidebar.html"
-    );
-    document.getElementById("sidebar-container").innerHTML = sidebarHtml;
-    loadScript("/src/component/sidebar/sidebar.js");
-
-    const footerHtml = await loadHTMLContent(
-      "/src/component/footer/footer.html"
-    );
-    document.getElementById("footer-container").innerHTML = footerHtml;
-    loadScript("/src/component/footer/footer.js");
+    await Promise.all([
+      loadComponent(COMPONENTS.HEADER),
+      loadComponent(COMPONENTS.SIDEBAR),
+      loadComponent(COMPONENTS.FOOTER),
+    ]);
   } catch (error) {
     document.getElementById(
       "errorDisplay"
     ).innerHTML = `Loading error: ${error.message}`;
-  } finally {
-    loader.style.display = "none";
   }
 });
