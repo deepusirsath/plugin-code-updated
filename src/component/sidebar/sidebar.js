@@ -3,7 +3,7 @@ import { COMPONENTS } from "/src/constant/component.js";
 import { TARGET_ID } from "/src/constant/target_id.js";
 import { loadComponent } from "/src/helper/content_loader_helper.js";
 
-const handleClick = async (componentName) => {
+const handleButtonClick = async (componentName) => {
   try {
     await loadComponent({
       componentName,
@@ -19,16 +19,16 @@ const handleClick = async (componentName) => {
 
 document
   .getElementById("details-btn")
-  .addEventListener("click", () => handleClick(COMPONENTS.DETAILS));
+  .addEventListener("click", () => handleButtonClick(COMPONENTS.DETAILS));
 document
   .getElementById("dispute-mail")
-  .addEventListener("click", () => handleClick(COMPONENTS.DISPUTE_MAIL));
+  .addEventListener("click", () => handleButtonClick(COMPONENTS.DISPUTE_MAIL));
 document
   .getElementById("spam-mails")
-  .addEventListener("click", () => handleClick(COMPONENTS.SPAM_MAIL));
+  .addEventListener("click", () => handleButtonClick(COMPONENTS.SPAM_MAIL));
 document
   .getElementById("activity-btn")
-  .addEventListener("click", () => handleClick(COMPONENTS.ACTIVITY));
+  .addEventListener("click", () => handleButtonClick(COMPONENTS.ACTIVITY));
 document
   .getElementById("dispute-btn")
-  .addEventListener("click", () => handleClick(COMPONENTS.DISPUTE));
+  .addEventListener("click", () => handleButtonClick(COMPONENTS.DISPUTE));
