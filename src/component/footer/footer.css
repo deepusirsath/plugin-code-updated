@@ -22,3 +22,14 @@
   gap: 10px;
   margin-left: 20%;
 }
+
+.footer-content img {
+  height: 30px;
+  width: auto;
+}
+
+.footer-content p {
+  margin: 0;
+  color: #666;
+  font-size: 0.8rem;
+}
