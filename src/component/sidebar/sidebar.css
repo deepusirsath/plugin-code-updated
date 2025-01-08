@@ -1,0 +1,93 @@
+.sidebar {
+  width: 80px;
+  background-color: #2d2f3f;
+  color: #fff;
+  transition: width 0.3s ease-in-out;
+  position: relative;
+  z-index: 999;
+}
+
+.toggle-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  padding: 10px;
+  cursor: pointer;
+  margin-left: 25px;
+}
+
+.sidebar.active {
+  width: 60px;
+}
+
+.sidebar.active .icon {
+  display: inline-block;
+}
+
+.menu {
+  padding: 20px;
+  height: 507px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  margin: 5px 0;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.menu-item:hover {
+  background-color: #4a4d65;
+}
+
+.menu-item.active {
+  background-color: #007bff;
+}
+
+.icon {
+  margin-right: 10px;
+  font-size: 18px;
+  width: 20px;
+  height: 20px;
+}
+
+.icon img {
+  margin-right: 10px;
+  font-size: 18px;
+  width: 20px;
+  height: 20px;
+}
+
+.sidebar.active .text {
+  display: none;
+}
+
+.sidebar.active .icon {
+  margin-right: 0;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100px;
+  }
+
+  .sidebar.active {
+    width: 50px;
+  }
+
+  .menu-item {
+    justify-content: center;
+  }
+
+  .icon {
+    display: none;
+  }
+}
+
+.menu-item.active {
+  background-color: #28a745;
+}
