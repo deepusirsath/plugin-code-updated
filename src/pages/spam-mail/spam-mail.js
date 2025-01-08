@@ -1,10 +1,10 @@
 import { BASEPATH } from "/src/constant/basepath.js";
-import { loadComponent } from "/src/helper/content_loader_helper.js";
-import { createTable } from "/src/component/table/table.js";
 import { COMPONENTS } from "/src/constant/component.js";
+import { createTable } from "/src/component/table/table.js";
+import { loadComponent } from "/src/helper/content_loader_helper.js";
 import { TARGET_ID } from "/src/constant/target_id.js";
 
-const loadTableComponent = async () => {
+const loadSpamMailComponent = async () => {
   try {
     await loadComponent({
       componentName: COMPONENTS.TABLE,
@@ -37,9 +37,9 @@ const loadTableComponent = async () => {
 document.addEventListener("componentLoaded", (event) => {
   console.log("Component loaded:", event.detail.componentName);
   if (event.detail.componentName === COMPONENTS.SPAM_MAIL) {
-    loadTableComponent();
+    loadSpamMailComponent();
   }
 });
 
 // Call the function to load the table component
-loadTableComponent();
+loadSpamMailComponent();
