@@ -29,14 +29,6 @@ body {
   margin-top: -35px;
 }
 
-#data-output div {
-  border: 1px solid #ccc;
-
-  padding: 10px;
-
-  background-color: #fafafa;
-}
-
 #errorDisplay {
   margin-top: 20px;
   font-size: 14px;
