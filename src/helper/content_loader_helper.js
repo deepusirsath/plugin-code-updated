@@ -1,5 +1,5 @@
 /**
- * Helper functions for loading external HTMl content and Js scripts
+ * Helper functions for loading external HTML content, JS scripts, and CSS files
  */
 
 /**
@@ -7,7 +7,7 @@
  * @param {string} url - The URL from which to fetch the HTML content
  * @returns {Promise<string>} The HTML content as text
  * @throws {Error} Logs error to console if fetch fails
- * 
+ *
  * @example
  * const content = await loadHTMLContent('https://example.com/content.html');
  */
@@ -24,30 +24,45 @@ export const loadHTMLContent = async (url) => {
 /**
  * Dynamically loads a JavaScript file by injecting a script tag into the document body
  * @param {string} scriptUrl - The URL of the JavaScript file to load
- * 
+ *
  * @example
  * loadScript('https://example.com/script.js');
  */
 export const loadScript = (scriptUrl) => {
   const script = document.createElement("script");
-  script.type = 'module';
+  script.type = "module";
   script.src = scriptUrl;
   document.body.appendChild(script);
   return script;
 };
 
 /**
- * Dynamically loads a component by fetching its HTML content and JavaScript file
- * 
+ * Dynamically loads a CSS file by injecting a link tag into the document head
+ * @param {string} cssUrl - The URL of the CSS file to load
+ *
+ * @example
+ * loadCSS('https://example.com/style.css');
+ */
+export const loadCSS = (cssUrl) => {
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = cssUrl;
+  document.head.appendChild(link);
+  return link;
+};
+
+/**
+ * Dynamically loads a component by fetching its HTML content, JavaScript file, and CSS file
+ *
  * @param {Object} config - Configuration object containing component details
  * @param {string} config.componentName - Name of the component to load (e.g. 'header', 'sidebar')
  * @param {string} config.basePath - Base path where components are located ('component' or 'pages')
  * @param {string} config.targetId - HTML element ID where the component will be inserted
- * 
+ *
  * @returns {Promise<void>} Resolves when component is loaded and inserted
- * 
+ *
  * @throws {Error} If target element is not found or HTML content cannot be loaded
- * 
+ *
  * @example
  * // Load a header component
  * await loadComponent({
@@ -55,7 +70,7 @@ export const loadScript = (scriptUrl) => {
  *   basePath: 'component',
  *   targetId: 'header-container'
  * });
- * 
+ *
  * @description
  * This function performs the following steps:
  * 1. Constructs file paths for HTML and JS files based on the component name
@@ -65,7 +80,14 @@ export const loadScript = (scriptUrl) => {
  */
 export const loadComponent = async ({ componentName, basePath, targetId }) => {
   const fileName = `/src/${basePath}/${componentName}/${componentName}`;
+
+  // Load HTML content
   const htmlContent = await loadHTMLContent(`${fileName}.html`);
   document.getElementById(targetId).innerHTML = htmlContent;
+
+  // Load JavaScript file
   loadScript(`${fileName}.js`);
+
+  // Load CSS file
+  loadCSS(`${fileName}.css`);
 };
