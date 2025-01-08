@@ -4,7 +4,6 @@ import { createTable } from "/src/component/table/table.js";
 import { COMPONENTS } from "/src/constant/component.js";
 import { TARGET_ID } from "/src/constant/target_id.js";
 
-// Load the table HTML component
 const loadTableComponent = async () => {
   try {
     await loadComponent({
@@ -17,14 +16,14 @@ const loadTableComponent = async () => {
     const table = createTable("data-output");
 
     // Set headers
-    const headers = ["Name", "Age", "City"];
+    const headers = ["Name", "Age", "City", "Status"];
     table.setHeaders(headers);
 
-    // Set data
+    // Set data with status chips
     const data = [
-      ["John Doe", "25", "New York"],
-      ["Jane Smith", "30", "London"],
-      ["Bob Johnson", "35", "Paris"],
+      ["John Doe", "25", "New York", { type: "status", value: "safe" }],
+      ["Jane Smith", "30", "London", { type: "status", value: "pending" }],
+      ["Bob Johnson", "35", "Paris", { type: "status", value: "unsafe" }],
     ];
     table.setData(data);
   } catch (error) {

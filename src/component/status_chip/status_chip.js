@@ -7,12 +7,13 @@ export function createChip() {
     };
 
     const chipClass = statusColors[status.toLowerCase()] || "chip-default";
+    const chipContainer = document.getElementById("status-chip");
 
-    const chipElement = document.createElement("div");
-    chipElement.className = `chip ${chipClass}`;
-    chipElement.textContent = status;
-
-    return chipElement;
+    if (chipContainer) {
+      chipContainer.className = `chip ${chipClass}`;
+      chipContainer.textContent = status;
+      return chipContainer;
+    }
   }
 
   return {
