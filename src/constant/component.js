@@ -8,4 +8,5 @@ export const COMPONENTS = {
     DISPUTE_MAIL: "dispute-mail",
     SPAM_MAIL: "spam-mail",
     REGISTRATION: "registration",
+    TABLE: "table",
   };
