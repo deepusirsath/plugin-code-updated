@@ -16,6 +16,9 @@ const handleButtonClick = async (componentName) => {
       basePath: BASEPATH.PAGES,
       targetId: TARGET_ID.DATA_OUTPUT,
     });
+    document.dispatchEvent(new CustomEvent('componentLoaded', { 
+      detail: { componentName } 
+    }));
   } catch (error) {
     document.getElementById(
       "errorDisplay"

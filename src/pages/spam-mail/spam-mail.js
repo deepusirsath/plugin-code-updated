@@ -33,5 +33,13 @@ const loadTableComponent = async () => {
   }
 };
 
+// Add event listener for when this component is loaded
+document.addEventListener("componentLoaded", (event) => {
+  console.log("Component loaded:", event.detail.componentName);
+  if (event.detail.componentName === COMPONENTS.SPAM_MAIL) {
+    loadTableComponent();
+  }
+});
+
 // Call the function to load the table component
 loadTableComponent();
