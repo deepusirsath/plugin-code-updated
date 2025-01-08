@@ -1,5 +1,5 @@
 export const createTable = () => {
-
+  
   const setHeaders = (headers) => {
     const headerRow = document.getElementById("tableHeader");
     const headerHTML = `

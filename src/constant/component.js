@@ -9,4 +9,5 @@ export const COMPONENTS = {
     SPAM_MAIL: "spam-mail",
     REGISTRATION: "registration",
     TABLE: "table",
+    STATUS_CHIP: "status_chip",
   };
