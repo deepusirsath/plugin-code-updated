@@ -16,14 +16,33 @@ const loadSpamMailComponent = async () => {
     const table = createTable("data-output");
 
     // Set headers
-    const headers = ["Name", "Age", "City", "Status"];
+    const headers = ["Sender", "Status", "Action"];
     table.setHeaders(headers);
 
-    // Set data with status chips
+    // Set data with status chips and action button
     const data = [
-      ["John Doe", "25", "New York", { type: "status", value: "safe" }],
-      ["Jane Smith", "30", "London", { type: "status", value: "pending" }],
-      ["Bob Johnson", "35", "Paris", { type: "status", value: "unsafe" }],
+      [
+        "john.doe@example.com",
+        "safe",
+        `<button class="view-btn">View</button>`,
+      ],
+      [
+        "jane.smith@example.com",
+        "pending",
+        `<button class="view-btn">View</button>`,
+      ],
+      ["bob@example.com", "unsafe", `<button class="view-btn">View</button>`],
+      [
+        "john.doe@example.com",
+        "safe",
+        `<button class="view-btn">View</button>`,
+      ],
+      [
+        "jane.smith@example.com",
+        "pending",
+        `<button class="view-btn">View</button>`,
+      ],
+      ["bob@example.com", "unsafe", `<button class="view-btn">View</button>`],
     ];
     table.setData(data);
   } catch (error) {
