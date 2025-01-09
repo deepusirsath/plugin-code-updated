@@ -1,47 +1,89 @@
 export const createTable = () => {
-  let currentPage = 1;
-  const rowsPerPage = 5;
   let totalData = [];
   let filteredData = [];
+  let currentPage = 1;
+  const rowsPerPage = 5;
 
-  // Initialize search functionality
-  const initializeSearch = () => {
-    const searchInput = document.getElementById("searchInput");
-    const searchButton = document.getElementById("searchButton");
-    const clearButton = document.getElementById("clearButton");
-
-    const performSearch = () => {
-      const searchTerm = searchInput.value.toLowerCase();
-      filteredData = totalData.filter((row) =>
-        row.some(
-          (cell) =>
-            typeof cell === "string" && cell.toLowerCase().includes(searchTerm)
-        )
-      );
-      currentPage = 1;
-      renderPage();
-    };
-
-    const clearSearch = () => {
-      searchInput.value = "";
-      filteredData = [];
-      currentPage = 1;
-      renderPage();
-    };
-
-    searchButton.addEventListener("click", performSearch);
-    clearButton.addEventListener("click", clearSearch);
+  // DOM Elements
+  const elements = {
+    searchInput: document.getElementById("searchInput"),
+    searchButton: document.getElementById("searchButton"),
+    clearButton: document.getElementById("clearButton"),
+    headerRow: document.getElementById("tableHeader"),
+    tableBody: document.getElementById("tableBody"),
+    prevButton: document.getElementById("prevPage"),
+    nextButton: document.getElementById("nextPage"),
+    pageInfo: document.getElementById("pageInfo"),
   };
 
-  const setHeaders = (headers) => {
-    const headerRow = document.getElementById("tableHeader");
-    const headerHTML = `
-      <tr>
-        ${headers.map((header) => `<th>${header}</th>`).join("")}
-      </tr>
-    `;
-    headerRow.innerHTML = headerHTML;
-    initializeSearch();
+  const updateSearchResults = () => {
+    const searchTerm = elements.searchInput.value.toLowerCase();
+    filteredData = totalData.filter((row) =>
+      row.some(
+        (cell) =>
+          typeof cell === "string" && cell.toLowerCase().includes(searchTerm)
+      )
+    );
+    currentPage = 1;
+    renderPage();
+  };
+
+  const clearSearchResults = () => {
+    elements.searchInput.value = "";
+    filteredData = [];
+    currentPage = 1;
+    renderPage();
+  };
+
+  const attachSearchListeners = () => {
+    elements.searchButton.addEventListener("click", updateSearchResults);
+    elements.clearButton.addEventListener("click", clearSearchResults);
+  };
+
+  const renderHeaders = (headers) => {
+    elements.headerRow.innerHTML = headers
+      .map((header) => `<th>${header}</th>`)
+      .join("");
+    attachSearchListeners();
+  };
+
+  const updatePaginationControls = () => {
+    const dataToUse = filteredData.length ? filteredData : totalData;
+    const totalPages = Math.ceil(dataToUse.length / rowsPerPage);
+
+    elements.prevButton.disabled = currentPage === 1;
+    elements.nextButton.disabled = currentPage === totalPages;
+    elements.pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+
+    elements.prevButton.onclick = () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderPage();
+      }
+    };
+
+    elements.nextButton.onclick = () => {
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderPage();
+      }
+    };
+  };
+
+  const renderData = (data) => {
+    elements.tableBody.innerHTML = data
+      .map(
+        (row) => `<tr>${row.map((cell) => `<td>${cell}</td>`).join("")}</tr>`
+      )
+      .join("");
+  };
+
+  const renderPage = () => {
+    const dataToUse = filteredData.length ? filteredData : totalData;
+    const start = (currentPage - 1) * rowsPerPage;
+    const pageData = dataToUse.slice(start, start + rowsPerPage);
+    renderData(pageData);
+    updatePaginationControls();
   };
 
   const setData = (data) => {
@@ -50,57 +92,8 @@ export const createTable = () => {
     renderPage();
   };
 
-  const updatePaginationControls = () => {
-    const dataToUse = filteredData.length > 0 ? filteredData : totalData;
-    const totalPages = Math.ceil(dataToUse.length / rowsPerPage);
-    const prevButton = document.getElementById("prevPage");
-    const nextButton = document.getElementById("nextPage");
-    const pageInfo = document.getElementById("pageInfo");
-
-    prevButton.disabled = currentPage === 1;
-    nextButton.disabled = currentPage === totalPages;
-    pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-
-    prevButton.onclick = () => {
-      if (currentPage > 1) {
-        currentPage--;
-        renderPage();
-      }
-    };
-
-    nextButton.onclick = () => {
-      if (currentPage < totalPages) {
-        currentPage++;
-        renderPage();
-      }
-    };
-  };
-
-  const renderPage = () => {
-    const dataToUse = filteredData.length > 0 ? filteredData : totalData;
-    const start = (currentPage - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
-    const pageData = dataToUse.slice(start, end);
-    renderData(pageData);
-    updatePaginationControls();
-  };
-
-  const renderData = (data) => {
-    const tableBody = document.getElementById("tableBody");
-    const rowsHTML = data
-      .map(
-        (row) => `
-          <tr>
-            ${row.map((cell) => `<td>${cell}</td>`).join("")}
-          </tr>
-        `
-      )
-      .join("");
-    tableBody.innerHTML = rowsHTML;
-  };
-
   return {
-    setHeaders,
+    setHeaders: renderHeaders,
     setData,
   };
 };
