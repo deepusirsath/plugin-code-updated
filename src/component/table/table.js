@@ -31,9 +31,6 @@ export const createTable = () => {
 
     searchButton.addEventListener("click", performSearch);
     clearButton.addEventListener("click", clearSearch);
-
-    // Also keep the real-time search functionality
-    searchInput.addEventListener("input", performSearch);
   };
 
   const setHeaders = (headers) => {
@@ -45,6 +42,12 @@ export const createTable = () => {
     `;
     headerRow.innerHTML = headerHTML;
     initializeSearch();
+  };
+
+  const setData = (data) => {
+    totalData = data;
+    filteredData = [];
+    renderPage();
   };
 
   const updatePaginationControls = () => {
@@ -94,12 +97,6 @@ export const createTable = () => {
       )
       .join("");
     tableBody.innerHTML = rowsHTML;
-  };
-
-  const setData = (data) => {
-    totalData = data;
-    filteredData = [];
-    renderPage();
   };
 
   return {
