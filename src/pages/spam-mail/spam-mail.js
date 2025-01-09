@@ -20,32 +20,33 @@ const loadSpamMailComponent = async () => {
       {
         sender: "john.doe@example.com",
         status: "safe",
-        action: "view"
+        action: "view",
       },
       {
-        sender: "jane.smith@example.com", 
+        sender: "jane.smith@example.com",
         status: "pending",
-        action: "view"
+        action: "view",
       },
       {
         sender: "bob@example.com",
-        status: "unsafe", 
-        action: "view"
-      }
+        status: "unsafe",
+        action: "view",
+      },
     ];
 
-    const formattedData = data.map(item => [
+    const formattedData = data.map((item) => [
       item.sender,
       `<span class="status-chip ${item.status}">${item.status}</span>`,
-      `<button class="view-btn">View</button>`
+      `<button class="view-btn">View</button>`,
     ]);
 
     table.setData(formattedData);
   } catch (error) {
-    document.getElementById("errorDisplay").innerHTML = `Loading error: ${error.message}`;
+    document.getElementById(
+      "errorDisplay"
+    ).innerHTML = `Loading error: ${error.message}`;
   }
 };
-
 
 // Add event listener for when this component is loaded
 document.addEventListener("componentLoaded", (event) => {
@@ -57,5 +58,3 @@ document.addEventListener("componentLoaded", (event) => {
 
 // Call the function to load the table component
 loadSpamMailComponent();
-
-
