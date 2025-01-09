@@ -34,19 +34,15 @@ function createBarChart(data) {
   function createBar(value, label, color) {
     const barContainer = document.createElement("div");
     barContainer.classList.add("bar-container");
-
     const barHeight = value === 0 ? 0.5 : (value / maxValue) * barMaxHeight;
-
     const bar = document.createElement("div");
     bar.classList.add("bar");
     bar.style.height = `${barHeight}px`;
     bar.style.backgroundColor = color;
     bar.textContent = value; // Display value inside the bar
-
     const barLabel = document.createElement("span");
     barLabel.classList.add("bar-label");
     barLabel.textContent = label;
-
     barContainer.appendChild(bar);
     barContainer.appendChild(barLabel);
     return barContainer;
