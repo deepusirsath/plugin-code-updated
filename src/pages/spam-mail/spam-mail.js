@@ -1,7 +1,11 @@
 import { BASEPATH } from "/src/constant/basepath.js";
 import { COMPONENTS } from "/src/constant/component.js";
 import { createTable } from "/src/component/table/table.js";
-import { loadComponent, loadCSS } from "/src/helper/content_loader_helper.js";
+import {
+  loadComponent,
+  loadCSS,
+  loadScript,
+} from "/src/helper/content_loader_helper.js";
 import { TARGET_ID } from "/src/constant/target_id.js";
 import { createStatusChip } from "/src/component/status_chip/status_chip.js";
 import { createViewButton } from "/src/component/view_button/view_button.js";
@@ -45,10 +49,20 @@ const loadSpamMailComponent = async () => {
     const formattedData = data.map((item) => [
       item.sender,
       createStatusChip(item.status).outerHTML,
-      createViewButton(item.sender).outerHTML
+      createViewButton(item.sender).outerHTML,
     ]);
 
     table.setData(formattedData);
+
+    document.querySelectorAll(".view-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        loadComponent({
+          componentName: COMPONENTS.VIEW_DETAIL,
+          basePath: BASEPATH.COMPONENT,
+          targetId: TARGET_ID.DATA_OUTPUT,
+        });
+      });
+    });
   } catch (error) {
     document.getElementById(
       "errorDisplay"
