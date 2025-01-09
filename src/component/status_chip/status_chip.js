@@ -1,8 +1,11 @@
-export const createChip = (status) => {
-  const template = document.getElementById('chip-template');
-  const chip = template.content.cloneNode(true).querySelector('.status-chip');
-  chip.classList.add(status);
+export const createStatusChip = (status) => {
+  const chip = document.createElement('span');
+  chip.className = `status-chip ${status}`;
   chip.textContent = status;
   return chip;
 };
 
+// Initialize component when loaded
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('Status chip component loaded');
+});

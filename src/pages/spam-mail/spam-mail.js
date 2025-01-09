@@ -1,8 +1,11 @@
 import { BASEPATH } from "/src/constant/basepath.js";
 import { COMPONENTS } from "/src/constant/component.js";
 import { createTable } from "/src/component/table/table.js";
-import { loadComponent } from "/src/helper/content_loader_helper.js";
+import { loadComponent, loadCSS } from "/src/helper/content_loader_helper.js";
 import { TARGET_ID } from "/src/constant/target_id.js";
+import { createStatusChip } from "/src/component/status_chip/status_chip.js";
+
+const fileName = `/src/${BASEPATH.COMPONENT}/${COMPONENTS.STATUS_CHIP}/${COMPONENTS.STATUS_CHIP}`;
 
 const loadSpamMailComponent = async () => {
   try {
@@ -11,6 +14,8 @@ const loadSpamMailComponent = async () => {
       basePath: BASEPATH.COMPONENT,
       targetId: TARGET_ID.DATA_OUTPUT,
     });
+
+    loadCSS(`${fileName}.css`);
 
     const table = createTable("data-output");
     const headers = ["Sender", "Status", "Action"];
@@ -36,7 +41,7 @@ const loadSpamMailComponent = async () => {
 
     const formattedData = data.map((item) => [
       item.sender,
-      `<span class="status-chip ${item.status}">${item.status}</span>`,
+      createStatusChip(item.status).outerHTML,
       `<button class="view-btn">View</button>`,
     ]);
 
