@@ -17,7 +17,6 @@ export const initializeViewDetail = (emailData) => {
   const closeButton = document.querySelector(".close-popup");
   if (closeButton) {
     const closeHandler = async () => {
-      
       await loadComponent({
         componentName: COMPONENTS.SPAM_MAIL,
         basePath: BASEPATH.COMPONENT,
@@ -25,7 +24,7 @@ export const initializeViewDetail = (emailData) => {
       });
       closeButton.removeEventListener("click", closeHandler);
     };
-    
+
     closeButton.addEventListener("click", closeHandler);
   }
 };
