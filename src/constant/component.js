@@ -10,4 +10,6 @@ export const COMPONENTS = {
     REGISTRATION: "registration",
     TABLE: "table",
     STATUS_CHIP: "status_chip",
+    VIEW_BUTTON: "view_button",
+    VIEW_DETAIL: "view_detail",
   };

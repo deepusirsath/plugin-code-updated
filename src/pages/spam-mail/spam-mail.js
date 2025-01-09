@@ -4,8 +4,10 @@ import { createTable } from "/src/component/table/table.js";
 import { loadComponent, loadCSS } from "/src/helper/content_loader_helper.js";
 import { TARGET_ID } from "/src/constant/target_id.js";
 import { createStatusChip } from "/src/component/status_chip/status_chip.js";
+import { createViewButton } from "/src/component/view_button/view_button.js";
 
 const status_chip = `/src/${BASEPATH.COMPONENT}/${COMPONENTS.STATUS_CHIP}/${COMPONENTS.STATUS_CHIP}`;
+const view_button = `/src/${BASEPATH.COMPONENT}/${COMPONENTS.VIEW_BUTTON}/${COMPONENTS.VIEW_BUTTON}`;
 
 const loadSpamMailComponent = async () => {
   try {
@@ -16,6 +18,7 @@ const loadSpamMailComponent = async () => {
     });
 
     loadCSS(`${status_chip}.css`);
+    loadCSS(`${view_button}.css`);
 
     const table = createTable("data-output");
     const headers = ["Sender", "Status", "Action"];
@@ -42,7 +45,7 @@ const loadSpamMailComponent = async () => {
     const formattedData = data.map((item) => [
       item.sender,
       createStatusChip(item.status).outerHTML,
-      `<button class="view-btn">View</button>`,
+      createViewButton(item.sender).outerHTML
     ]);
 
     table.setData(formattedData);
