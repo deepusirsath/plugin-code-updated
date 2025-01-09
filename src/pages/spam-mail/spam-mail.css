@@ -10,3 +10,28 @@
 .view-btn:hover {
     background-color: #45a049;
 }
+
+.status-chip {
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 14px;
+    font-weight: 500;
+    text-transform: capitalize;
+    display: inline-block;
+  }
+  
+  .status-chip.safe {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+  }
+  
+  .status-chip.unsafe {
+    background-color: #ffebee;
+    color: #c62828;
+  }
+  
+  .status-chip.pending {
+    background-color: #fff3e0;
+    color: #ef6c00;
+  }
+  

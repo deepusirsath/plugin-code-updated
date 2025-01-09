@@ -12,45 +12,40 @@ const loadSpamMailComponent = async () => {
       targetId: TARGET_ID.DATA_OUTPUT,
     });
 
-    // After loading HTML, initialize the table
     const table = createTable("data-output");
-
-    // Set headers
     const headers = ["Sender", "Status", "Action"];
     table.setHeaders(headers);
 
-    // Set data with status chips and action button
     const data = [
-      [
-        "john.doe@example.com",
-        "safe",
-        `<button class="view-btn">View</button>`,
-      ],
-      [
-        "jane.smith@example.com",
-        "pending",
-        `<button class="view-btn">View</button>`,
-      ],
-      ["bob@example.com", "unsafe", `<button class="view-btn">View</button>`],
-      [
-        "john.doe@example.com",
-        "safe",
-        `<button class="view-btn">View</button>`,
-      ],
-      [
-        "jane.smith@example.com",
-        "pending",
-        `<button class="view-btn">View</button>`,
-      ],
-      ["bob@example.com", "unsafe", `<button class="view-btn">View</button>`],
+      {
+        sender: "john.doe@example.com",
+        status: "safe",
+        action: "view"
+      },
+      {
+        sender: "jane.smith@example.com", 
+        status: "pending",
+        action: "view"
+      },
+      {
+        sender: "bob@example.com",
+        status: "unsafe", 
+        action: "view"
+      }
     ];
-    table.setData(data);
+
+    const formattedData = data.map(item => [
+      item.sender,
+      `<span class="status-chip ${item.status}">${item.status}</span>`,
+      `<button class="view-btn">View</button>`
+    ]);
+
+    table.setData(formattedData);
   } catch (error) {
-    document.getElementById(
-      "errorDisplay"
-    ).innerHTML = `Loading error: ${error.message}`;
+    document.getElementById("errorDisplay").innerHTML = `Loading error: ${error.message}`;
   }
 };
+
 
 // Add event listener for when this component is loaded
 document.addEventListener("componentLoaded", (event) => {
@@ -62,3 +57,5 @@ document.addEventListener("componentLoaded", (event) => {
 
 // Call the function to load the table component
 loadSpamMailComponent();
+
+

@@ -1,25 +1,22 @@
-.chip {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 16px;
-    color: white;
-    font-size: 12px;
-    text-transform: capitalize;
-  }
-  
-  .chip-safe {
-    background-color: #4CAF50;
-  }
-  
-  .chip-unsafe {
-    background-color: #F44336;
-  }
-  
-  .chip-pending {
-    background-color: #FFC107;
-  }
-  
-  .chip-default {
-    background-color: #757575;
-  }
-  
+.status-chip {
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.status-chip.safe {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-chip.pending {
+  background-color: #fff3e0;
+  color: #ef6c00;
+}
+
+.status-chip.unsafe {
+  background-color: #ffebee;
+  color: #c62828;
+}
