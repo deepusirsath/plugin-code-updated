@@ -5,7 +5,7 @@ import { loadComponent, loadCSS } from "/src/helper/content_loader_helper.js";
 import { TARGET_ID } from "/src/constant/target_id.js";
 import { createStatusChip } from "/src/component/status_chip/status_chip.js";
 
-const fileName = `/src/${BASEPATH.COMPONENT}/${COMPONENTS.STATUS_CHIP}/${COMPONENTS.STATUS_CHIP}`;
+const status_chip = `/src/${BASEPATH.COMPONENT}/${COMPONENTS.STATUS_CHIP}/${COMPONENTS.STATUS_CHIP}`;
 
 const loadSpamMailComponent = async () => {
   try {
@@ -15,7 +15,7 @@ const loadSpamMailComponent = async () => {
       targetId: TARGET_ID.DATA_OUTPUT,
     });
 
-    loadCSS(`${fileName}.css`);
+    loadCSS(`${status_chip}.css`);
 
     const table = createTable("data-output");
     const headers = ["Sender", "Status", "Action"];
@@ -55,7 +55,6 @@ const loadSpamMailComponent = async () => {
 
 // Add event listener for when this component is loaded
 document.addEventListener("componentLoaded", (event) => {
-  console.log("Component loaded:", event.detail.componentName);
   if (event.detail.componentName === COMPONENTS.SPAM_MAIL) {
     loadSpamMailComponent();
   }

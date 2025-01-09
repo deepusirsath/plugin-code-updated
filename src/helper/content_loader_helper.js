@@ -12,8 +12,6 @@
  * const content = await loadHTMLContent('https://example.com/content.html');
  */
 export const loadHTMLContent = async (url) => {
-  console.log("Loading HTML content from:", url);
-  
   try {
     const response = await fetch(url);
     return await response.text();
