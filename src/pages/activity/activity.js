@@ -78,7 +78,12 @@ createBarChart(data);
 
 // Add event listener for when this component is loaded
 document.addEventListener("componentLoaded", (event) => {
-  if (event.detail.componentName === COMPONENTS.ACTIVITy) {
-    createBarChart();
+  if (event.detail.componentName === COMPONENTS.ACTIVITY) {
+    const data = {
+      totalMail: 120,
+      totalSpamMail: 80,
+      totalDisputeMail: 50,
+    };
+    createBarChart(data);
   }
 });
