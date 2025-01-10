@@ -7,6 +7,7 @@ import { createStatusChip } from "/src/component/status_chip/status_chip.js";
 import { createViewDetail } from "/src/component/view_detail/view_detail.js";
 import { loadComponent, loadCSS } from "/src/helper/content_loader_helper.js";
 import { postData } from "/src/api/api_method.js";
+import { SPAM_MAIL, GET_ACTION_VIEW_DETAIL } from "/src/routes/api_route.js";
 
 const status_chip = `/src/${BASEPATH.COMPONENT}/${COMPONENTS.STATUS_CHIP}/${COMPONENTS.STATUS_CHIP}`;
 const view_button = `/src/${BASEPATH.COMPONENT}/${COMPONENTS.VIEW_BUTTON}/${COMPONENTS.VIEW_BUTTON}`;
@@ -68,7 +69,7 @@ const getAllSpamMail = async (page = 1) => {
       emailId: "deepali@ekvayu.com",
       page: page,
     };
-    const response = await postData(`/spam-email/?page=${page}`, requestData);
+    const response = await postData(`${SPAM_MAIL}?page=${page}`, requestData);
     return response.results;
   } catch (error) {
     console.log(error);
@@ -81,7 +82,7 @@ const getViewDetailOfSpamMail = async (msg_id) => {
       messageId: msg_id,
       email: "deepali@ekvayu.com",
     };
-    const response = await postData(`/action-view/`, requestData);
+    const response = await postData(`${GET_ACTION_VIEW_DETAIL}`, requestData);
     return response.data;
   } catch (error) {
     console.log(error);
