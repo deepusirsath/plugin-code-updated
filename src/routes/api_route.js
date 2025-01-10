@@ -7,3 +7,4 @@ export const DISPUTES_RAISE = "/raise-dispute/";
 export const PLUGIN_COUNTER = "/get-counter-count/";
 export const PENDING_STATUS_CHECK = "/pending-status-check/";
 export const UPDATE_EMAIL_STATUS = "/update-email-details/";
+export const GET_DISPUTE_RAISE_DATA = "/get-disputes-raise-data/";
