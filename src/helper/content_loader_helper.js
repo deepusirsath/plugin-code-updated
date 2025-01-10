@@ -12,8 +12,6 @@
  * const content = await loadHTMLContent('https://example.com/content.html');
  */
 export const loadHTMLContent = async (url) => {
-  console.log("Loading HTML content from:", url);
-  
   try {
     const response = await fetch(url);
     return await response.text();
@@ -30,6 +28,7 @@ export const loadHTMLContent = async (url) => {
  * loadScript('https://example.com/script.js');
  */
 export const loadScript = (scriptUrl) => {
+  console.log("loadScript", scriptUrl);
   const script = document.createElement("script");
   script.type = "module";
   script.src = scriptUrl;
@@ -45,6 +44,7 @@ export const loadScript = (scriptUrl) => {
  * loadCSS('https://example.com/style.css');
  */
 export const loadCSS = (cssUrl) => {
+  console.log("loadCSS", cssUrl);
   const link = document.createElement("link");
   link.rel = "stylesheet";
   link.href = cssUrl;

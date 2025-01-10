@@ -1,22 +1,11 @@
-export function createChip() {
-  function render(status) {
-    const statusColors = {
-      safe: "chip-safe",
-      unsafe: "chip-unsafe",
-      pending: "chip-pending",
-    };
+export const createStatusChip = (status) => {
+  const chip = document.createElement('span');
+  chip.className = `status-chip ${status}`;
+  chip.textContent = status;
+  return chip;
+};
 
-    const chipClass = statusColors[status.toLowerCase()] || "chip-default";
-    const chipContainer = document.getElementById("status-chip");
-
-    if (chipContainer) {
-      chipContainer.className = `chip ${chipClass}`;
-      chipContainer.textContent = status;
-      return chipContainer;
-    }
-  }
-
-  return {
-    render: render,
-  };
-}
+// Initialize component when loaded
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('Status chip component loaded');
+});
