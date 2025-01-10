@@ -1,0 +1,80 @@
+/* Container */
+.container-A {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 70vh;
+    background-color: #f9f9f9;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  /* Message Box */
+  .message-box {
+    text-align: center;
+    background: #ffffff;
+    padding: 40px 80px 30px;  /* Added more padding for better spacing */
+    border-radius: 8px;
+    box-shadow: 0px 4px 20px rgba(229, 229, 229, 0.1);
+    /* max-width: 350px; */
+    width: 100%;
+    /* height: 50vh; */
+    position: relative;
+    animation: fadeIn 1s ease-in-out;
+  }
+  
+  /* Image (Email Envelope) */
+  .email-envelope {
+    width: 80px;
+    height: 80px;
+    background-image: url("../../icons/open-email.png"); /* Replace with your image path */
+    background-size: cover;
+    background-position: center;
+    margin: 0 auto 20px;  /* Centers the image and adds space below */
+    animation: fadeIn 1s ease-in-out;
+  }
+  
+  /* Title */
+  .animate-text {
+    font-size: 1.6rem;
+    font-weight: bold;
+    color: #333333;
+    margin-bottom: 15px;
+    animation: fadeIn 1s ease-in-out;
+  }
+  
+  /* Subtext */
+  .subtext {
+    font-size: 1rem;
+    color: #777777;
+    line-height: 1.5;
+    opacity: 0;
+    animation: fadeSubText 1s ease-in-out 0.5s forwards;
+  }
+  
+  /* Animations */
+  @keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+  }
+  
+  @keyframes fadeSubText {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+  }
+  
+  
+  
+  
+  
+  
+  
+  

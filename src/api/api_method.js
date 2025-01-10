@@ -1,10 +1,13 @@
+import { apiRequest } from "./api_request.js";
+import config from "../../config.js";
+
 /**
  * Sends a GET request to the specified endpoint.
  * @param {string} endpoint - The API endpoint to request data from.
  * @returns {Promise<Object>} The response data from the server.
  */
-async function getData(endpoint) {
-  const url = `${baseUrl}${endpoint}`;
+export async function getData(endpoint) {
+  const url = `${config.BASE_URL}${endpoint}`;
   return await apiRequest(url, "GET");
 }
 
@@ -14,8 +17,8 @@ async function getData(endpoint) {
  * @param {Object} data - The data to send in the request body.
  * @returns {Promise<Object>} The response data from the server.
  */
-async function postData(endpoint, data) {
-  const url = `${baseUrl}${endpoint}`;
+export async function postData(endpoint, data) {
+  const url = `${config.BASE_URL}${endpoint}`;
   return await apiRequest(url, "POST", data);
 }
 
@@ -25,8 +28,8 @@ async function postData(endpoint, data) {
  * @param {Object} data - The data to update in the request body.
  * @returns {Promise<Object>} The response data from the server.
  */
-async function putData(endpoint, data) {
-  const url = `${baseUrl}${endpoint}`;
+export async function putData(endpoint, data) {
+  const url = `${config.BASE_URL}${endpoint}`;
   return await apiRequest(url, "PUT", data);
 }
 
@@ -36,7 +39,7 @@ async function putData(endpoint, data) {
  * @param {Object} [data=null] - Optional data to send in the request body.
  * @returns {Promise<Object>} The response data from the server.
  */
-async function deleteData(endpoint, data = null) {
-  const url = `${baseUrl}${endpoint}`;
+export async function deleteData(endpoint, data = null) {
+  const url = `${config.BASE_URL}${endpoint}`;
   return await apiRequest(url, "DELETE", data);
 }
