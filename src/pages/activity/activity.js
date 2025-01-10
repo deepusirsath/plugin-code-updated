@@ -30,21 +30,42 @@ function createBarChart(data) {
   const chartContainer = document.createElement("div");
   chartContainer.classList.add("chart-container");
 
+
   // Function to create each bar
   function createBar(value, label, color) {
     const barContainer = document.createElement("div");
     barContainer.classList.add("bar-container");
     const barHeight = value === 0 ? 0.5 : (value / maxValue) * barMaxHeight;
+    
+
+     // Create value display at top
+     const valueDisplay = document.createElement("span");
+     valueDisplay.classList.add("bar-value");
+     valueDisplay.textContent = value;
+     valueDisplay.style.position = "absolute";
+     valueDisplay.style.top = "0";
+     valueDisplay.style.width = "100%";
+     valueDisplay.style.textAlign = "center";
+     
+    //label for bar
+    const barLabel = document.createElement("span");
+    barLabel.classList.add("bar-label");
+    barLabel.textContent = label;
+
+    //create bar 
     const bar = document.createElement("div");
     bar.classList.add("bar");
     bar.style.height = `${barHeight}px`;
     bar.style.backgroundColor = color;
-    bar.textContent = value; // Display value inside the bar
-    const barLabel = document.createElement("span");
-    barLabel.classList.add("bar-label");
-    barLabel.textContent = label;
-    barContainer.appendChild(bar);
+    // bar.textContent = value; // Display value inside the bar
+    // const barLabel = document.createElement("span");
+    // barLabel.classList.add("bar-label");
+    // barLabel.textContent = label;
+
+    barContainer.appendChild(valueDisplay);
     barContainer.appendChild(barLabel);
+    barContainer.appendChild(bar);
+    // barContainer.appendChild(barLabel);
     return barContainer;
   }
 
@@ -58,6 +79,7 @@ function createBarChart(data) {
   // Append y-axis and chart to wrapper
   chartWrapper.appendChild(yAxisContainer);
   chartWrapper.appendChild(chartContainer);
+  
 
   // Append wrapper to output div
   dataOutput.appendChild(chartWrapper);

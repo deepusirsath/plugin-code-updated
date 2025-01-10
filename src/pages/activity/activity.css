@@ -24,8 +24,8 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    height: 350px;
-    margin-right: 10px;
+    height: 352px;
+    /* margin-right: 5px; */
     border-right: 2px solid black;
     padding-right: 10px;
 }
@@ -36,22 +36,26 @@ body {
 }
 
 .bar-container {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding-top: 20px; /* Add space for the label at top */
 }
 
+
+.bar-value {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+
 .bar {
-    width: 40px;
+    width: 53px;
     border-radius: 5px 5px 0 0;
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    color: #fff;
-    font-size: 12px;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .bar-label {
-    margin-top: 10px;
+    font-size: 12px;
+    margin-bottom: 2px;
 }
