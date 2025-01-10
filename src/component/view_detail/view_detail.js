@@ -1,4 +1,5 @@
 export const createViewDetail = (sender, onClose) => {
+  console.log("createViewDetail called", sender);
   const popup = document.createElement("div");
   popup.className = "popup";
   popup.innerHTML = `

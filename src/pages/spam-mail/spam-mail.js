@@ -12,8 +12,9 @@ const status_chip = `/src/${BASEPATH.COMPONENT}/${COMPONENTS.STATUS_CHIP}/${COMP
 const view_button = `/src/${BASEPATH.COMPONENT}/${COMPONENTS.VIEW_BUTTON}/${COMPONENTS.VIEW_BUTTON}`;
 const view_detail = `/src/${BASEPATH.COMPONENT}/${COMPONENTS.VIEW_DETAIL}/${COMPONENTS.VIEW_DETAIL}`;
 
-const showPopup = (sender) => {
-  createViewDetail(sender, loadSpamMailComponent);
+const showPopup = (msg_id) => {
+  createViewDetail(msg_id, loadSpamMailComponent);
+  getViewDetailOfSpamMail(msg_id);
 };
 
 const loadSpamMailComponent = async () => {
@@ -40,7 +41,7 @@ const loadSpamMailComponent = async () => {
     const formattedData = spamMailData.map((item) => [
       item.senders_email,
       createStatusChip(item.status).outerHTML,
-      createViewButton(item.sender).outerHTML,
+      createViewButton(item.msg_id).outerHTML,
     ]);
 
     // Set formatted data to table
@@ -48,9 +49,10 @@ const loadSpamMailComponent = async () => {
 
     // Add click handlers for view buttons
     document.querySelectorAll(".view-button").forEach((button) => {
+      console.log(button);
       button.addEventListener("click", () => {
         loadCSS(`${view_detail}.css`);
-        showPopup(button.dataset.sender);
+        showPopup(button.dataset.sender, button.dataset.msgId);
       });
     });
   } catch (error) {
@@ -74,7 +76,7 @@ const getAllSpamMail = async (page = 1) => {
   }
 };
 
-const getViewDetailOfSpamMail = async () => {
+const getViewDetailOfSpamMail = async (msg_id) => {
   try {
     const requestData = {
       messageId:
