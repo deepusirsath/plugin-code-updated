@@ -74,6 +74,21 @@ const getAllSpamMail = async (page = 1) => {
   }
 };
 
+const getViewDetailOfSpamMail = async (page = 1) => {
+  try {
+    const requestData = {
+      messageId:
+        "AQQkADAwATM3ZmYAZS00OTE0LWQ2NGItMDACLTAwCgAQAHwoFBwZXF9Kq5ZXZ2uDRMg=_20241219_1604_1",
+      email: "deepali.sirsath@outlook.com",
+    };
+    const response = await postData(`/action-view/`, requestData);
+    return response.results;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+};
+
 document.addEventListener("componentLoaded", (event) => {
   if (event.detail.componentName === COMPONENTS.SPAM_MAIL) {
     loadSpamMailComponent();
