@@ -1,13 +1,15 @@
 import { BASEPATH } from "/src/constant/basepath.js";
 import { COMPONENTS } from "/src/constant/component.js";
 import { createTable } from "/src/component/table/table.js";
+import { TARGET_ID } from "/src/constant/target_id.js";
 import { createViewButton } from "/src/component/view_button/view_button.js";
 import { createStatusChip } from "/src/component/status_chip/status_chip.js";
+import { createViewDetail } from "/src/component/view_detail/view_detail.js";
 import { loadComponent, loadCSS } from "/src/helper/content_loader_helper.js";
-import { TARGET_ID } from "/src/constant/target_id.js";
 
 const status_chip = `/src/${BASEPATH.COMPONENT}/${COMPONENTS.STATUS_CHIP}/${COMPONENTS.STATUS_CHIP}`;
 const view_button = `/src/${BASEPATH.COMPONENT}/${COMPONENTS.VIEW_BUTTON}/${COMPONENTS.VIEW_BUTTON}`;
+const view_detail = `/src/${BASEPATH.COMPONENT}/${COMPONENTS.VIEW_DETAIL}/${COMPONENTS.VIEW_DETAIL}`;
 
 const data = [
   {
@@ -28,37 +30,7 @@ const data = [
 ];
 
 const showPopup = (sender) => {
-  const popup = document.createElement("div");
-  popup.className = "popup";
-  popup.innerHTML = `
-    <div class="popup-content">
-  <div class="popup-header">
-    <h3>Email Details</h3>
-    <button class="close-popup">×</button>
-  </div>
-  <div class="popup-body">
-    <div class="detail-row">
-      <label>Sender:</label>
-      <span id="sender-email"></span>
-    </div>
-    <div class="detail-row">
-      <label>Subject:</label>
-      <span id="email-subject"></span>
-    </div>
-    <div class="detail-row">
-      <label>Body:</label>
-      <div id="email-body"></div>
-    </div>
-  </div>
-</div>
-  `;
-
-  popup.querySelector(".close-popup").addEventListener("click", () => {
-    popup.remove();
-    loadSpamMailComponent();
-  });
-
-  document.body.appendChild(popup);
+  createViewDetail(sender, loadSpamMailComponent);
 };
 
 const loadSpamMailComponent = async () => {
@@ -71,7 +43,6 @@ const loadSpamMailComponent = async () => {
 
     loadCSS(`${status_chip}.css`);
     loadCSS(`${view_button}.css`);
-    loadCSS("/src/pages/spam-mail/spam-mail.css");
 
     const table = createTable("data-output");
     const headers = ["Sender", "Status", "Action"];
@@ -87,6 +58,7 @@ const loadSpamMailComponent = async () => {
 
     document.querySelectorAll(".view-button").forEach((button) => {
       button.addEventListener("click", () => {
+        loadCSS(`${view_detail}.css`);
         showPopup(button.dataset.sender);
       });
     });
