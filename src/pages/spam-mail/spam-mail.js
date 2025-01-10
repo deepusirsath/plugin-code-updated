@@ -12,24 +12,6 @@ const status_chip = `/src/${BASEPATH.COMPONENT}/${COMPONENTS.STATUS_CHIP}/${COMP
 const view_button = `/src/${BASEPATH.COMPONENT}/${COMPONENTS.VIEW_BUTTON}/${COMPONENTS.VIEW_BUTTON}`;
 const view_detail = `/src/${BASEPATH.COMPONENT}/${COMPONENTS.VIEW_DETAIL}/${COMPONENTS.VIEW_DETAIL}`;
 
-const data = [
-  {
-    sender: "john.doe@example.com",
-    status: "safe",
-    action: "view",
-  },
-  {
-    sender: "jane.smith@example.com",
-    status: "pending",
-    action: "view",
-  },
-  {
-    sender: "bob@example.com",
-    status: "unsafe",
-    action: "view",
-  },
-];
-
 const showPopup = (sender) => {
   createViewDetail(sender, loadSpamMailComponent);
 };
