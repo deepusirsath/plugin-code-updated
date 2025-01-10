@@ -2,7 +2,7 @@
 .content {
   flex-grow: 1;
   padding: 20px;
-  height:85vh;
+  height: 85vh;
   background-color: #fff;
   display: flex;
   flex-direction: column;
@@ -84,5 +84,5 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height:70vh;
+  height: 70vh;
 }
