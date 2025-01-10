@@ -7,13 +7,13 @@ const loadAuthenticatedComponents = async () => {
 };
 
 const loadRegistrationComponent = async () => {
-  await loadComponent(UnauthenticatedRoute);
+  await Promise.all(UnauthenticatedRoute.map((config) => loadComponent(config)));
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
   try {
     // const isUserLoggedIn = localStorage.getItem("userToken");
-    const isUserLoggedIn = true;
+    const isUserLoggedIn = false;
     if (isUserLoggedIn) {
       await loadAuthenticatedComponents();
     } else {

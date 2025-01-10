@@ -1,95 +1,188 @@
+body {
+  margin: 0;
+  padding: 60px 0;
+  min-height: 100vh;
+  background-color: #1a4b8c; /* Dark blue background color */
+}
+
 .popup {
-  margin-top: -6px;
-  width: 455px;
-  height: auto;
-  padding: 20px;
-  border: 1px solid #ddd;
-  /* border-radius: 8px; */
-  background-color: #ffffff;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-  font-family: Arial, sans-serif;
+  position: fixed;
+  top: 50.5%;
+  left: 59.1%;
+  transform: translate(-50%, -50%);
+  width: min(90%, 420px);
+  height: min(85vh, 465px);
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #e1e4e8;
+  background-color: #f0f0f0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  font-family: 'Segoe UI', Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  overflow: hidden;
+  border-right: 3px solid #2f2f2f;
 }
 
 .popup h2 {
-  margin-top: 0;
-  font-size: 1.3em;
-  font-weight: bold;
-  color: #333;
+  margin: 0 0 6px;
+  font-size: 1.1em;
+  color: #2c3e50;
   text-align: center;
 }
 
 .popup label {
   display: block;
-  margin: 8px 0 5px;
-  font-weight: bold;
-  color: #212121;
+  margin-bottom: 2px;
+  font-weight: 500;
+  color: #34495e;
+  font-size: 12px;
 }
 
 .popup input {
-  width: calc(100% - 12px);
-  padding: 8px;
-  margin-bottom: 10px;
-  border: 1px solid #6c6c6c;
-  border-radius: 5px;
-  background-color: #f9f9f9;
-  font-size: 1em;
-  transition: all 0.3s ease;
+  width: 100%;
+  padding: 5px;
+  border: 1px solid #a9a9a9;
+  border-radius: 4px;
+  background-color: #f8f9fa;
+  color: #2c3e50;
+  font-size: 12px;
+  transition: all 0.2s ease;
 }
 
 .popup input:focus {
-  border-color: #007BFF;
+  border-color: #3498db;
   background-color: #ffffff;
   outline: none;
-  box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
 }
 
 .popup input[readonly] {
-  background-color: #e9ecef;
+  background-color: #f5f6f7;
+  border-color: #cccccc;
   cursor: not-allowed;
 }
 
-.popup .error-message {
-  color: #d9534f;
-  font-size: 1em;
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
-  /* font-weight: bold; */
-  margin-top: -5px;
-}
-
 .popup button {
-  padding: 10px 18px;
-  margin: 8px 5px 0 0;
+  padding: 8px 16px;
   border: none;
-  border-radius: 5px;
-  font-size: 1em;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
-.popup button:hover {
-  opacity: 0.9;
+.popup > div:last-child {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
 }
 
-.popup button:active {
-  transform: scale(0.97);
+#submit {
+  background-color: #3498db;
+  color: white;
+  margin-right: 8px;
 }
 
-.popup #submit {
-  background-color: #28a745;
+#reset {
+  background-color: #e74c3c;
   color: white;
 }
 
-.popup #submit:hover {
-  background-color: #218838;
+
+#submit:hover {
+  background-color: #2980b9;
 }
 
-.popup #reset {
-  background-color: #dc3545;
-  color: white;
+#reset:hover {
+  background-color: #c0392b;
 }
 
-.popup #reset:hover {
-  background-color: #c82333;
-} 
+#errorDisplay {
+  color: #e74c3c;
+  font-size: 10px;
+  display: none;
+}
 
+#errorDisplay:not(:empty) {
+  display: block;
+  margin-top: 2px;
+}
+
+.error-message {
+  color: #e74c3c;
+  font-size: 10px;
+  display: none;
+}
+
+.error-message:not(:empty) {
+  display: block;
+  margin-top: 2px;
+}
+
+
+
+.header, .footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  background-color: #ffffff;
+  padding: 10px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header img, .footer img {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}
+
+.header {
+  border-bottom: 1px solid #e0e0e0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+}
+
+.footer {
+  border-top: 1px solid #e0e0e0;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+}
+html, body, .popup, * {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+.popup::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  width: 0 !important;
+  display: none !important;
+}
+
+.popup {
+  overflow: hidden !important;
+}
+
+
+.left-side-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 17%;
+  height: 100vh;
+  background-color: rgba(8, 0, 44, 0.95);
+  z-index: 150;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-right: 5px solid #2f2f2f;
+}
 
