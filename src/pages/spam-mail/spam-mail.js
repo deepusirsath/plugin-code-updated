@@ -12,9 +12,9 @@ const status_chip = `/src/${BASEPATH.COMPONENT}/${COMPONENTS.STATUS_CHIP}/${COMP
 const view_button = `/src/${BASEPATH.COMPONENT}/${COMPONENTS.VIEW_BUTTON}/${COMPONENTS.VIEW_BUTTON}`;
 const view_detail = `/src/${BASEPATH.COMPONENT}/${COMPONENTS.VIEW_DETAIL}/${COMPONENTS.VIEW_DETAIL}`;
 
-const showPopup = (msg_id) => {
-  createViewDetail(msg_id, loadSpamMailComponent);
-  getViewDetailOfSpamMail(msg_id);
+const showPopup = async (msg_id) => {
+  const viewDetailData = await getViewDetailOfSpamMail(msg_id);
+  createViewDetail(viewDetailData, loadSpamMailComponent);
 };
 
 const loadSpamMailComponent = async () => {
@@ -52,7 +52,7 @@ const loadSpamMailComponent = async () => {
       console.log(button);
       button.addEventListener("click", () => {
         loadCSS(`${view_detail}.css`);
-        showPopup(button.dataset.sender, button.dataset.msgId);
+        showPopup(button.dataset.msg_id);
       });
     });
   } catch (error) {
@@ -65,29 +65,26 @@ const loadSpamMailComponent = async () => {
 const getAllSpamMail = async (page = 1) => {
   try {
     const requestData = {
-      emailId: "deepali.sirsath@outlook.com",
+      emailId: "deepali@ekvayu.com",
       page: page,
     };
     const response = await postData(`/spam-email/?page=${page}`, requestData);
     return response.results;
   } catch (error) {
     console.log(error);
-    return [];
   }
 };
 
 const getViewDetailOfSpamMail = async (msg_id) => {
   try {
     const requestData = {
-      messageId:
-        "AQQkADAwATM3ZmYAZS00OTE0LWQ2NGItMDACLTAwCgAQAHwoFBwZXF9Kq5ZXZ2uDRMg=_20241219_1604_1",
-      email: "deepali.sirsath@outlook.com",
+      messageId: msg_id,
+      email: "deepali@ekvayu.com",
     };
     const response = await postData(`/action-view/`, requestData);
-    return response.results;
+    return response.data;
   } catch (error) {
     console.log(error);
-    return [];
   }
 };
 

@@ -1,5 +1,4 @@
-export const createViewDetail = (sender, onClose) => {
-  console.log("createViewDetail called", sender);
+export const createViewDetail = (createViewDetail, onClose) => {
   const popup = document.createElement("div");
   popup.className = "popup";
   popup.innerHTML = `
@@ -11,15 +10,15 @@ export const createViewDetail = (sender, onClose) => {
       <div class="popup-body">
         <div class="detail-row">
           <label>Sender:</label>
-          <span id="sender-email"></span>
+          <span id="sender-email">${createViewDetail.sender}</span>
         </div>
         <div class="detail-row">
           <label>Subject:</label>
-          <span id="email-subject"></span>
+          <span id="email-subject">${createViewDetail.subject}</span>
         </div>
         <div class="detail-row">
           <label>Body:</label>
-          <div id="email-body"></div>
+          <div id="email-body">${createViewDetail.body}</div>
         </div>
       </div>
     </div>
