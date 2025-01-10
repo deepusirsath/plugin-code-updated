@@ -1,0 +1,61 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f4f4f9;
+}
+
+.chart-container {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  width: 400px;
+  height: 350px;
+  background-color: #f8f8f8;
+  border-bottom: 2px solid black;
+  position: relative;
+}
+
+.y-axis-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 352px;
+    /* margin-right: 5px; */
+    border-right: 2px solid black;
+    padding-right: 10px;
+}
+
+.chart-wrapper {
+  display: flex;
+  margin-top: 50px;
+}
+
+.bar-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 20px; /* Add space for the label at top */
+}
+
+
+.bar-value {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+
+.bar {
+    width: 53px;
+    border-radius: 5px 5px 0 0;
+}
+
+.bar-label {
+    font-size: 12px;
+    margin-bottom: 2px;
+}

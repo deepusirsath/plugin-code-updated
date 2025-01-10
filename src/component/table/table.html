@@ -1,10 +1,25 @@
 <div class="table-container">
-    <table id="dataTable" class="table">
-        <thead id="tableHeader">
-            <!-- Headers will be dynamically inserted here -->
-        </thead>
-        <tbody id="tableBody">
-            <!-- Data rows will be dynamically inserted here -->
-        </tbody>
-    </table>
+  <!-- Search Bar -->
+  <div class="search-container">
+    <input type="text" id="searchInput" placeholder="Search..." />
+    <button id="searchButton">Search</button>
+    <button id="clearButton">Clear</button>
+  </div>
+
+  <!-- Table -->
+  <table class="data-table">
+    <thead id="tableHeader">
+      <!-- Headers will be inserted here -->
+    </thead>
+    <tbody id="tableBody">
+      <!-- Table data will be inserted here -->
+    </tbody>
+  </table>
+
+  <!-- Pagination -->
+  <div class="pagination">
+    <button id="prevPage">Previous</button>
+    <span id="pageInfo">Page 1 of 1</span>
+    <button id="nextPage">Next</button>
+  </div>
 </div>
