@@ -26,6 +26,7 @@ export const createTable = () => {
     );
     currentPage = 1;
     renderPage();
+    
   };
 
   const clearSearchResults = () => {
@@ -33,6 +34,7 @@ export const createTable = () => {
     filteredData = [];
     currentPage = 1;
     renderPage();
+    
   };
 
   const attachSearchListeners = () => {
@@ -76,6 +78,8 @@ export const createTable = () => {
         (row) => `<tr>${row.map((cell) => `<td>${cell}</td>`).join("")}</tr>`
       )
       .join("");
+     
+
   };
 
   const renderPage = () => {

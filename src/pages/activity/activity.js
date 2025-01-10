@@ -6,7 +6,7 @@ function createBarChart(data) {
   const totalDisputeMail = data.totalDisputeMail || 0;
 
   const maxValue = Math.max(totalMail, totalSpamMail, totalDisputeMail) * 1.35;
-  const chartHeight = 350;
+  const chartHeight = 400;
   const barMaxHeight = chartHeight - 60;
 
   // Wrapper for chart
