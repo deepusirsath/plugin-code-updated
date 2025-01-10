@@ -74,7 +74,7 @@ const getAllSpamMail = async (page = 1) => {
   }
 };
 
-const getViewDetailOfSpamMail = async (page = 1) => {
+const getViewDetailOfSpamMail = async () => {
   try {
     const requestData = {
       messageId:
