@@ -22,7 +22,7 @@ const showPopup = async (msg_id) => {
 const loadSpamMailComponent = async () => {
   try {
     showLoader();
-    const spamMailData = await getAllSpamMail(1);
+    const spamMailResponse = await getAllSpamMail(1);
     await loadComponent({
       componentName: COMPONENTS.TABLE,
       basePath: BASEPATH.COMPONENT,
@@ -33,7 +33,7 @@ const loadSpamMailComponent = async () => {
     const headers = ["Sender", "Status", "Action"];
     table.setHeaders(headers);
 
-    if (!spamMailData || spamMailData.length === 0) {
+    if (!spamMailResponse.results || spamMailResponse.results.length === 0) {
       await loadComponent({
         componentName: COMPONENTS.NO_DATA_FOUND,
         basePath: BASEPATH.COMPONENT,
@@ -44,14 +44,42 @@ const loadSpamMailComponent = async () => {
       return;
     }
 
-    // Format and display data
-    const formattedData = spamMailData.map((item) => [
+    const formattedData = spamMailResponse.results.map((item) => [
       item.senders_email,
       createStatusChip(item.status).outerHTML,
       createViewButton(item.msg_id).outerHTML,
     ]);
 
-    table.setData(formattedData);
+    // Pass pagination info to table
+    table.setData(formattedData, {
+      totalItems: spamMailResponse.count,
+      currentPage: 1,
+      hasNext: !!spamMailResponse.next,
+      hasPrevious: !!spamMailResponse.previous,
+      onPageChange: async (newPage) => {
+        showLoader();
+        const newData = await getAllSpamMail(newPage);
+        const newFormattedData = newData.results.map((item) => [
+          item.senders_email,
+          createStatusChip(item.status).outerHTML,
+          createViewButton(item.msg_id).outerHTML,
+        ]);
+        table.updateData(newFormattedData, {
+          totalItems: newData.count,
+          currentPage: newPage,
+          hasNext: !!newData.next,
+          hasPrevious: !!newData.previous,
+        });
+        hideLoader();
+
+        // Reattach click handlers for new view buttons
+        document.querySelectorAll(".view-button").forEach((button) => {
+          button.addEventListener("click", () => {
+            showPopup(button.dataset.msg_id);
+          });
+        });
+      },
+    });
 
     // Add click handlers for view buttons
     document.querySelectorAll(".view-button").forEach((button) => {
@@ -74,7 +102,7 @@ const getAllSpamMail = async (page = 1) => {
       page: page,
     };
     const response = await postData(`${SPAM_MAIL}?page=${page}`, requestData);
-    return response.results;
+    return response;
   } catch (error) {
     hideLoader();
     displayError(error);
