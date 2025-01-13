@@ -21,6 +21,7 @@ const handleButtonClick = async (componentName, clickedButton) => {
 
     // Add active class to clicked menu item
     clickedButton.closest(".menu-item").classList.add("active");
+    document.getElementById("errorDisplay").innerHTML = "";
 
     await loadComponent({
       componentName,
