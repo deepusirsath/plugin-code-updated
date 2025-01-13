@@ -7,7 +7,9 @@ const loadAuthenticatedComponents = async () => {
 };
 
 const loadRegistrationComponent = async () => {
-  await Promise.all(UnauthenticatedRoute.map((config) => loadComponent(config)));
+  await Promise.all(
+    UnauthenticatedRoute.map((config) => loadComponent(config))
+  );
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -16,6 +18,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     const isUserLoggedIn = true;
     if (isUserLoggedIn) {
       await loadAuthenticatedComponents();
+      const detailsBtn = document.getElementById("details-btn");
+      if (detailsBtn) {
+        detailsBtn.click();
+        detailsBtn.closest(".menu-item").classList.add("active");
+      }
     } else {
       await loadRegistrationComponent();
     }

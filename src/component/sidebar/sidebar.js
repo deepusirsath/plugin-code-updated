@@ -6,11 +6,21 @@ import { loadComponent } from "/src/helper/content_loader_helper.js";
 /**
  * Handles the click events for sidebar navigation buttons by loading corresponding components
  * @param {string} componentName - The name of the component to be loaded
- * @returns {Promise<void>} A promise that resolves when the component is loaded
- * @throws {Error} If component loading fails, error is displayed in errorDisplay element
+ * @param {HTMLElement} clickedButton - The button element that was clicked
+ * @returns {Promise<void>} A promise that resolves when the component is loaded and rendered
+ * @throws {Error} If component loading fails, error is caught and displayed in errorDisplay element
+ * @fires {CustomEvent} componentLoaded - Dispatched when component is successfully loaded
  */
-const handleButtonClick = async (componentName) => {
+const handleButtonClick = async (componentName, clickedButton) => {
   try {
+    const menuItems = document.querySelectorAll(".menu-item");
+
+    // Remove active class from all menu items
+    menuItems.forEach((item) => item.classList.remove("active"));
+
+    // Add active class to clicked menu item
+    clickedButton.closest(".menu-item").classList.add("active");
+
     await loadComponent({
       componentName,
       basePath: BASEPATH.PAGES,
@@ -38,26 +48,41 @@ const handleButtonClick = async (componentName) => {
  * - activity-btn: Loads the activity component
  * - dispute-btn: Loads the dispute component
  *
- * When clicked, each button:
- * 1. Triggers an async component load operation
- * 2. Renders the component in the TARGET_ID.DATA_OUTPUT container
- * 3. Displays any loading errors in the errorDisplay element
+ * @listens click
+ * @param {Event} e - Click event object
+ * @fires handleButtonClick
+ *
+ * The handleButtonClick function:
+ * - Takes a component identifier and the clicked button element
+ * - Handles component loading and rendering
+ * - Component content is rendered in the designated output container
+ * - Any errors during loading are handled appropriately
  */
 document
   .getElementById("details-btn")
-  .addEventListener("click", () => handleButtonClick(COMPONENTS.DETAILS));
+  .addEventListener("click", (e) =>
+    handleButtonClick(COMPONENTS.DETAILS, e.currentTarget)
+  );
 document
   .getElementById("dispute-mail")
-  .addEventListener("click", () => handleButtonClick(COMPONENTS.DISPUTE_MAIL));
+  .addEventListener("click", (e) =>
+    handleButtonClick(COMPONENTS.DISPUTE_MAIL, e.currentTarget)
+  );
 document
   .getElementById("spam-mails")
-  .addEventListener("click", () => handleButtonClick(COMPONENTS.SPAM_MAIL));
+  .addEventListener("click", (e) =>
+    handleButtonClick(COMPONENTS.SPAM_MAIL, e.currentTarget)
+  );
 document
   .getElementById("activity-btn")
-  .addEventListener("click", () => handleButtonClick(COMPONENTS.ACTIVITY));
+  .addEventListener("click", (e) =>
+    handleButtonClick(COMPONENTS.ACTIVITY, e.currentTarget)
+  );
 document
   .getElementById("dispute-btn")
-  .addEventListener("click", () => handleButtonClick(COMPONENTS.DISPUTE));
+  .addEventListener("click", (e) =>
+    handleButtonClick(COMPONENTS.DISPUTE, e.currentTarget)
+  );
 
 /**
  * Toggles the sidebar visibility and adjusts the toggle button position
