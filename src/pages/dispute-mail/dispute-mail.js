@@ -8,7 +8,10 @@ import { createStatusChip } from "/src/component/status_chip/status_chip.js";
 import { createViewDetail } from "/src/component/view_detail/view_detail.js";
 import { loadComponent } from "/src/helper/content_loader_helper.js";
 import { showLoader, hideLoader } from "/src/component/loader/loader.js";
-import { GET_DISPUTE_RAISE_DATA, GET_ACTION_VIEW_DETAIL } from "/src/routes/api_route.js";
+import {
+  GET_DISPUTE_RAISE_DATA,
+  GET_ACTION_VIEW_DETAIL,
+} from "/src/routes/api_route.js";
 
 const showPopup = async (msg_id) => {
   showLoader();
@@ -32,11 +35,12 @@ const loadDisputeComponent = async () => {
     table.setHeaders(headers);
 
     if (!disputeMailData.data || disputeMailData.data.length === 0) {
-      loadComponent({
+      await loadComponent({
         componentName: COMPONENTS.NO_DATA_FOUND,
         basePath: BASEPATH.COMPONENT,
         targetId: TARGET_ID.DATA_OUTPUT,
       });
+      handleRefresh(loadDisputeComponent);
       hideLoader();
       return;
     }
