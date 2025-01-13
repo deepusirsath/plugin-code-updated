@@ -2,6 +2,7 @@ import { BASEPATH } from "/src/constant/basepath.js";
 import { COMPONENTS } from "/src/constant/component.js";
 import { TARGET_ID } from "/src/constant/target_id.js";
 import { postData } from "/src/api/api_method.js";
+import { displayError } from "/src/helper/display_error.js";
 import { createTable } from "/src/component/table/table.js";
 import { createViewButton } from "/src/component/view_button/view_button.js";
 import { createStatusChip } from "/src/component/status_chip/status_chip.js";
@@ -66,9 +67,7 @@ const loadDisputeComponent = async () => {
     hideLoader();
   } catch (error) {
     hideLoader();
-    document.getElementById(
-      "errorDisplay"
-    ).innerHTML = `Loading error: ${error.message}`;
+    displayError(error);
   }
 };
 
@@ -84,7 +83,7 @@ const getAllDisputeMail = async (page = 1) => {
     );
     return response.results;
   } catch (error) {
-    console.log(error);
+    displayError(error);
   }
 };
 
@@ -97,7 +96,7 @@ const getViewDetailOfDisputeMail = async (msg_id) => {
     const response = await postData(`${GET_ACTION_VIEW_DETAIL}`, requestData);
     return response.data;
   } catch (error) {
-    console.log(error);
+    displayError(error);
   }
 };
 

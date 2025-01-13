@@ -2,6 +2,7 @@ import { BASEPATH } from "/src/constant/basepath.js";
 import { COMPONENTS } from "/src/constant/component.js";
 import { TARGET_ID } from "/src/constant/target_id.js";
 import { postData } from "/src/api/api_method.js";
+import { displayError } from "/src/helper/display_error.js";
 import { createTable } from "/src/component/table/table.js";
 import { createViewButton } from "/src/component/view_button/view_button.js";
 import { createStatusChip } from "/src/component/status_chip/status_chip.js";
@@ -62,9 +63,7 @@ const loadSpamMailComponent = async () => {
     hideLoader();
   } catch (error) {
     hideLoader();
-    document.getElementById(
-      "errorDisplay"
-    ).innerHTML = `Loading error: ${error.message}`;
+    displayError(error);
   }
 };
 
@@ -77,7 +76,7 @@ const getAllSpamMail = async (page = 1) => {
     const response = await postData(`${SPAM_MAIL}?page=${page}`, requestData);
     return response.results;
   } catch (error) {
-    console.log(error);
+    displayError(error);
   }
 };
 
@@ -90,7 +89,7 @@ const getViewDetailOfSpamMail = async (msg_id) => {
     const response = await postData(`${GET_ACTION_VIEW_DETAIL}`, requestData);
     return response.data;
   } catch (error) {
-    console.log(error);
+    displayError(error);
   }
 };
 
