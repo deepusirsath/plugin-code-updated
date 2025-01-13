@@ -74,10 +74,10 @@
   font-size: 12px;
   font-family: Arial, sans-serif;
   cursor: pointer;
-  overflow-wrap: break-word;
+  /* overflow-wrap: break-word; */
   word-break: break-all;
   max-width: 15ch;
-  white-space: normal;
+  /* white-space: normal; */
 }
 
 .data-table tr {

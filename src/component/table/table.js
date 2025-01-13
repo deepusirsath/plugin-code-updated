@@ -17,7 +17,10 @@ export const createTable = () => {
   };
 
   const updateSearchResults = () => {
-    const searchTerm = elements.searchInput.value.toLowerCase();
+    const searchTerm = elements.searchInput.value.toLowerCase().trim();
+
+      // Only perform search if searchTerm is not empty
+      if (searchTerm) {
     filteredData = totalData.filter((row) =>
       row.some(
         (cell) =>
@@ -25,8 +28,13 @@ export const createTable = () => {
       )
     );
     currentPage = 1;
+    elements.clearButton.style.display = "inline-block";
     renderPage();
     
+    // Show clear button after search
+    // elements.clearButton.style.display = "inline-block";
+    // elements.searchButton.style.display = "inline-block";
+  }
   };
 
   const clearSearchResults = () => {
@@ -35,9 +43,15 @@ export const createTable = () => {
     currentPage = 1;
     renderPage();
     
+    // Hide clear button and show search button after clearing
+    elements.clearButton.style.display = "none";
+    elements.searchButton.style.display = "inline-block";
   };
 
   const attachSearchListeners = () => {
+     // Initially hide clear button
+     elements.clearButton.style.display = "none";
+     elements.searchButton.style.display = "inline-block";
     elements.searchButton.addEventListener("click", updateSearchResults);
     elements.clearButton.addEventListener("click", clearSearchResults);
   };
