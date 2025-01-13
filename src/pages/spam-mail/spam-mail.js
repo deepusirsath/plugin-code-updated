@@ -70,7 +70,7 @@ const loadSpamMailComponent = async () => {
 const getAllSpamMail = async (page = 1) => {
   try {
     const requestData = {
-      emailId: "deepali@ekvayu.com",
+      emailId: "ekvayu123@outlook.com",
       page: page,
     };
     const response = await postData(`${SPAM_MAIL}?page=${page}`, requestData);
@@ -85,7 +85,7 @@ const getViewDetailOfSpamMail = async (msg_id) => {
   try {
     const requestData = {
       messageId: msg_id,
-      email: "deepali@ekvayu.com",
+      email: "ekvayu123@outlook.com",
     };
     const response = await postData(`${GET_ACTION_VIEW_DETAIL}`, requestData);
     return response.data;
