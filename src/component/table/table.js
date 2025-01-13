@@ -63,6 +63,10 @@ export const createTable = () => {
     };
 
     elements.nextButton.onclick = () => {
+      console.log("Next button clicked");
+      console.log("Current page:", currentPage);
+      console.log("Has next:", hasNext);
+      console.log("On page change:", onPageChange);
       if (hasNext && onPageChange) {
         onPageChange(currentPage + 1);
       }
@@ -96,6 +100,6 @@ export const createTable = () => {
   return {
     setHeaders: renderHeaders,
     setData,
-    updateData
+    updateData,
   };
 };

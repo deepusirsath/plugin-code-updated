@@ -69,6 +69,7 @@ const loadSpamMailComponent = async () => {
           currentPage: newPage,
           hasNext: !!newData.next,
           hasPrevious: !!newData.previous,
+          onPageChange: table.updatePaginationControls,
         });
         hideLoader();
 
