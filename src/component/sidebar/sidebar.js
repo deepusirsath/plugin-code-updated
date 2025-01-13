@@ -13,8 +13,9 @@ import { loadComponent } from "/src/helper/content_loader_helper.js";
  */
 const handleButtonClick = async (componentName, clickedButton) => {
   try {
-    // Remove active class from all menu items
     const menuItems = document.querySelectorAll(".menu-item");
+
+    // Remove active class from all menu items
     menuItems.forEach((item) => item.classList.remove("active"));
 
     // Add active class to clicked menu item
