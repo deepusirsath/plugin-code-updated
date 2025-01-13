@@ -1,4 +1,10 @@
+import { BASEPATH } from "/src/constant/basepath.js";
+import { COMPONENTS } from "/src/constant/component.js";
+import { loadCSS } from "/src/helper/content_loader_helper.js";
+
 export const createViewDetail = (createViewDetail, onClose) => {
+  const view_detail = `/src/${BASEPATH.COMPONENT}/${COMPONENTS.VIEW_DETAIL}/${COMPONENTS.VIEW_DETAIL}`;
+  loadCSS(`${view_detail}.css`);
   const popup = document.createElement("div");
   popup.className = "popup";
   popup.innerHTML = `

@@ -3,4 +3,5 @@ export const TARGET_ID = {
   SIDEBAR: "sidebar-container",
   FOOTER: "footer-container",
   DATA_OUTPUT: "data-output",
+  LOADER_CONTAINER: "loader-container",
 };
