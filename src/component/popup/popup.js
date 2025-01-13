@@ -1,4 +1,5 @@
 import { authenticatedRoutes } from "/src/routes/authenticated_route.js";
+import { displayError } from "/src/helper/display_error.js";
 import { loadComponent } from "/src/helper/content_loader_helper.js";
 import { UnauthenticatedRoute } from "/src/routes/unauthenticated_route.js";
 
@@ -27,8 +28,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       await loadRegistrationComponent();
     }
   } catch (error) {
-    document.getElementById(
-      "errorDisplay"
-    ).innerHTML = `Loading error: ${error.message}`;
+    displayError(error);
   }
 });

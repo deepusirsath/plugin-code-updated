@@ -1,5 +1,6 @@
 import { BASEPATH } from "/src/constant/basepath.js";
 import { COMPONENTS } from "/src/constant/component.js";
+import { displayError } from "/src/helper/display_error.js";
 import { TARGET_ID } from "/src/constant/target_id.js";
 import { loadComponent } from "/src/helper/content_loader_helper.js";
 
@@ -20,6 +21,7 @@ const handleButtonClick = async (componentName, clickedButton) => {
 
     // Add active class to clicked menu item
     clickedButton.closest(".menu-item").classList.add("active");
+    document.getElementById("errorDisplay").innerHTML = "";
 
     await loadComponent({
       componentName,
@@ -32,9 +34,7 @@ const handleButtonClick = async (componentName, clickedButton) => {
       })
     );
   } catch (error) {
-    document.getElementById(
-      "errorDisplay"
-    ).innerHTML = `Loading error: ${error.message}`;
+    displayError(error);
   }
 };
 

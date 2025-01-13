@@ -13,4 +13,5 @@ export const COMPONENTS = {
   VIEW_BUTTON: "view_button",
   VIEW_DETAIL: "view_detail",
   LOADER: "loader",
+  NO_DATA_FOUND: "no_data_found",
 };
