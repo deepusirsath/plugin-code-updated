@@ -83,6 +83,7 @@ const getAllDisputeMail = async (page = 1) => {
     );
     return response.results;
   } catch (error) {
+    hideLoader();
     displayError(error);
   }
 };
@@ -96,6 +97,7 @@ const getViewDetailOfDisputeMail = async (msg_id) => {
     const response = await postData(`${GET_ACTION_VIEW_DETAIL}`, requestData);
     return response.data;
   } catch (error) {
+    hideLoader();
     displayError(error);
   }
 };

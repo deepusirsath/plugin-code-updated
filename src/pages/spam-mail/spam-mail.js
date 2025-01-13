@@ -76,6 +76,7 @@ const getAllSpamMail = async (page = 1) => {
     const response = await postData(`${SPAM_MAIL}?page=${page}`, requestData);
     return response.results;
   } catch (error) {
+    hideLoader();
     displayError(error);
   }
 };
@@ -89,6 +90,7 @@ const getViewDetailOfSpamMail = async (msg_id) => {
     const response = await postData(`${GET_ACTION_VIEW_DETAIL}`, requestData);
     return response.data;
   } catch (error) {
+    hideLoader();
     displayError(error);
   }
 };
