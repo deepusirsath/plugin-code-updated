@@ -31,6 +31,16 @@ const loadDisputeComponent = async () => {
     const headers = ["Sender", "Status", "Action"];
     table.setHeaders(headers);
 
+    if (!disputeMailData.data || disputeMailData.data.length === 0) {
+      loadComponent({
+        componentName: COMPONENTS.NO_DATA_FOUND,
+        basePath: BASEPATH.COMPONENT,
+        targetId: TARGET_ID.DATA_OUTPUT,
+      });
+      hideLoader();
+      return;
+    }
+
     // Format and display data
     const formattedData = disputeMailData.data.map((item) => [
       item.sender_email,

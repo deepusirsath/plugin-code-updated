@@ -31,6 +31,16 @@ const loadSpamMailComponent = async () => {
     const headers = ["Sender", "Status", "Action"];
     table.setHeaders(headers);
 
+    if (!spamMailData || spamMailData.length === 0) {
+      loadComponent({
+        componentName: COMPONENTS.NO_DATA_FOUND,
+        basePath: BASEPATH.COMPONENT,
+        targetId: TARGET_ID.DATA_OUTPUT,
+      });
+      hideLoader();
+      return;
+    }
+
     // Format and display data
     const formattedData = spamMailData.map((item) => [
       item.senders_email,
