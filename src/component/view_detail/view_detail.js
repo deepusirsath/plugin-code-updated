@@ -1,6 +1,6 @@
 export const createViewDetail = (createViewDetail, onClose) => {
   const popup = document.createElement("div");
-  popup.className = "popup";
+  popup.className = "popup-test";
   popup.innerHTML = `
     <div class="popup-content">
       <div class="popup-header">
@@ -18,7 +18,7 @@ export const createViewDetail = (createViewDetail, onClose) => {
         </div>
         <div class="detail-row">
           <label>Body:</label>
-          <div id="email-body">${createViewDetail.body}</div>
+          <div id="email-body">${createViewDetail.body}</div>                        
         </div>
       </div>
     </div>
@@ -32,3 +32,7 @@ export const createViewDetail = (createViewDetail, onClose) => {
   document.body.appendChild(popup);
   return popup;
 };
+
+
+
+
