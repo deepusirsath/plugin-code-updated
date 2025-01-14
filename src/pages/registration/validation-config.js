@@ -1,4 +1,4 @@
-import { ERROR_MESSAGES } from "/src/constant/error_message";
+import { ERROR_MESSAGES } from "/src/constant/error_message.js";
 
 export const validationConfig = {
   name: [
