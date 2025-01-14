@@ -46,6 +46,7 @@ document
   });
 
 document.getElementById("submit").addEventListener("click", async function () {
+  console.log("submit button clicked");
   const formElements = {
     licenseId: document.getElementById("licenseId").value,
     pluginId: document.getElementById("pluginId").value,
@@ -56,42 +57,42 @@ document.getElementById("submit").addEventListener("click", async function () {
     chrome: document.getElementById("chrome").value,
   };
 
-  chrome.storage.local.get(["deviceData"], async (result) => {
-    if (result?.deviceData) {
-      const {
-        arch,
-        hostname,
-        macAddress,
-        osPlatform,
-        osRelease,
-        osType,
-        serialNumber,
-        uid,
-      } = result.deviceData;
+  // chrome.storage.local.get(["deviceData"], async (result) => {
+  //   if (result?.deviceData) {
+  //     const {
+  //       arch,
+  //       hostname,
+  //       macAddress,
+  //       osPlatform,
+  //       osRelease,
+  //       osType,
+  //       serialNumber,
+  //       uid,
+  //     } = result.deviceData;
+  //   }
+  // });
 
-      try {
-        const response = await postData("/register", {
-          ...formElements,
-          macAddress,
-          serialNumber,
-          osType,
-          osPlatform,
-          osRelease,
-          hostName: hostname,
-          architecture: arch,
-          uuid: uid,
-        });
+  try {
+    const response = await postData("/register", {
+      ...formElements,
+      macAddress,
+      serialNumber,
+      osType,
+      osPlatform,
+      osRelease,
+      hostName: hostname,
+      architecture: arch,
+      uuid: uid,
+    });
 
-        if (response.success) {
-          alert("Form submitted successfully");
-          chrome.storage.local.set({ registration: true });
-        } else {
-          alert(response.message || "Failed to submit form");
-        }
-      } catch (error) {
-        console.error("Error submitting form:", error);
-        alert("Error submitting form");
-      }
+    if (response.success) {
+      alert("Form submitted successfully");
+      chrome.storage.local.set({ registration: true });
+    } else {
+      alert(response.message || "Failed to submit form");
     }
-  });
+  } catch (error) {
+    console.error("Error submitting form:", error);
+    alert("Error submitting form");
+  }
 });

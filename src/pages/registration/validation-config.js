@@ -1,5 +1,6 @@
 import { ERROR_MESSAGES } from "/src/constant/error_message.js";
 
+
 export const validationConfig = {
   name: [
     { condition: (value) => !value, message: ERROR_MESSAGES.NAME_EMPTY },
@@ -28,7 +29,7 @@ export const validationConfig = {
     { condition: (value) => !value, message: ERROR_MESSAGES.EMAIL_EMPTY },
     {
       condition: (value) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
-      message: EMAIL_EMPTY.EMAIL_INVALID,
+      message: ERROR_MESSAGES.EMAIL_INVALID,
     },
   ],
 };
