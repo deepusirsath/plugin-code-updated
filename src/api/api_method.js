@@ -1,5 +1,5 @@
 import { apiRequest } from "./api_request.js";
-import config from "../../config.js";
+import { config } from "../../config.js";
 
 /**
  * Sends a GET request to the specified endpoint.
