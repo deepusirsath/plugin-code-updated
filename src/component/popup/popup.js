@@ -16,7 +16,7 @@ const loadRegistrationComponent = async () => {
 document.addEventListener("DOMContentLoaded", async () => {
   try {
     // const isUserLoggedIn = localStorage.getItem("userToken");
-    const isUserLoggedIn = false;
+    const isUserLoggedIn = true;
     if (isUserLoggedIn) {
       await loadAuthenticatedComponents();
       const detailsBtn = document.getElementById("details-btn");
