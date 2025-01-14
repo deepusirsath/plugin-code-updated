@@ -1,8 +1,9 @@
 
 .table-container {
-  width: 90%;
+  width: 92%;
   margin: 0 auto;
   padding: 20px;
+ 
 }
 
 .search-container {
@@ -51,7 +52,7 @@
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  /* box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   margin: 0 auto;
 }
 
@@ -89,12 +90,13 @@
   background-color: #f1f3f5;
 }
 
+
 .pagination {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 10px;
-  margin-top: 15px;
+  gap: 25px;
+  margin-top: 25px;
 }
 
 .pagination button {
