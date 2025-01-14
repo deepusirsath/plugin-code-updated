@@ -81,6 +81,7 @@ const getAllDisputeMail = async (page = 1) => {
       `${GET_DISPUTE_RAISE_DATA}?page=${page}`,
       requestData
     );
+    console.log("dispute mail data",response);
     return response.results;
   } catch (error) {
     hideLoader();
