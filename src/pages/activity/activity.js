@@ -31,7 +31,6 @@ import { showLoader, hideLoader } from "/src/component/loader/loader.js";
  * };
  * createBarChart(data);
  */
-
 function createBarChart(data) {
   const totalMail = data.totalMail || 0;
   const totalSpamMail = data.totalSpamMail || 0;
@@ -41,71 +40,84 @@ function createBarChart(data) {
   const chartHeight = 400;
   const barMaxHeight = chartHeight - 60;
 
-  // Wrapper for chart
   const chartWrapper = document.createElement("div");
   chartWrapper.classList.add("chart-wrapper");
 
-  // Y-axis container
   const yAxisContainer = document.createElement("div");
   yAxisContainer.classList.add("y-axis-container");
 
-  // Generate y-axis labels
   const numLabels = 5;
   for (let i = numLabels; i >= 0; i--) {
     const labelValue = Math.round((maxValue / numLabels) * i);
     const label = document.createElement("span");
+    label.classList.add("y-axis-label");
     label.textContent = labelValue;
     yAxisContainer.appendChild(label);
   }
 
-  // Chart container
   const chartContainer = document.createElement("div");
   chartContainer.classList.add("chart-container");
 
-  // Function to create each bar
-  function createBar(value, label, color) {
+  function createBar(value, label, color, gradient) {
     const barContainer = document.createElement("div");
     barContainer.classList.add("bar-container");
+
     const barHeight = value === 0 ? 0.5 : (value / maxValue) * barMaxHeight;
 
-    // Create value display at top
     const valueDisplay = document.createElement("span");
     valueDisplay.classList.add("bar-value");
     valueDisplay.textContent = value;
-    valueDisplay.style.position = "absolute";
-    valueDisplay.style.top = "0";
-    valueDisplay.style.width = "100%";
-    valueDisplay.style.textAlign = "center";
 
-    //label for bar
     const barLabel = document.createElement("span");
     barLabel.classList.add("bar-label");
     barLabel.textContent = label;
 
-    //create bar
     const bar = document.createElement("div");
     bar.classList.add("bar");
     bar.style.height = `${barHeight}px`;
-    bar.style.backgroundColor = color;
+    bar.style.background = gradient;
+    bar.style.border = `2px solid ${color}`;
+    bar.style.boxShadow = `0 4px 8px ${color}66`;
+
+    bar.title = `${label}: ${value} (${((value / totalMail) * 100).toFixed(
+      1
+    )}%)`;
 
     barContainer.appendChild(valueDisplay);
-    barContainer.appendChild(barLabel);
     barContainer.appendChild(bar);
+    barContainer.appendChild(barLabel);
+
     return barContainer;
   }
 
-  // Add bars to chart
-  chartContainer.appendChild(createBar(totalMail, "Processed Mail", "#3498db"));
-  chartContainer.appendChild(createBar(totalSpamMail, "Spam Mail", "#e74c3c"));
   chartContainer.appendChild(
-    createBar(totalDisputeMail, "Dispute Mail", "#f1c40f")
+    createBar(
+      totalMail,
+      "Processed Mail",
+      "#3498db",
+      "linear-gradient(to top, #3498db, #5dade2)"
+    )
+  );
+  chartContainer.appendChild(
+    createBar(
+      totalSpamMail,
+      "Spam Mail",
+      "#e74c3c",
+      "linear-gradient(to top, #e74c3c, #f1948a)"
+    )
+  );
+  chartContainer.appendChild(
+    createBar(
+      totalDisputeMail,
+      "Dispute Mail",
+      "#f1c40f",
+      "linear-gradient(to top, #f1c40f, #f9e79f)"
+    )
   );
 
-  // Append y-axis and chart to wrapper
   chartWrapper.appendChild(yAxisContainer);
   chartWrapper.appendChild(chartContainer);
 
-  // Append wrapper to output div
   dataOutput.appendChild(chartWrapper);
 }
 
