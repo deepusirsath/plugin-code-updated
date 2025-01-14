@@ -117,6 +117,7 @@ const getViewDetailOfSpamMail = async (msg_id) => {
       email: "ekvayu123@outlook.com",
     };
     const response = await postData(`${GET_ACTION_VIEW_DETAIL}`, requestData);
+    console.log("spam mail data",response);
     return response.data;
   } catch (error) {
     hideLoader();

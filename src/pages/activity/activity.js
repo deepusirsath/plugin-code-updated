@@ -1,4 +1,37 @@
 import { COMPONENTS } from "/src/constant/component.js";
+import {GET_GRAPH_DATA} from "/src/routes/api_route.js";
+import { postData } from "/src/api/api_method.js";
+import { displayError } from "/src/helper/display_error.js";
+import { showLoader, hideLoader } from "/src/component/loader/loader.js";
+
+
+/**
+ * Creates a bar chart visualization for email statistics
+ * @param {Object} data - The data object containing email statistics
+ * @param {number} data.totalMail - Total number of processed emails
+ * @param {number} data.totalSpamMail - Total number of spam emails
+ * @param {number} data.totalDisputeMail - Total number of disputed emails
+ * 
+ * @description
+ * This function creates an interactive bar chart with the following features:
+ * - Displays three bars for processed, spam and dispute emails
+ * - Shows value labels on top of each bar
+ * - Includes a Y-axis with 5 evenly spaced value labels
+ * - Uses different colors for each category:
+ *   - Processed Mail: Blue (#3498db)
+ *   - Spam Mail: Red (#e74c3c) 
+ *   - Dispute Mail: Yellow (#f1c40f)
+ * - Automatically scales based on maximum value
+ * - Responsive layout with wrapper and container elements
+ * 
+ * @example
+ * const data = {
+ *   totalMail: 100,
+ *   totalSpamMail: 20,
+ *   totalDisputeMail: 5
+ * };
+ * createBarChart(data);
+ */
 
 function createBarChart(data) {
   const totalMail = data.totalMail || 0;
@@ -57,15 +90,10 @@ function createBarChart(data) {
     bar.classList.add("bar");
     bar.style.height = `${barHeight}px`;
     bar.style.backgroundColor = color;
-    // bar.textContent = value; // Display value inside the bar
-    // const barLabel = document.createElement("span");
-    // barLabel.classList.add("bar-label");
-    // barLabel.textContent = label;
 
     barContainer.appendChild(valueDisplay);
     barContainer.appendChild(barLabel);
     barContainer.appendChild(bar);
-    // barContainer.appendChild(barLabel);
     return barContainer;
   }
 
@@ -85,23 +113,61 @@ function createBarChart(data) {
   dataOutput.appendChild(chartWrapper);
 }
 
-// Example data
-const data = {
-  totalMail: 120,
-  totalSpamMail: 80,
-  totalDisputeMail: 50,
+
+/**
+ * Fetches and displays graph data for email statistics
+ * @async
+ * @function getGraphData
+ * 
+ * @description
+ * This function performs the following operations:
+ * - Shows a loading indicator while fetching data
+ * - Makes an API call to GET_GRAPH_DATA endpoint with user email
+ * - Transforms the API response into chart-compatible format
+ * - Creates a bar chart visualization using the data
+ * - Handles errors and displays them if they occur
+ * 
+ * The function expects the API response to contain:
+ * - total_processed_emails: Number of all processed emails
+ * - total_spam_emails: Number of detected spam emails  
+ * - total_disputes: Number of disputed emails
+ * 
+ * @example
+ * // Call the function to fetch and display graph data
+ * await getGraphData();
+ * 
+ * @throws {Error} Displays error message if API call fails
+ */
+
+const getGraphData = async () => {
+  showLoader();
+  try {
+    const requestData = {
+      emailId: "neerajgupta@ekvayu.com",
+    };
+    const response = await postData(`${GET_GRAPH_DATA}`, requestData);
+    console.log("graph data",response);
+    console.log("graph response.data",response.data);
+    const chartData = {
+      totalMail: response.data.total_processed_emails,
+      totalSpamMail: response.data.total_spam_emails,
+      totalDisputeMail: response.data.total_disputes
+    };
+    createBarChart(chartData);
+    hideLoader();
+  } catch (error) {
+    hideLoader();
+    displayError(error);
+  }
 };
 
-createBarChart(data);
 
 // Add event listener for when this component is loaded
 document.addEventListener("componentLoaded", (event) => {
   if (event.detail.componentName === COMPONENTS.ACTIVITY) {
-    const data = {
-      totalMail: 120,
-      totalSpamMail: 80,
-      totalDisputeMail: 50,
-    };
-    createBarChart(data);
+    getGraphData();
   }
 });
+
+
+getGraphData();
