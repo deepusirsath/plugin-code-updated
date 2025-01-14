@@ -9,7 +9,8 @@
     "storage",
     "webNavigation",
     "management",
-    "geolocation"
+    "geolocation",
+    "downloads"
   ],
   "action": {
     "default_popup": "/src/component/popup/popup.html",
@@ -23,12 +24,32 @@
     "service_worker": "background.js",
     "type": "module"
   },
+  "content_scripts": [
+    {
+      "matches": ["*://mail.google.com/*"],
+      "js": ["/src/services/gmail/gmail_content.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["*://outlook.live.com/*"],
+      "js": ["/src/services/outlook/outlook_content.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["*://mail.yahoo.com/*", "*://in.mail.yahoo.com/*"],
+      "js": ["/src/services/yahoo/yahoo_content.js"],
+      "run_at": "document_start"
+    }
+  ],
   "web_accessible_resources": [
     {
       "resources": ["/src/pages/app/app.js"],
       "matches": ["<all_urls>"]
     }
   ],
-
-  "host_permissions": ["https://apis.mail.yahoo.com/*"]
+  "host_permissions": [
+    "https://mail-attachment.googleusercontent.com/*",
+    "https://mail.google.com/*",
+    "https://apis.mail.yahoo.com/*"
+  ]
 }

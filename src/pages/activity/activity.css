@@ -6,7 +6,22 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-color: #f4f4f9;
+  background: linear-gradient(to bottom right, #0e3a5b, #4b00b0);
+}
+
+#dataOutput {
+  margin-top: -70px;
+  height: 70vh;
+}
+
+.chart-wrapper {
+  display: flex;
+  margin-top: 50px;
+  border: 2px solid rgba(0, 0, 0, 0.15);
+  border-radius: 15px;
+  padding: 20px;
+  background: linear-gradient(to bottom, #ffffff, #f9fbfd);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
 }
 
 .chart-container {
@@ -15,47 +30,86 @@ body {
   justify-content: space-around;
   width: 355px;
   height: 355px;
-  background-color: #f8f8f8;
-  border-bottom: 2px solid black;
-  position: relative;
+  background: linear-gradient(to bottom, #fafafa, #eef2f5);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 10px;
 }
 
 .y-axis-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    height: 356.5px;
-    /* margin-right: 5px; */
-    border-right: 2px solid black;
-    padding-right: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 355px;
+  padding-right: 15px;
+  border-right: 1px solid rgba(0, 0, 0, 0.15);
 }
 
-.chart-wrapper {
-  display: flex;
-  margin-top: 50px;
+.y-axis-label {
+  font-size: 14px;
+  color: #555;
+  font-weight: bold;
 }
 
 .bar-container {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 20px; /* Add space for the label at top */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 10px;
 }
-
 
 .bar-value {
-    font-weight: bold;
-    margin-bottom: 5px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #444;
+  font-size: 14px;
 }
 
-
 .bar {
-    width: 53px;
-    border-radius: 5px 5px 0 0;
+  width: 53px;
+  border-radius: 2px 2px 0 0;
+  transition: all 0.3s ease;
+  background: #e0e0e0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.bar:hover {
+  transform: scale(1.01);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
 }
 
 .bar-label {
-    font-size: 12px;
-    margin-bottom: 2px;
+  font-size: 14px;
+  font-weight: bold;
+  margin-top: 5px;
+  color: #555;
+  text-align: center;
+}
+
+.bar:hover + .bar-label {
+  color: #222;
+}
+
+.bar:nth-child(1) {
+  background: linear-gradient(to top, #3498db, #5dade2);
+}
+
+.bar:nth-child(2) {
+  background: linear-gradient(to top, #e74c3c, #f1948a);
+}
+
+.bar:nth-child(3) {
+  background: linear-gradient(to top, #f1c40f, #f9e79f);
+}
+
+.bar:nth-child(1):hover {
+  background: linear-gradient(to top, #2c81b7, #4da6d7);
+}
+
+.bar:nth-child(2):hover {
+  background: linear-gradient(to top, #c0392b, #eb7667);
+}
+
+.bar:nth-child(3):hover {
+  background: linear-gradient(to top, #d4ac0d, #f4d03f);
 }

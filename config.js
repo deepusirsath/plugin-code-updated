@@ -1,5 +1,4 @@
-const config = {
-  BASE_URL: "http://192.168.0.2:10101/plugin",
+export const config = {
+  BASE_URL: "http://43.204.32.124:9001/plugin",
 };
 
-export default config;
