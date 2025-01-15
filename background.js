@@ -70,14 +70,12 @@ chrome.storage.local.set({ registration: true });
 
 // Listener for chrome startup
 chrome.runtime.onStartup.addListener(() => {
-  console.log("On startup is running");
   userDetails();
-  // fetchDeviceDataToSend();
+  // fetchDeviceDataToSend();/
   checkRegistration();
 });
 
 chrome.runtime.onInstalled.addListener(() => {
-  console.log("On Installed is running");
   userDetails();
   // fetchDeviceDataToSend();
   checkRegistration();
@@ -106,13 +104,10 @@ getExtensionid();
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type == "geoLocationUpdate") {
-    console.log("coords  received");
     const coordinates = request.coordinates; // Access the coordinates object
     latitude = coordinates.latitude; // Extract latitude
     longitude = coordinates.longitude; // Extract longitude
-    console.log("coords  received", latitude, "coords  received", longitude);
     chrome.storage.local.set({ coordinates: coordinates }, () => {
-      console.log("Saved coords to local storage");
       chrome.storage.local.get("coordinates", (result) => {
         console.log(
           "Retrieved coords from local storage",
@@ -120,7 +115,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         );
       });
     });
-    console.log("Received latitude , longitude", latitude, longitude);
   }
 });
 
@@ -133,7 +127,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       ["extensionId", "browserInfo", "ipAddress"],
       (data) => {
         if (chrome.runtime.lastError) {
-          console.error(chrome.runtime.lastError);
           sendResponse({ error: chrome.runtime.lastError });
           return;
         }
@@ -212,7 +205,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 // Received message from popup script to show all spam mails in a list
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action == "displayAllSpams") {
-    console.log("received response form popup to show all spams");
     displayAllSpamMails(user_email);
   }
 });
@@ -236,34 +228,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 // Here the content script message is received by the background script for Pending Status
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  // console.log("Message received from content.js on Gmail:", message);
   if (message.action === "pendingStatusGmail") {
-    console.log(
-      "Message received from content.js on Gmailfor pending Status and the ===================:",
-      message
-    );
     const messageId = message.messageId;
     const email = message.emailId;
-    console.log("Message ID:", messageId);
-    console.log("Email ID:", email);
     checkPendingResponseStatus(messageId, email, "gmail");
   } else if (message.action === "pendingStatusYahoo") {
-    console.log(
-      "Message received from content.js on Yahoo for pending Status and the ===================:"
-    );
     const messageId = message.messageId;
     const email = message.emailId;
-    console.log("Message ID:", messageId);
-    console.log("Email ID:", email);
+
     checkPendingResponseStatus(messageId, email, "yahoo");
   } else if (message.action === "pendingStatusOutlook") {
-    console.log(
-      "Message received from content.js on Outlook for pending Status and the ===================:"
-    );
     const messageId = message.messageId;
     const email = message.emailId;
-    console.log("Message ID:", messageId);
-    console.log("Email ID:", email);
     checkPendingResponseStatus(messageId, email, "outlook");
   }
 });
@@ -277,7 +253,6 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     const matchedKeyword = checkGmailUrl(urlToCheck);
 
     if (matchedKeyword) {
-      console.log(`Keyword detected: ${matchedKeyword}`);
       chrome.tabs.sendMessage(
         tabId,
         { action: "GmailDetectedForExtraction" },
@@ -291,12 +266,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "sendGmailData") {
-    console.log("Received message from content.js Gmail:", message);
     currentMessageId = message.messageId;
     const { messageId, emailId, eml_Url } = message;
-    console.log("Received messageId:", message.messageId);
-    console.log("Received emailId:", message.emailId);
-    console.log("Received eml_Url:", message.eml_Url);
     emlExtractionGmail(eml_Url, messageId, emailId);
   }
 });
@@ -310,8 +281,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const emailContent = message.emailContent;
     currentMessageId = message.dataConvid;
     user_email = message.userEmailId;
-    console.log("Data Convid Id:", currentMessageId);
-    // Ensure pluginId is set
     getExtensionid().then(() => {
       sendEmlToServer(currentMessageId, emailContent, "outlook", user_email);
     });
@@ -319,9 +288,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 // ---------------------------------------Yahoo Mail--------------------------------------------
-// chrome.storage.local.remove("messages", function () {
-//   console.log("Messages cleared from local storage");
-// });
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.url) {
@@ -335,16 +301,10 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  // console.log('Background script received message:', message);
-  // console.log("Message received from content.js on Yahoo Mail:");
   if (message.action === "sendYahooData") {
     let userEmail = message.userEmail;
     currentMessageId = message.lastMessageId;
     let emlUrl = message.url;
-
-    console.log("User email:", userEmail);
-    console.log("Message ID:", currentMessageId);
-    console.log("EML URL:", emlUrl);
     emlExtractionYahoo(emlUrl, currentMessageId, userEmail);
   }
 });
@@ -390,10 +350,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const email = message.email;
   const url = baseUrl + "/pending-status-check/";
   if (message.action === "firstCheckForEmail") {
-    console.log(
-      "Received message from content.js first Check Email here :",
-      message
-    );
     fetch(url, {
       method: "POST",
       headers: {
@@ -406,7 +362,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log("Response received from the server:", data);
         sendResponse({
           IsResponseRecieved: "success",
           data: data,
@@ -414,7 +369,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
       })
       .catch((error) => {
-        console.error("Error in calling the first check API:", error);
         sendResponse({
           status: "error",
           client: client,
