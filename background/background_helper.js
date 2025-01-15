@@ -83,3 +83,58 @@ export const checkEmailPageStatus = (currentUrl, tabId, sendResponse) => {
       sendResponse(false);
   }
 };
+
+
+export const emlExtractionGmail = async (emlUrl, currentMessageId, emailId) => {
+  try {
+    const response = await fetch(emlUrl, {
+      mode: "cors",
+      credentials: "include",
+      headers: {
+        Accept: "*/*",
+      },
+    });
+    const emailContent = await response.text();
+    console.log("Email Content:", emailContent);
+
+    const formattedContent = [
+      "MIME-Version: 1.0",
+      "Content-Type: message/rfc822",
+      "",
+      emailContent,
+    ].join("\r\n");
+
+    const emlBlob = new Blob([formattedContent], {
+      type: "message/rfc822",
+    });
+    console.log("Email Blob:", emlBlob);
+
+    if (emlBlob) {
+      await sendEmlToServer(currentMessageId, emlBlob, "gmail", emailId);
+      console.log("Email Blob sent to server");
+    }
+  } catch (error) {
+    console.log("Error fetching email data:", error);
+  }
+};
+
+export const checkGmailUrl = (url) => {
+  if (url && url.includes("mail.google.com")) {
+    const keywords = [
+      "inbox",
+      "starred",
+      "snoozed",
+      "drafts",
+      "imp",
+      "scheduled",
+      "all",
+      "spam",
+      "trash",
+      "category",
+    ];
+    const regex = new RegExp(keywords.join("|"), "i");
+    const match = url.match(regex);
+    return match ? match[0] : null;
+  }
+  return null;
+};
