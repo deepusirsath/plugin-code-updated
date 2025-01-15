@@ -68,21 +68,18 @@ const handleRegularButton = async (componentName) => {
  */
 const handleDisputeButton = async (componentName) => {
   try {
-    // First check if email is open
     chrome.runtime.sendMessage(
       { action: "checkEmailPage" },
       async function (response) {
-        const openedServices = ["OpendedGmail", "OpenedOutlook", "OpenedYahoo"];
+        const openedServices = ["OpenedGmail", "OpenedOutlook", "OpenedYahoo"];
 
         if (openedServices.includes(response)) {
-          // Load the dispute component
           await loadComponent({
             componentName,
             basePath: BASEPATH.PAGES,
             targetId: TARGET_ID.DATA_OUTPUT,
           });
 
-          // Check dispute status after component loads
           chrome.runtime.sendMessage(
             { action: "checkDispute" },
             function (disputeResponse) {
@@ -96,7 +93,7 @@ const handleDisputeButton = async (componentName) => {
             }
           );
         } else {
-          loadComponent({
+          await loadComponent({
             componentName: COMPONENTS.OPENED_MAIL_NOT_FOUND,
             basePath: BASEPATH.COMPONENT,
             targetId: TARGET_ID.DATA_OUTPUT,
