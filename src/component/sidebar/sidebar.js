@@ -3,6 +3,7 @@ import { COMPONENTS } from "/src/constant/component.js";
 import { displayError } from "/src/helper/display_error.js";
 import { TARGET_ID } from "/src/constant/target_id.js";
 import { loadComponent } from "/src/helper/content_loader_helper.js";
+import { initializeDisputeForm } from "/src/pages/dispute/dispute.js";
 
 /**
  * Updates the active state of menu items in the sidebar
@@ -117,7 +118,14 @@ const handleDisputeButton = async (componentName) => {
 const handleButtonClick = async (componentName, clickedButton) => {
   updateActiveMenuItem(clickedButton);
   if (clickedButton.id === "dispute-btn") {
-    handleDisputeButton(componentName);
+    handleDisputeButton(componentName).then(() => {
+      // Add event listener after component loads
+      document.addEventListener("componentLoaded", async (event) => {
+        if (event.detail.componentName === COMPONENTS.DISPUTE) {
+          initializeDisputeForm();
+        }
+      });
+    });
   } else {
     await handleRegularButton(componentName);
   }
