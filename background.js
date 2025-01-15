@@ -1,48 +1,32 @@
-import {
-  isGmailPage,
-  isGmailMailOpened,
-  isOutlookPage,
-  isYahooPage,
-} from "/src/helper/mail_services_helper.js";
+import { checkEmailPageStatus } from "./background/background_helper.js";
+import { CHECK_EMAIL_PAGE_STATUS } from "./src/constant/background_action.js";
 
-// Received message from popup script and send which age is opened currectly
+/**
+ * Message listener for handling background script communications
+ *
+ * This listener processes messages sent from other parts of the extension,
+ * specifically handling email page status checks.
+ *
+ * @param {Object} request - The message request object
+ * @param {string} request.action - Action type to identify the operation
+ * @param {Object} sender - Information about the script context that sent the message
+ * @param {Function} sendResponse - Callback function to send a response back to the sender
+ *
+ * @listens chrome.runtime.onMessage
+ *
+ * Flow:
+ * 1. Checks if the received action is CHECK_EMAIL_PAGE_STATUS
+ * 2. Queries for the active tab in the current window
+ * 3. Extracts the current URL from the active tab
+ * 4. Calls checkEmailPageStatus with URL, tab ID and response callback
+ *
+ * @returns {boolean} True if using sendResponse asynchronously, false otherwise
+ */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "checkEmailPage") {
+  if (request.action === CHECK_EMAIL_PAGE_STATUS) {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       const currentUrl = tabs[0]?.url;
-      if (isGmailMailOpened(currentUrl)) {
-        sendResponse("OpendedGmail");
-      } else if (isGmailPage(currentUrl)) {
-        sendResponse("Gmail");
-      } else if (isOutlookPage(currentUrl)) {
-        // Send a message to the content script to check for Outlook email
-        chrome.tabs.sendMessage(
-          tabs[0].id,
-          { action: "checkOutlookmail" },
-          (response) => {
-            if (response && response.emailBodyExists) {
-              sendResponse("OpenedOutlook");
-            } else {
-              sendResponse("Outlook");
-            }
-          }
-        );
-        return true; // Keep the channel open for async response
-      } else if (isYahooPage(currentUrl)) {
-        chrome.tabs.sendMessage(
-          tabs[0].id,
-          { action: "checkYahoomail" },
-          (response) => {
-            if (response && response.emailBodyExists) {
-              sendResponse("OpenedYahoo");
-            } else {
-              sendResponse("Yahoo");
-            }
-          }
-        );
-      } else {
-        sendResponse(false);
-      }
+      return checkEmailPageStatus(currentUrl, tabs[0].id, sendResponse);
     });
     return true;
   }
