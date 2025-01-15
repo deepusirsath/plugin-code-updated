@@ -4,6 +4,7 @@ import { displayError } from "/src/helper/display_error.js";
 import { TARGET_ID } from "/src/constant/target_id.js";
 import { loadComponent } from "/src/helper/content_loader_helper.js";
 import { initializeDisputeForm } from "/src/pages/dispute/dispute.js";
+import { SIDEBAR_CONFIG } from "./sidebar_config.js";
 
 /**
  * Updates the active state of menu items in the sidebar
@@ -129,33 +130,6 @@ const handleButtonClick = async (componentName, clickedButton) => {
   } else {
     await handleRegularButton(componentName);
   }
-};
-
-/**
- * Sidebar navigation configuration mapping button IDs to their components
- * @type {Object.<string, {component: string}>}
- */
-const SIDEBAR_CONFIG = {
-  details: {
-    buttonId: "details-btn",
-    component: COMPONENTS.DETAILS,
-  },
-  disputeMail: {
-    buttonId: "dispute-mail",
-    component: COMPONENTS.DISPUTE_MAIL,
-  },
-  spamMails: {
-    buttonId: "spam-mails",
-    component: COMPONENTS.SPAM_MAIL,
-  },
-  activity: {
-    buttonId: "activity-btn",
-    component: COMPONENTS.ACTIVITY,
-  },
-  dispute: {
-    buttonId: "dispute-btn",
-    component: COMPONENTS.DISPUTE,
-  },
 };
 
 /**
