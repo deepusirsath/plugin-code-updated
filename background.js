@@ -19,12 +19,10 @@ import {
   latitude,
   longitude,
   notifyPluginStatus,
+  checkEmailStatus,
+  handleEmailCheck
 } from "./background/background_helper.js";
 import { CHECK_EMAIL_PAGE_STATUS } from "./src/constant/background_action.js";
-
-import { config } from "./config.js";
-
-const baseUrl = config.BASE_URL;
 
 /**
  * Message listener for handling background script communications
@@ -345,36 +343,9 @@ chrome.runtime.onMessage.addListener((request, messageId, sendResponse) => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  const client = message.client;
-  const messageId = message.messageId;
-  const email = message.email;
-  const url = baseUrl + "/pending-status-check/";
-  if (message.action === "firstCheckForEmail") {
-    fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        messageId: messageId,
-        email: email,
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        sendResponse({
-          IsResponseRecieved: "success",
-          data: data,
-          client: client,
-        });
-      })
-      .catch((error) => {
-        sendResponse({
-          status: "error",
-          client: client,
-          error: error.message,
-        });
-      });
-    return true; // Keep the message channel open for async response
+  if (message.action !== "firstCheckForEmail") {
+    return false;
   }
+  handleEmailCheck(message, sendResponse);
+  return true;
 });

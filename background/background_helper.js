@@ -611,4 +611,40 @@ export const notifyPluginStatus = async () => {
   }
 };
 
-chrome.management.onEnabled.addListener(notifyPluginStatus);
+export const checkEmailStatus = async (messageId, email) => {
+  const url = `${baseUrl}/pending-status-check/`;
+  const requestBody = {
+    messageId,
+    email,
+  };
+
+  const requestOptions = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(requestBody),
+  };
+
+  const response = await fetch(url, requestOptions);
+  return response.json();
+};
+
+export const handleEmailCheck = async (message, sendResponse) => {
+  const { client, messageId, email } = message;
+
+  try {
+    const data = await checkEmailStatus(messageId, email);
+    sendResponse({
+      IsResponseRecieved: "success",
+      data,
+      client,
+    });
+  } catch (error) {
+    sendResponse({
+      status: "error",
+      client,
+      error: error.message,
+    });
+  }
+};
