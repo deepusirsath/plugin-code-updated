@@ -95,8 +95,6 @@ export const emlExtractionGmail = async (emlUrl, currentMessageId, emailId) => {
       },
     });
     const emailContent = await response.text();
-    console.log("Email Content:", emailContent);
-
     const formattedContent = [
       "MIME-Version: 1.0",
       "Content-Type: message/rfc822",
