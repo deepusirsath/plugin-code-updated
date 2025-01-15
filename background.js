@@ -15,17 +15,14 @@ import {
   emlExtractionYahoo,
   checkAdminComment,
   user_email,
-  currentMessageId, 
+  currentMessageId,
   latitude,
   longitude,
+  notifyPluginStatus,
 } from "./background/background_helper.js";
 import { CHECK_EMAIL_PAGE_STATUS } from "./src/constant/background_action.js";
 
 import { config } from "./config.js";
-import {
-  PLUGINS_ENABLE_DISABLE,
-  VERIFY_LICENSE,
-} from "/src/routes/api_route.js";
 
 const baseUrl = config.BASE_URL;
 
@@ -101,29 +98,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   }
 });
 
-chrome.management.onEnabled.addListener(() => {
-  // Make the fetch request to the server
-  const url = baseUrl + PLUGINS_ENABLE_DISABLE;
-
-  fetch(url, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      return response.json();
-    })
-    .then((data) => {
-      console.log("Fetch successful:", data);
-    })
-    .catch((error) => {
-      console.error("There was a problem with the fetch operation:", error);
-    });
-});
+chrome.management.onEnabled.addListener(notifyPluginStatus);
 
 getExtensionid();
 

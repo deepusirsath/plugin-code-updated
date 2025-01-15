@@ -14,6 +14,7 @@ import {
   SPAM_MAIL,
   PLUGIN_COUNTER,
   PENDING_STATUS_CHECK,
+  PLUGINS_ENABLE_DISABLE,
 } from "/src/routes/api_route.js";
 
 export let pluginId = null;
@@ -587,3 +588,27 @@ export const checkAdminComment = async (messageId, email) => {
     return null;
   }
 };
+
+export const notifyPluginStatus = async () => {
+  const url = baseUrl + PLUGINS_ENABLE_DISABLE;
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("Plugin status update successful:", data);
+  } catch (error) {
+    console.error("Failed to update plugin status:", error);
+  }
+};
+
+chrome.management.onEnabled.addListener(notifyPluginStatus);
