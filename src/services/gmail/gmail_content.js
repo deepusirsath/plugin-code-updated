@@ -554,3 +554,35 @@ window.addEventListener("click", (e) => {
     });
   }
 });
+
+//my code
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action == "checkGmailmail") {
+    const emailBodySearch = document.querySelector(".adn.ads");
+    const gmailMessageId = document.querySelector("[data-message-id]")?.getAttribute("data-message-id");
+
+    if (emailBodySearch && gmailMessageId) {
+      const senderEmailElement = document.querySelector(".gD");
+      let senderEmail = null;
+
+      if (senderEmailElement) {
+        const emailMatch = senderEmailElement.textContent.match(/<([^>]+)>/);
+        senderEmail = emailMatch ? emailMatch[1] : userEmailId;
+      }
+
+      sendResponse({
+        emailBodyExists: true,
+        messageId: gmailMessageId,
+        emailId: userEmailId,
+        senderEmail: senderEmail,
+      });
+    } else {
+      sendResponse({
+        emailBodyExists: false,
+        error: "didn't get the message Id",
+      });
+    }
+  }
+  return true;
+});
+

@@ -73,6 +73,7 @@ const handleDisputeButton = async (componentName) => {
     chrome.runtime.sendMessage(
       { action: "checkEmailPage" },
       async function (response) {
+        console.log("response", response);
         const openedServices = ["OpenedGmail", "OpenedOutlook", "OpenedYahoo"];
 
         if (openedServices.includes(response)) {

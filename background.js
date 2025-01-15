@@ -20,7 +20,7 @@ import {
   longitude,
   notifyPluginStatus,
   checkEmailStatus,
-  handleEmailCheck
+  handleEmailCheck,
 } from "./background/background_helper.js";
 import { CHECK_EMAIL_PAGE_STATUS } from "./src/constant/background_action.js";
 
@@ -47,17 +47,37 @@ import { CHECK_EMAIL_PAGE_STATUS } from "./src/constant/background_action.js";
  */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === CHECK_EMAIL_PAGE_STATUS) {
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-      if (!tabs || tabs.length === 0) {
-        sendResponse(null);
-        return;
-      }
-      const currentUrl = tabs[0]?.url;
-      return checkEmailPageStatus(currentUrl, tabs[0].id, sendResponse);
-    });
+    setTimeout(() => {
+      chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        if (!tabs || tabs.length === 0) {
+          sendResponse(null);
+          return;
+        }
+        const currentUrl = tabs[0]?.url || tabs[0]?.pendingUrl;
+
+        console.log("url check called", currentUrl);
+        return checkEmailPageStatus(currentUrl, tabs[0].id, sendResponse);
+      });
+    }, 500);
     return true;
   }
   return false;
+});
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.status === "complete" && tab.url) {
+    const currentUrl = tab.url;
+    if (
+      currentUrl.includes("mail.google.com") ||
+      currentUrl.includes("mail.yahoo.com") ||
+      currentUrl.includes("outlook.live.com")
+    ) {
+      chrome.tabs.sendMessage(tabId, {
+        action: "urlUpdated",
+        url: currentUrl,
+      });
+    }
+  }
 });
 
 chrome.storage.local.get(null, function (data) {
