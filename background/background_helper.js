@@ -7,6 +7,7 @@ import {
   isGmailPage,
   isOutlookPage,
   isYahooPage,
+  isGmailMailOpened,
 } from "/src/helper/mail_services_helper.js";
 import {
   CHECK_EMAIL,
@@ -72,7 +73,7 @@ export const checkEmailPageStatus = (currentUrl, tabId, sendResponse) => {
       sendResponse("Gmail");
       break;
 
-    case checkGmailUrl(urlToCheck):
+    case isGmailMailOpened(currentUrl):
       console.log("url check called 1", currentUrl);
       chrome.tabs.sendMessage(
         tabId,
