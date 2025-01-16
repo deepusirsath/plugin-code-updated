@@ -926,11 +926,7 @@ function checkGmailUrl(url) {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "sendGmailData") {
-<<<<<<< HEAD
     console.log("Received message from content.js Gmail:", message);
-=======
-    // currentMessageId = message.messageId;
->>>>>>> d27b0d0f653ab8c4ffb15cfbdb14a6a29ad15c23
     const { messageId, emailId, eml_Url } = message;
     currentMessageId = messageId;
     console.log("Received messageId:", message.messageId);
@@ -979,17 +975,11 @@ async function emlExtractionGmail(emlUrl, currentMessageId, emailId) {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "outlookEmlContent") {
-<<<<<<< HEAD
     const emailContent = message.emailContent;
     currentMessageId = message.dataConvid;
     user_email = message.userEmailId;
     console.log("Data Convid Id:", currentMessageId);
     // Ensure pluginId is set
-=======
-    // const emailContent = message.emailContent;
-    // currentMessageId = message.dataConvid;
-    // user_email = message.userEmailId;
->>>>>>> d27b0d0f653ab8c4ffb15cfbdb14a6a29ad15c23
     getExtensionid().then(() => {
       sendEmlToServer(
         message.dataConvid,
@@ -1051,15 +1041,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     let userEmail = message.userEmail;
     // currentMessageId = message.lastMessageId;
     let emlUrl = message.url;
-<<<<<<< HEAD
 
     console.log("User email:", userEmail);
     console.log("Message ID:", currentMessageId);
     console.log("EML URL:", emlUrl);
     emlExtractionYahoo(emlUrl, currentMessageId, userEmail);
-=======
-    emlExtractionYahoo(emlUrl, message.lastMessageId, userEmail);
->>>>>>> d27b0d0f653ab8c4ffb15cfbdb14a6a29ad15c23
   }
 });
 
