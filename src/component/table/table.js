@@ -3,12 +3,13 @@ export const createTable = () => {
   let currentPage = 1;
   let hasNext = false;
   let hasPrevious = false;
-  const rowsPerPage = 5;
+  let onSearch = null;
   let onPageChange = null;
+  const rowsPerPage = 5;
 
   // DOM Elements
   const elements = {
-    searchInput: document.getElementById("searchInput"),
+    searchInput: document.getElementById("search-input"),
     searchButton: document.getElementById("searchButton"),
     clearButton: document.getElementById("clearButton"),
     headerRow: document.getElementById("tableHeader"),
@@ -18,52 +19,32 @@ export const createTable = () => {
     pageInfo: document.getElementById("pageInfo"),
   };
 
-  const updateSearchResults = () => {
-    const searchTerm = elements.searchInput.value.toLowerCase().trim();
+  // Initially hide clear button
+  elements.clearButton.style.display = "none";
 
-    // Only perform search if searchTerm is not empty
-    if (searchTerm) {
-      filteredData = totalData.filter((row) =>
-        row.some(
-          (cell) =>
-            typeof cell === "string" && cell.toLowerCase().includes(searchTerm)
-        )
-      );
-      currentPage = 1;
-      elements.clearButton.style.display = "inline-block";
-      renderPage();
-    }
-  };
+  // Search button click handler
+  elements.searchButton.addEventListener("click", () => {
+    const searchQuery = elements.searchInput.value.trim();
+    onSearch(searchQuery);
+  });
 
-  const clearSearchResults = () => {
+  // Clear button click handler
+  elements.clearButton.addEventListener("click", () => {
     elements.searchInput.value = "";
-    filteredData = [];
-    currentPage = 1;
-    renderPage();
-
-    // Hide clear button and show search button after clearing
     elements.clearButton.style.display = "none";
-    elements.searchButton.style.display = "inline-block";
-  };
-
-  const attachSearchListeners = () => {
-    // Initially hide clear button
-    elements.clearButton.style.display = "none";
-    elements.searchButton.style.display = "inline-block";
-    elements.searchButton.addEventListener("click", updateSearchResults);
-    elements.clearButton.addEventListener("click", clearSearchResults);
-  };
+    if (onPageChange) {
+      onPageChange(1, ""); 
+    }
+  });
 
   const renderHeaders = (headers) => {
     elements.headerRow.innerHTML = headers
       .map((header) => `<th>${header}</th>`)
       .join("");
-    attachSearchListeners();
   };
 
   const updatePaginationControls = () => {
     const totalPages = Math.ceil(totalItems / rowsPerPage);
-
     elements.prevButton.disabled = !hasPrevious;
     elements.nextButton.disabled = !hasNext;
     elements.pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
@@ -75,10 +56,6 @@ export const createTable = () => {
     };
 
     elements.nextButton.onclick = () => {
-      console.log("Next button clicked");
-      console.log("Current page:", currentPage);
-      console.log("Has next:", hasNext);
-      console.log("On page change:", onPageChange);
       if (hasNext && onPageChange) {
         onPageChange(currentPage + 1);
       }
@@ -100,6 +77,7 @@ export const createTable = () => {
       hasNext = paginationInfo.hasNext;
       hasPrevious = paginationInfo.hasPrevious;
       onPageChange = paginationInfo.onPageChange;
+      onSearch = paginationInfo.onSearch;
     }
     renderData(data);
     updatePaginationControls();
