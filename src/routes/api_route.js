@@ -11,3 +11,4 @@ export const UPDATE_EMAIL_STATUS = "/update-email-details/";
 export const GET_DISPUTE_RAISE_DATA = "/get-disputes-raise-data/";
 export const GET_ALLOCATION_DATA = "/get-allocation-data/";
 export const GET_GRAPH_DATA = "/graph-count/";
+ export const FILTER_DISPUTE_MAIL = "/get-disputes-filter-data/";

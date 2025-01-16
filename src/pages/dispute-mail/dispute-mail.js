@@ -11,20 +11,75 @@ import { loadComponent } from "/src/helper/content_loader_helper.js";
 import { showLoader, hideLoader } from "/src/component/loader/loader.js";
 import {
   GET_DISPUTE_RAISE_DATA,
-  GET_ACTION_VIEW_DETAIL,
+  GET_ACTION_VIEW_DETAIL, FILTER_DISPUTE_MAIL
 } from "/src/routes/api_route.js";
 
-const showPopup = async (msg_id) => {
+
+//srch flt pg
+const showPopup = async (msg_id, currentPage) => {
   showLoader();
   const viewDetailData = await getViewDetailOfDisputeMail(msg_id);
   hideLoader();
-  createViewDetail(viewDetailData, loadDisputeComponent);
+  createViewDetail(viewDetailData, () => loadDisputeMailComponent(currentPage));
 };
 
-const loadDisputeComponent = async () => {
+const getViewDetailOfDisputeMail = async (msg_id) => {
+  try {
+    const requestData = {
+      messageId: msg_id,
+      email: "ekvayu123@outlook.com",
+    };
+    const response = await postData(`${GET_ACTION_VIEW_DETAIL}`, requestData);
+    return response.data;
+  } catch (error) {
+    hideLoader();
+    displayError(error);
+  }
+};
+
+const getAllDisputeMail = async (page = 1, searchQuery) => {
+  try {
+    const requestData = {
+      emailId: "ekvayu123@outlook.com",
+      page: page,
+    };
+    const response = await postData(`${GET_DISPUTE_RAISE_DATA}?page=${page}`, requestData);
+    return response;
+  } catch (error) {
+    hideLoader();
+    displayError(error);
+  }
+};
+
+const filterDisputeMails = async (searchQuery, page = 1) => {
+  try {
+    const requestData = {
+      receiver_email: "ekvayu123@outlook.com",
+      senders_email: searchQuery,
+      page: page,
+    };
+    const response = await postData(
+      `${FILTER_DISPUTE_MAIL}?page=${page}`,
+      requestData
+    );
+    return response;
+  } catch (error) {
+    hideLoader();
+    displayError(error);
+  }
+};
+
+const handleSearch = (value) => {
+  loadDisputeMailComponent(1, value);
+};
+
+const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
   try {
     showLoader();
-    const disputeMailData = await getAllDisputeMail(1);
+    const disputeMailResponse = searchQuery
+      ? await filterDisputeMails(searchQuery, page)
+      : await getAllDisputeMail(page);
+
     await loadComponent({
       componentName: COMPONENTS.TABLE,
       basePath: BASEPATH.COMPONENT,
@@ -35,35 +90,65 @@ const loadDisputeComponent = async () => {
     const headers = ["Sender", "Status", "Action"];
     table.setHeaders(headers);
 
-    if (!disputeMailData.data || disputeMailData.data.length === 0) {
+    if (!disputeMailResponse.results || disputeMailResponse.results.length === 0) {
       await loadComponent({
         componentName: COMPONENTS.NO_DATA_FOUND,
         basePath: BASEPATH.COMPONENT,
         targetId: TARGET_ID.DATA_OUTPUT,
       });
-      handleRefresh(loadDisputeComponent);
+      handleRefresh(() => loadDisputeMailComponent(1, searchQuery));
       hideLoader();
       return;
     }
 
-    // Format and display data
-    const formattedData = disputeMailData.data.map((item) => [
-      item.sender_email,
-      createStatusChip(
-        item.status === 1 ? "safe" : item.status === 2 ? "unsafe" : "pending"
-      ).outerHTML,
+    const handlePageChange = async (newPage) => {
+      showLoader();
+      const newData = searchQuery
+        ? await filterDisputeMails(searchQuery, newPage)
+        : await getAllDisputeMail(newPage);
+
+      const newFormattedData = newData.results.map((item) => [
+        item.senders_email,
+        createStatusChip(item.status).outerHTML,
+        createViewButton(item.msg_id).outerHTML,
+      ]);
+
+      table.updateData(newFormattedData, {
+        totalItems: newData.count,
+        currentPage: newPage,
+        hasNext: !!newData.next,
+        hasPrevious: !!newData.previous,
+        onPageChange: handlePageChange,
+      });
+      hideLoader();
+
+      attachViewButtonListeners(newPage);
+    };
+
+    const attachViewButtonListeners = (currentPage) => {
+      document.querySelectorAll(".view-button").forEach((button) => {
+        button.addEventListener("click", () => {
+          showPopup(button.dataset.msg_id, currentPage);
+        });
+      });
+    };
+
+    const formattedData = disputeMailResponse.results.map((item) => [
+      item.senders_email,
+      createStatusChip(item.status).outerHTML,
       createViewButton(item.msg_id).outerHTML,
     ]);
 
-    table.setData(formattedData);
-
-    // Add click handlers for view buttons
-    document.querySelectorAll(".view-button").forEach((button) => {
-      button.addEventListener("click", () => {
-        showPopup(button.dataset.msg_id);
-      });
+    table.setData(formattedData, {
+      totalItems: disputeMailResponse.count,
+      currentPage: page,
+      hasNext: !!disputeMailResponse.next,
+      hasPrevious: !!disputeMailResponse.previous,
+      onPageChange: handlePageChange,
+      onSearch: handleSearch,
     });
 
+    attachViewButtonListeners(page);
     hideLoader();
   } catch (error) {
     hideLoader();
@@ -71,42 +156,16 @@ const loadDisputeComponent = async () => {
   }
 };
 
-const getAllDisputeMail = async (page = 1) => {
-  try {
-    const requestData = {
-      emailId: "deepali@ekvayu.com",
-      page: page,
-    };
-    const response = await postData(
-      `${GET_DISPUTE_RAISE_DATA}?page=${page}`,
-      requestData
-    );
-    console.log("dispute mail data",response);
-    return response.results;
-  } catch (error) {
-    hideLoader();
-    displayError(error);
-  }
-};
-
-const getViewDetailOfDisputeMail = async (msg_id) => {
-  try {
-    const requestData = {
-      messageId: msg_id,
-      email: "deepali@ekvayu.com",
-    };
-    const response = await postData(`${GET_ACTION_VIEW_DETAIL}`, requestData);
-    return response.data;
-  } catch (error) {
-    hideLoader();
-    displayError(error);
-  }
-};
-
+// Add event listener for search button
 document.addEventListener("componentLoaded", (event) => {
-  if (event.detail.componentName === COMPONENTS.DISPUTE_MAIL) {
-    loadDisputeComponent();
+  if (event.detail.componentName === COMPONENTS.SPAM_MAIL) {
+    loadDisputeMailComponent(1);
+
+    // const searchButton = document.getElementById("searchButton");
+    // if (searchButton) {
+    //   searchButton.addEventListener("click", handleSearch);
+    // }
   }
 });
 
-loadDisputeComponent();
+loadDisputeMailComponent();
