@@ -4,9 +4,16 @@ document.addEventListener("visibilitychange", () => {
     findEmailId();
   }
 });
+window.addEventListener("focus", () => {
+  findEmailId();
+});
+
+setTimeout(() => {
+  shouldApplyPointerEvents = true;
+  blockEmailBody();
+}, 3000);
 
 let shouldApplyPointerEvents = true;
-blockEmailBody();
 let emailId = null;
 let messageId = null;
 let isValidSegmentLength = 32;
@@ -27,9 +34,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         let url = window.location.href;
         console.log("URL:", url);
         const lastSegment = url.split("/").pop().split("#").pop();
+        console.log("Last Segment===================:", lastSegment, lastSegment.length);
 
         // Check if the last segment has exactly isValidSegmentLength characters
-        if (lastSegment.length === isValidSegmentLength) {
+        if (lastSegment.length >= isValidSegmentLength) {
           console.log(
             `The last segment "${lastSegment}" has exactly isValidSegmentLength characters.`
           );
@@ -53,6 +61,7 @@ const init = () => {
     .then(() => console.log("Operations completed"))
     .catch((error) => console.error("Error:", error));
 };
+
 
 // Function to extract message ID and EML content
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -193,14 +202,11 @@ async function extractMessageIdAndEml() {
                       );
                     });
                   }
-                } else {
-                  console.log(
-                    "Message not found on server, extracting content"
-                  );
+                } 
+                else {
+                  console.log("Message not found on server, extracting content");
                   setTimeout(() => {
-                    console.log(
-                      "Script Executed for create url==========================="
-                    );
+                    console.log("Script Executed for create url===========================");
                     createUrl(url, messageId);
                   }, 100);
                 }
@@ -231,6 +237,7 @@ function createUrl(url, messageId) {
   let prefixUrl = url.substr(0, url.search("/#"));
   console.log("prefixUrl", prefixUrl);
   let eml_Url = `${prefixUrl}?view=att&th=${messageId}&attid=0&disp=comp&safe=1&zw`;
+  
   console.log("Gmail EML Url ", eml_Url);
   try {
     chrome.runtime.sendMessage({
@@ -246,14 +253,10 @@ function createUrl(url, messageId) {
 
 // Listen for messages from the background script like if the pending staus is empty
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (
-    request.action === "EmailNotFoundInPendingRequest" &&
-    request.client === "gmail"
-  ) {
-    console.log(
-      "Received message in content script EmailNotFoundInPendingRequest:",
-      request
-    );
+  const currentCount = 0;
+  if (request.action === "EmailNotFoundOnServerRequest" && request.client === "gmail" && currentCount < 3) {
+    console.log("Received message in content script EmailNotFoundOnServerRequest:", request);
+    currentCount++;
     const { messageId } = request;
     createUrl(url, messageId);
   }
@@ -278,10 +281,6 @@ async function findEmailId() {
 
 // Function to show the alert to the user
 function showAlert(key) {
-  const elements = document.getElementsByClassName("nH a98 iY");
-  if (!elements || elements.length === 0) {
-    return; // Exit if target element not found
-  }
   // Create the alert container
   const alertContainer = document.createElement("div");
   alertContainer.style.position = "fixed";
@@ -305,81 +304,245 @@ function showAlert(key) {
   message.style.textAlign = "center";
 
   const button = document.createElement("button");
-  button.innerText = "Close";
-  button.style.padding = "10px 25px";
-  button.style.border = "none";
-  button.style.borderRadius = "6px";
-  button.style.cursor = "pointer";
-  button.style.backgroundColor = "#4C9ED9"; // Blue color
-  button.style.color = "#fff";
-  button.style.fontSize = "16px";
-  button.style.transition = "background-color 0.3s ease, transform 0.2s"; // Smooth transitions
+button.innerText = "Close";
 
-  button.addEventListener("mouseover", () => {
-    button.style.backgroundColor = "#2A7BB0"; // Darker blue on hover
-    button.style.transform = "scale(1.05)";
-  });
+Object.assign(button.style, {
+  padding: "8px 20px",
+  border: "1px solid #4C9ED9",
+  borderRadius: "4px",
+  cursor: "pointer",
+  backgroundColor: "#4C9ED9",
+  color: "#ffffff",
+  fontSize: "14px",
+  fontWeight: "500",
+  transition: "all 0.2s ease",
+  fontFamily: "'Segoe UI', system-ui, sans-serif",
+  boxShadow: "0 1px 2px rgba(76, 158, 217, 0.15)"
+});
 
-  button.addEventListener("mouseout", () => {
-    button.style.backgroundColor = "#4C9ED9"; // Revert to original blue
-    button.style.transform = "scale(1)";
+button.addEventListener("mouseover", () => {
+  Object.assign(button.style, {
+    backgroundColor: "#3989c2",
+    transform: "translateY(-1px)"
   });
+});
+
+button.addEventListener("mouseout", () => {
+  Object.assign(button.style, {
+    backgroundColor: "#4C9ED9",
+    transform: "translateY(0)"
+  });
+});
 
   let iconHtml = "";
   switch (key) {
     case "safe":
-      message.innerText = "This mail is safe you can proceed!!";
-      alertContainer.style.border = "4px solid green";
-      iconHtml = `
-                <svg width="80" height="80">
-                    <circle cx="40" cy="40" r="36" stroke="green" stroke-width="6" fill="none"/>
-                    <polyline points="24,44 36,58 60,26" stroke="green" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                        <animate attributeName="stroke-dasharray" values="0,60;60,0" dur="1s" repeatCount="indefinite"/>
-                    </polyline>
-                </svg>`;
-      break;
+    message.innerText = "Security verification complete - Safe to proceed";
+    
+    alertContainer.style.width = "360px";
+    alertContainer.style.padding = "24px";
+    alertContainer.style.background = "linear-gradient(135deg, #ffffff, #f8fff8)";
+    alertContainer.style.border = "1px solid rgba(40, 167, 69, 0.2)";
+    alertContainer.style.borderLeft = "6px solid #28a745";
+    alertContainer.style.boxShadow = "0 6px 16px rgba(40, 167, 69, 0.08), 0 3px 6px rgba(0, 0, 0, 0.12)";
+    alertContainer.style.borderRadius = "8px";
+
+    iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
+        <defs>
+            <filter id="shadow-success">
+                <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#28a745" flood-opacity="0.25"/>
+            </filter>
+        </defs>
+        
+        <!-- Shield outline with pulsing effect -->
+        <path d="M24 4 L42 12 V24 C42 34 34 41 24 44 C14 41 6 34 6 24 V12 L24 4Z"
+              fill="none"
+              stroke="#28a745"
+              stroke-width="2.5"
+              filter="url(#shadow-success)">
+            <animate attributeName="stroke-dasharray"
+                     values="0,150;150,0"
+                     dur="2s"
+                     repeatCount="indefinite"/>
+            <animate attributeName="stroke-opacity"
+                     values="0.6;1;0.6"
+                     dur="2s"
+                     repeatCount="indefinite"/>
+        </path>
+        
+        <!-- Checkmark with dynamic animation -->
+        <path d="M16 24 L22 30 L32 18"
+              stroke="#28a745"
+              stroke-width="3"
+              fill="none"
+              stroke-linecap="round"
+              stroke-linejoin="round">
+            <animate attributeName="stroke-dasharray"
+                     values="0,40;40,0"
+                     dur="1.5s"
+                     repeatCount="indefinite"/>
+            <animate attributeName="stroke-width"
+                     values="2.5;3;2.5"
+                     dur="1.5s"
+                     repeatCount="indefinite"/>
+        </path>
+    </svg>`;
+    break;
+
     case "unsafe":
       message.innerText =
-        "Caution! This email has been identified as potentially unsafe. You have the option to raise a dispute regarding its content.";
-      alertContainer.style.border = "4px solid red";
-      iconHtml = `
-                  <svg width="80" height="80" viewBox="0 0 80 80">
-                      <line x1="26" y1="26" x2="54" y2="54" stroke="red" stroke-width="6" stroke-linecap="round">
-                          <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/>
-                      </line>
-                      <line x1="54" y1="26" x2="26" y2="54" stroke="red" stroke-width="6" stroke-linecap="round">
-                          <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/>
-                      </line>
-                  </svg>`;
+        "Security Notice: Email requires verification. Raise a dispute to review content.";
+
+      alertContainer.style.width = "360px"; // Slightly wider for better text flow
+      alertContainer.style.padding = "24px"; // Increased padding
+      alertContainer.style.background =
+        "linear-gradient(135deg, #ffffff, #fafafa)"; // Diagonal gradient
+      alertContainer.style.border = "1px solid rgba(220, 53, 69, 0.2)"; // Subtle border all around
+      alertContainer.style.borderLeft = "6px solid #dc3545"; // Thicker left border
+      alertContainer.style.boxShadow =
+        "0 6px 16px rgba(220, 53, 69, 0.08), 0 3px 6px rgba(0, 0, 0, 0.12)"; // Multi-layered shadow
+      alertContainer.style.borderRadius = "8px"; // Increased border radius
+
+      // Enhanced SVG with more dynamic animations
+      iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
+    <defs>
+        <filter id="shadow">
+            <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#dc3545" flood-opacity="0.25"/>
+        </filter>
+    </defs>
+    
+    <!-- Shield outline with pulsing effect -->
+    <path d="M24 4 L42 12 V24 C42 34 34 41 24 44 C14 41 6 34 6 24 V12 L24 4Z"
+          fill="none"
+          stroke="#dc3545"
+          stroke-width="2.5"
+          filter="url(#shadow)">
+        <animate attributeName="stroke-dasharray"
+                 values="0,150;150,0"
+                 dur="2s"
+                 repeatCount="indefinite"/>
+        <animate attributeName="stroke-opacity"
+                 values="0.6;1;0.6"
+                 dur="2s"
+                 repeatCount="indefinite"/>
+    </path>
+    
+    <!-- Enhanced alert mark -->
+    <g transform="translate(24,24)">
+        <line x1="0" y1="-10" x2="0" y2="4"
+              stroke="#dc3545"
+              stroke-width="3"
+              stroke-linecap="round">
+            <animate attributeName="opacity"
+                     values="0.7;1;0.7"
+                     dur="1.5s"
+                     repeatCount="indefinite"/>
+            <animate attributeName="stroke-width"
+                     values="2.5;3;2.5"
+                     dur="1.5s"
+                     repeatCount="indefinite"/>
+        </line>
+        <circle cx="0" cy="8" r="2.2"
+                fill="#dc3545">
+            <animate attributeName="r"
+                     values="2;2.4;2"
+                     dur="1.5s"
+                     repeatCount="indefinite"/>
+            <animate attributeName="opacity"
+                     values="0.7;1;0.7"
+                     dur="1.5s"
+                     repeatCount="indefinite"/>
+        </circle>
+        </g>
+      </svg>`;
+
       break;
     case "inform":
-      message.innerText =
-        "Heads up! Server is busy, please wait for a moment and try again.";
-      alertContainer.style.border = "4px solid orange";
-      iconHtml = `
-                    <svg width="80" height="80">
-                        <circle cx="40" cy="40" r="36" stroke="orange" stroke-width="6" fill="none"/>
-                        <text x="40" y="48" text-anchor="middle" font-size="36" fill="orange" font-weight="bold">?</text>
-                        <animateTransform attributeName="transform" type="scale" values="1;1.2;1" dur="2s" repeatCount="indefinite"/>
-                    </svg>`;
-      break;
+        message.innerText = "System maintenance in progress - Your security is our priority";
+        
+        alertContainer.style.width = "360px";
+        alertContainer.style.padding = "24px";
+        alertContainer.style.background = "linear-gradient(135deg, #ffffff, #fff8f0)";
+        alertContainer.style.border = "1px solid rgba(255, 153, 0, 0.2)";
+        alertContainer.style.borderLeft = "6px solid #ff9900";
+        alertContainer.style.boxShadow = "0 6px 16px rgba(255, 153, 0, 0.08), 0 3px 6px rgba(0, 0, 0, 0.12)";
+        alertContainer.style.borderRadius = "8px";
+    
+        iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
+            <defs>
+                <filter id="shadow-warning">
+                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#ff9900" flood-opacity="0.25"/>
+                </filter>
+            </defs>
+            
+            <!-- Outer rotating circle -->
+            <circle cx="24" cy="24" r="20" 
+                    stroke="#ff9900" 
+                    stroke-width="2.5"
+                    fill="none"
+                    stroke-dasharray="31.4 31.4"
+                    filter="url(#shadow-warning)">
+                <animateTransform
+                    attributeName="transform"
+                    attributeType="XML"
+                    type="rotate"
+                    from="0 24 24"
+                    to="360 24 24"
+                    dur="3s"
+                    repeatCount="indefinite"/>
+            </circle>
+    
+            <!-- Inner rotating circle -->
+            <circle cx="24" cy="24" r="15"
+                    stroke="#ff9900"
+                    stroke-width="2.5"
+                    fill="none"
+                    stroke-dasharray="23.5 23.5"
+                    filter="url(#shadow-warning)">
+                <animateTransform
+                    attributeName="transform"
+                    attributeType="XML"
+                    type="rotate"
+                    from="360 24 24"
+                    to="0 24 24"
+                    dur="2s"
+                    repeatCount="indefinite"/>
+            </circle>
+    
+            <!-- Center pulsing dot -->
+            <circle cx="24" cy="24" r="4"
+                    fill="#ff9900">
+                <animate
+                    attributeName="r"
+                    values="3;4;3"
+                    dur="1s"
+                    repeatCount="indefinite"/>
+                <animate
+                    attributeName="fill-opacity"
+                    values="0.7;1;0.7"
+                    dur="1s"
+                    repeatCount="indefinite"/>
+            </circle>
+        </svg>`;
+        break;
+   
     case "pending":
       message.innerText =
         "Your request is being processed... Please hold on while we block the email currently being processed.";
       alertContainer.style.border = "4px solid #4C9ED9"; // Softer blue border
       alertContainer.style.backgroundColor = "#fff"; // Light background for a softer look
       iconHtml = `
-            <svg width="80" height="30" viewBox="0 0 80 20">
-                <circle cx="20" cy="10" r="5" fill="#4C9ED9">
-                    <animate attributeName="cy" values="10;5;10" dur="0.6s" repeatCount="indefinite" begin="0s" />
-                </circle>
-                <circle cx="40" cy="10" r="5" fill="#4C9ED9">
-                    <animate attributeName="cy" values="10;5;10" dur="0.6s" repeatCount="indefinite" begin="0.2s" />
-                </circle>
-                <circle cx="60" cy="10" r="5" fill="#4C9ED9">
-                    <animate attributeName="cy" values="10;5;10" dur="0.6s" repeatCount="indefinite" begin="0.4s" />
-                </circle>
-            </svg>`;
+          <svg width="80" height="30" viewBox="0 0 80 20">
+              <circle cx="20" cy="10" r="5" fill="#4C9ED9">
+                  <animate attributeName="cy" values="10;5;10" dur="0.6s" repeatCount="indefinite" begin="0s" />
+              </circle>
+              <circle cx="40" cy="10" r="5" fill="#4C9ED9">
+                  <animate attributeName="cy" values="10;5;10" dur="0.6s" repeatCount="indefinite" begin="0.2s" />
+              </circle>
+              <circle cx="60" cy="10" r="5" fill="#4C9ED9">
+                  <animate attributeName="cy" values="10;5;10" dur="0.6s" repeatCount="indefinite" begin="0.4s" />
+              </circle>
+          </svg>`;
       break;
     default:
       console.log("Invalid key for showAlert");
@@ -436,6 +599,7 @@ function showAlert(key) {
   document.addEventListener("click", dismissOnOutsideClick, true);
   button.addEventListener("click", removeAlert);
 }
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (
     request.action === "erroRecievedFromServer" &&
@@ -457,11 +621,31 @@ document.addEventListener("click", function removeAlertOnClick(event) {
   }
 });
 
+function getElementsWithRetry(maxAttempts = 5, delayMs = 1000) {
+  let attempts = 0;
+  
+  return new Promise((resolve) => {
+    function tryGetElements() {
+      const elements = document.getElementsByClassName("nH a98 iY");
+      
+      if (elements && elements.length > 0) {
+        resolve(elements);
+      } else if (attempts < maxAttempts) {
+        attempts++;
+        setTimeout(tryGetElements, delayMs);
+      } else {
+        resolve(null);
+      }
+    }
+    
+    tryGetElements();
+  });
+}
+
 // Function to toggle pointer events means blocking the email body or unblocking it
-function blockEmailBody() {
-  const elements = document.getElementsByClassName("nH a98 iY");
-  if (elements && elements.length > 0) {
-    // Convert HTMLCollection to Array and apply styles to each element
+async function blockEmailBody() {
+  const elements = await getElementsWithRetry();
+  if (elements) {
     Array.from(elements).forEach((element) => {
       if (shouldApplyPointerEvents) {
         console.log("Pointer Event None");
@@ -472,19 +656,18 @@ function blockEmailBody() {
       }
     });
   } else {
-    console.log("Elements not found");
+    console.log("Elements not found after multiple attempts");
   }
 }
 
 // function to handle the server response and show the alert with the appropriate message
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.client === "gmail") {
-    // Check if the message is for Outlook
     console.log(
       "this is the function that will be called when the content script receives a message for the Gmail client"
     );
     if (message.action === "blockUrls") {
-      console.log("Outlook Content script received message:", message.action);
+      console.log("Gmail Content script received message:", message.action);
       shouldApplyPointerEvents = true;
       showAlert("unsafe");
       console.log("Blocking URLs for Gmail");

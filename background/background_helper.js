@@ -160,6 +160,9 @@ export const handleEmailScanResponse = (serverData, activeTabId, client) => {
             );
           })
           .catch((error) => {
+            if (error.message.includes('receiving end does not exist')) {
+              console.log('Content script not ready, will retry');
+            }
             console.error("Error sending message to content script:", error);
           });
       }
