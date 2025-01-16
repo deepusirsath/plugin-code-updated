@@ -1,8 +1,8 @@
 console.log("Content script loaded.");
 
 // Listen for tab activation/focus
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') {
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
     findOutlookEmailId();
   }
 });
@@ -28,10 +28,6 @@ chrome.storage.local.get("registration", (data) => {
     initializeOutlook().catch((error) =>
       console.error("Failed to initialize Outlook:", error)
     );
-    // setupClickListener();
-    // findOutlookEmailId();
-    // blockEmailBody();
-    // fetchLocation();
   }
 });
 
@@ -548,26 +544,10 @@ function setupClickListener(attempts = 500) {
                             setTimeout(() => {
                               executeWithLoadingScreenAndExtraction();
                             }, 100);
-                            // messages[dataConvid] = "pending";
-                            // chrome.storage.local.set(
-                            //   { messages: JSON.stringify(messages) },
-                            //   function () {
-                            //     chrome.storage.local.get(null, function (data) {
-                            //       console.log("Data from local storage:", data);
-                            //     });
-                            //     console.log("Applying blocking layer because message is not Present in Local storage");
-                            //     shouldApplyPointerEvents = true;
-                            //     blockEmailBody();
-                            //     executeWithLoadingScreenAndExtraction();
-                            //   }
-                            // );
                           }
-                          // message: 'Email details not found', status: 'error', code: 404
-                          // eml_status: 'unsafe', messageId:'AQQkADAwATM3ZmYBLTgyMTMtNTZkZi0wMAItMDAKABAAV4NHyvlXLkqL1Jlaonq2Tg==_20241209_1531_5', email:
                         } else if (response.status === "error") {
                           console.log("API call failed ok:", error);
                           showAlert("inform");
-                          // extractEmlContent(dataConvid);
                         }
                       }
                     )
@@ -998,13 +978,6 @@ function showPending() {
   }, 5000);
 }
 
-// chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-//   if (message.action === "responseDelayStatus" , message.client === "outlook") {
-//     console.log("Server response delayed for more than 4 seconds");
-//     showAlert("pending");
-//   }
-// });
-
 chrome.storage.local.get("messages", function (result) {
   let messages = JSON.parse(result.messages || "{}"); // Ensure messages is an object
   console.log(
@@ -1025,10 +998,6 @@ chrome.storage.local.get("registration", (data) => {
     });
   }
 });
-
-// window.addEventListener("load", () => {
-//   setTimeout(checkReloadStatusOutlook, 1000);
-// });
 
 function checkReloadStatusOutlook() {
   findScrollBar();
@@ -1194,36 +1163,7 @@ function checkReloadStatusOutlook() {
         shouldApplyPointerEvents = true;
         blockEmailBody();
         alert("There is an issue, please refresh the page and try again");
-        // const element = document.querySelector("#ConversationReadingPaneContainer");
-        // const junkBox = document.querySelector("#ItemReadingPaneContainer");
-        // if(element || junkBox){
-        //   window.location.reload();
-        // }
-        // externalCallForPendingStatus();
       }
-      // function externalCallForPendingStatus( attempts = 10) {
-      //   console.log("Message does not exist in the local storage");
-      //   const mailBody = document.querySelector(".GjFKx.WWy1F.YoK0k");
-      //   if(mailBody){
-      //     console.log("Mail body found");
-      //     mailBody.click();
-      //     // setTimeout(()=>{
-      //       console.log("Mail body clicked");
-      //       shouldApplyPointerEvents = true;
-      //       blockEmailBody();
-      //       // executeWithLoadingScreenAndExtraction();
-      //     // }, 1000);
-      //   }
-      //   else if(attempts > 0){
-      //     setTimeout(() => externalCallForPendingStatus(attempts - 1), 500);
-      //   }
-      //   else{
-      //     console.log("Mail body not found, Meaning the email is not loaded yet or No mail is opened");
-      //     shouldApplyPointerEvents = true;
-      //     blockEmailBody();
-      //     // alert("Mail body not found");
-      //   }
-      // }
     });
   }
 }
@@ -1278,14 +1218,4 @@ window.addEventListener("click", (e) => {
     );
     showBlockedPopup();
   }
-  // const element = document.querySelector("#ConversationReadingPaneContainer");
-  // const junkBox = document.querySelector("#ItemReadingPaneContainer");
-
-  // if (shouldApplyPointerEvents && (element?.contains(e.target) || junkBox?.contains(e.target))) {
-  //   console.log("Clicked on the email body");
-  //   console.log("shouldApplyPointerEvents", shouldApplyPointerEvents);
-  // }
-  // else{
-  //   console.log("not clicked on the email body");
-  // }
 });
