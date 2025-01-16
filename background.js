@@ -53,8 +53,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           return;
         }
         const currentUrl = tabs[0]?.url || tabs[0]?.pendingUrl;
-
-        console.log("url check called", currentUrl);
         return checkEmailPageStatus(currentUrl, tabs[0].id, sendResponse);
       });
     }, 500);
