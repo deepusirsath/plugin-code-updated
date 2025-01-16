@@ -56,7 +56,10 @@ const init = () => {
 
 // Function to extract message ID and EML content
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action == "fetchDisputeMessageId") {
+  if (
+    message.action === "checkGmailmail" ||
+    message.action == "fetchDisputeMessageId"
+  ) {
     const node = document.querySelector("[data-legacy-message-id]");
     const messageId = node.getAttribute("data-legacy-message-id");
     const gmailContainer = document.querySelector("div[role='main']");

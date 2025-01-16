@@ -15,7 +15,6 @@ import {
   emlExtractionYahoo,
   checkAdminComment,
   user_email,
-  currentMessageId,
   latitude,
   longitude,
   notifyPluginStatus,
@@ -284,7 +283,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "sendGmailData") {
-    currentMessageId = message.messageId;
+    // currentMessageId = message.messageId;
     const { messageId, emailId, eml_Url } = message;
     emlExtractionGmail(eml_Url, messageId, emailId);
   }
@@ -296,11 +295,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "outlookEmlContent") {
-    const emailContent = message.emailContent;
-    currentMessageId = message.dataConvid;
-    user_email = message.userEmailId;
+    // const emailContent = message.emailContent;
+    // currentMessageId = message.dataConvid;
+    // user_email = message.userEmailId;
     getExtensionid().then(() => {
-      sendEmlToServer(currentMessageId, emailContent, "outlook", user_email);
+      sendEmlToServer(
+        message.dataConvid,
+        message.emailContent,
+        "outlook",
+        message.userEmailId
+      );
     });
   }
 });
@@ -321,9 +325,9 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "sendYahooData") {
     let userEmail = message.userEmail;
-    currentMessageId = message.lastMessageId;
+    // currentMessageId = message.lastMessageId;
     let emlUrl = message.url;
-    emlExtractionYahoo(emlUrl, currentMessageId, userEmail);
+    emlExtractionYahoo(emlUrl, message.lastMessageId, userEmail);
   }
 });
 
