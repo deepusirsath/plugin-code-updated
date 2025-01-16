@@ -18,13 +18,14 @@ import {
   PLUGINS_ENABLE_DISABLE,
 } from "/src/routes/api_route.js";
 
+
 export let pluginId = null;
 export let ipAddress = null;
 export let browserInfo = null;
 export let operatingSystem = null;
 export let macId = null;
 export let user_email = null;
-export let currentMessageId = null; //Contains latest message Id which will send to server
+export let currentMessageId; //Contains latest message Id which will send to server
 export let latitude = null;
 export let longitude = null;
 const baseUrl = "http://192.168.0.2:10101/plugin";
@@ -116,56 +117,7 @@ export const checkEmailPageStatus = (currentUrl, tabId, sendResponse) => {
   }
 };
 
-export const handleEmailScanResponse = (serverData, activeTabId, client) => {
-  const resStatus = serverData.eml_status || serverData.email_status;
-  const messId = serverData.messageId || serverData.msg_id;
-  console.log("Received Message ID from Server:", messId, resStatus);
 
-  if (typeof resStatus === "undefined" || typeof messId === "undefined") {
-    chrome.runtime.sendMessage({
-      action: "erroRecievedFromServer",
-      client: client,
-    });
-  } else {
-    chrome.storage.local.set({ email_status: resStatus });
-  }
-
-  chrome.storage.local.get("messages", function (result) {
-    let messages = result.messages ? JSON.parse(result.messages) : {};
-    messages[messId] = resStatus;
-    chrome.storage.local.set({ messages: JSON.stringify(messages) });
-    if (currentMessageId == messId) {
-      const statusActions = {
-        unsafe: "blockUrls",
-        Unsafe: "blockUrls",
-        safe: "unblock",
-        Safe: "unblock",
-        pending: "pending",
-        Pending: "pending",
-      };
-
-      const action = statusActions[resStatus];
-      if (action) {
-        chrome.tabs
-          .sendMessage(activeTabId, { action, client })
-          .then((response) => {
-            console.log(
-              `Message sent to content script for ${action}:`,
-              response
-            );
-          })
-          .catch((error) => {
-            console.error("Error sending message to content script:", error);
-          });
-      }
-    } else {
-      chrome.runtime.sendMessage({
-        action: "erroRecievedFromServer",
-        client: client,
-      });
-    }
-  });
-};
 
 export const sendEmlToServer = async (
   messageId,

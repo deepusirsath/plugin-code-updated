@@ -10,6 +10,35 @@ document.addEventListener("visibilitychange", () => {
 const baseUrl = "http://192.168.0.2:10101/plugin";
 let userEmailId = null;
 
+// Add the URL observer code here
+let currentUrl = window.location.href;
+
+const urlObserver = new MutationObserver(() => {
+  if (currentUrl !== window.location.href) {
+    currentUrl = window.location.href;
+    const alertContainer = document.querySelector('div[style*="position: fixed"][style*="top: 50%"]');
+    if (alertContainer) {
+      alertContainer.remove();
+    }
+  }
+});
+
+// Wait for document body to be available
+if (document.body) {
+  urlObserver.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+} else {
+  document.addEventListener('DOMContentLoaded', () => {
+    urlObserver.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  });
+}
+
+
 chrome.storage.local.get("registration", (data) => {
   if (chrome.runtime.lastError) {
     console.error(chrome.runtime.lastError);
@@ -28,6 +57,10 @@ chrome.storage.local.get("registration", (data) => {
     initializeOutlook().catch((error) =>
       console.error("Failed to initialize Outlook:", error)
     );
+    // setupClickListener();
+    // findOutlookEmailId();
+    // blockEmailBody();
+    // fetchLocation();
   }
 });
 
@@ -97,7 +130,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return true;
 });
 
-// Content.js
 function detectMenuItems(event) {
   let target = event.target;
 
@@ -283,7 +315,21 @@ function showLoadingScreenFor5Seconds() {
 }
 
 // Function to execute email extraction code with loading screen
-
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  const currentCount = 0;
+  if (
+    request.action === "EmailNotFoundOnServerRequest" &&
+    request.client === "outlook" &&
+    currentCount < 2
+  ) {
+    console.log(
+      "Received message in content script EmailNotFoundOnServerRequest on Outlook:",
+      request
+    );
+    currentCount++;
+    executeWithLoadingScreenAndExtraction();
+  }
+});
 async function executeWithLoadingScreenAndExtraction() {
   blockUserInteraction(); // Disable all user interactions
   showLoadingScreen(); // Show the loading screen indefinitely
@@ -294,12 +340,6 @@ async function executeWithLoadingScreenAndExtraction() {
     hideLoadingScreen(); // Hide the loading screen once email content is extracted
     unblockUserInteraction(); // Re-enable user interactions
   }
-  // showAlert("inform");
-}
-
-function informUser() {
-  // alert("Please open the email again to check response whether the environment is safe or not");
-  showAlert("inform");
 }
 
 // Updated blockEmailBody function to toggle pointer-events
@@ -480,81 +520,77 @@ function setupClickListener(attempts = 500) {
                   console.log(
                     "Sending message to background for first check for firstCheckForEmail API"
                   );
-                  chrome.runtime
-                    .sendMessage(
-                      {
-                        client: "outlook",
-                        action: "firstCheckForEmail",
-                        messageId: dataConvid,
-                        email: userEmailId,
-                      },
-                      (response) => {
-                        // console.log("Response from background for firstCheckForEmail API:", response);
-                        let error = response.status;
-                        if (response.IsResponseRecieved === "success") {
-                          if (response.data.code === 200) {
-                            console.log(
-                              "Response from background for firstCheckForEmail API:",
-                              response
+                  chrome.runtime.sendMessage(
+                    {
+                      client: "outlook",
+                      action: "firstCheckForEmail",
+                      messageId: dataConvid,
+                      email: userEmailId,
+                    },
+                    (response) => {
+                      // console.log("Response from background for firstCheckForEmail API:", response);
+                      let error = response.status;
+                      if (response.IsResponseRecieved === "success") {
+                        if (response.data.code === 200) {
+                          console.log(
+                            "Response from background for firstCheckForEmail API:",
+                            response
+                          );
+                          const serverData = response.data.data;
+                          const resStatus =
+                            serverData.eml_status || serverData.email_status;
+                          const messId =
+                            serverData.messageId || serverData.msg_id;
+                          console.log("serverData:", serverData);
+                          console.log("resStatus:", resStatus);
+                          console.log("messId:", messId);
+                          if (
+                            ["safe", "unsafe", "pending"].includes(resStatus)
+                          ) {
+                            chrome.storage.local.get(
+                              "messages",
+                              function (result) {
+                                let messages = JSON.parse(
+                                  result.messages || "{}"
+                                );
+                                messages[messId] = resStatus;
+                                chrome.storage.local.set(
+                                  {
+                                    messages: JSON.stringify(messages),
+                                  },
+                                  () => {
+                                    console.log(
+                                      `Status ${resStatus} stored for message ${messId}`
+                                    );
+                                    shouldApplyPointerEvents =
+                                      resStatus !== "safe";
+                                    blockEmailBody();
+                                    console.log(
+                                      `Removing blocking layer because message is ${resStatus}`
+                                    );
+                                    showAlert(resStatus);
+                                  }
+                                );
+                              }
                             );
-                            const serverData = response.data.data;
-                            const resStatus =
-                              serverData.eml_status || serverData.email_status;
-                            const messId =
-                              serverData.messageId || serverData.msg_id;
-                            console.log("serverData:", serverData);
-                            console.log("resStatus:", resStatus);
-                            console.log("messId:", messId);
-                            if (
-                              ["safe", "unsafe", "pending"].includes(resStatus)
-                            ) {
-                              chrome.storage.local.get(
-                                "messages",
-                                function (result) {
-                                  let messages = JSON.parse(
-                                    result.messages || "{}"
-                                  );
-                                  messages[messId] = resStatus;
-                                  chrome.storage.local.set(
-                                    {
-                                      messages: JSON.stringify(messages),
-                                    },
-                                    () => {
-                                      console.log(
-                                        `Status ${resStatus} stored for message ${messId}`
-                                      );
-                                      shouldApplyPointerEvents =
-                                        resStatus !== "safe";
-                                      blockEmailBody();
-                                      console.log(
-                                        `Removing blocking layer because message is ${resStatus}`
-                                      );
-                                      showAlert(resStatus);
-                                    }
-                                  );
-                                }
-                              );
-                            }
-                          } else {
-                            console.log(
-                              "Message not found on server, extracting content"
-                            );
-                            shouldApplyPointerEvents = true;
-                            blockEmailBody();
-                            setTimeout(() => {
-                              executeWithLoadingScreenAndExtraction();
-                            }, 100);
                           }
-                        } else if (response.status === "error") {
-                          console.log("API call failed ok:", error);
-                          showAlert("inform");
+                        } else {
+                          console.log(
+                            "Message not found on server, extracting content"
+                          );
+                          shouldApplyPointerEvents = true;
+                          blockEmailBody();
+                          setTimeout(() => {
+                            executeWithLoadingScreenAndExtraction();
+                          }, 100);
                         }
+                      } else if (response.status === "error") {
+                        console.log("API call failed ok:", error);
+                        showAlert("inform");
+                        // extractEmlContent(dataConvid);
                       }
-                    )
-                    .catch((error) => {
-                      console.log("API call failed:", error);
-                      showAlert("inform");
-                    });
+                    }
+                  );
                 }
               });
             } else {
@@ -613,64 +649,229 @@ function showAlert(key) {
   message.style.textAlign = "center";
 
   const button = document.createElement("button");
-  button.innerText = "Close";
-  button.style.padding = "10px 25px";
-  button.style.border = "none";
-  button.style.borderRadius = "6px";
-  button.style.cursor = "pointer";
-  button.style.backgroundColor = "#4C9ED9"; // Blue color
-  button.style.color = "#fff";
-  button.style.fontSize = "16px";
-  button.style.transition = "background-color 0.3s ease, transform 0.2s"; // Smooth transitions
+button.innerText = "Close";
 
-  button.addEventListener("mouseover", () => {
-    button.style.backgroundColor = "#2A7BB0"; // Darker blue on hover
-    button.style.transform = "scale(1.05)";
-  });
+Object.assign(button.style, {
+  padding: "8px 20px",
+  border: "1px solid #4C9ED9",
+  borderRadius: "4px",
+  cursor: "pointer",
+  backgroundColor: "#4C9ED9",
+  color: "#ffffff",
+  fontSize: "14px",
+  fontWeight: "500",
+  transition: "all 0.2s ease",
+  fontFamily: "'Segoe UI', system-ui, sans-serif",
+  boxShadow: "0 1px 2px rgba(76, 158, 217, 0.15)"
+});
 
-  button.addEventListener("mouseout", () => {
-    button.style.backgroundColor = "#4C9ED9"; // Revert to original blue
-    button.style.transform = "scale(1)";
+button.addEventListener("mouseover", () => {
+  Object.assign(button.style, {
+    backgroundColor: "#3989c2",
+    transform: "translateY(-1px)"
   });
+});
+
+button.addEventListener("mouseout", () => {
+  Object.assign(button.style, {
+    backgroundColor: "#4C9ED9",
+    transform: "translateY(0)"
+  });
+});
 
   let iconHtml = "";
+  let currentUrl = window.location.href;
   switch (key) {
     case "safe":
-      message.innerText = "This mail is safe you can proceed!!";
-      alertContainer.style.border = "4px solid green";
-      iconHtml = `
-              <svg width="80" height="80">
-                  <circle cx="40" cy="40" r="36" stroke="green" stroke-width="6" fill="none"/>
-                  <polyline points="24,44 36,58 60,26" stroke="green" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                      <animate attributeName="stroke-dasharray" values="0,60;60,0" dur="1s" repeatCount="indefinite"/>
-                  </polyline>
-              </svg>`;
-      break;
+    message.innerText = "Security verification complete - Safe to proceed";
+    
+    alertContainer.style.width = "360px";
+    alertContainer.style.padding = "24px";
+    alertContainer.style.background = "linear-gradient(135deg, #ffffff, #f8fff8)";
+    alertContainer.style.border = "1px solid rgba(40, 167, 69, 0.2)";
+    alertContainer.style.borderLeft = "6px solid #28a745";
+    alertContainer.style.boxShadow = "0 6px 16px rgba(40, 167, 69, 0.08), 0 3px 6px rgba(0, 0, 0, 0.12)";
+    alertContainer.style.borderRadius = "8px";
+
+    iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
+        <defs>
+            <filter id="shadow-success">
+                <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#28a745" flood-opacity="0.25"/>
+            </filter>
+        </defs>
+        
+        <!-- Shield outline with pulsing effect -->
+        <path d="M24 4 L42 12 V24 C42 34 34 41 24 44 C14 41 6 34 6 24 V12 L24 4Z"
+              fill="none"
+              stroke="#28a745"
+              stroke-width="2.5"
+              filter="url(#shadow-success)">
+            <animate attributeName="stroke-dasharray"
+                     values="0,150;150,0"
+                     dur="2s"
+                     repeatCount="indefinite"/>
+            <animate attributeName="stroke-opacity"
+                     values="0.6;1;0.6"
+                     dur="2s"
+                     repeatCount="indefinite"/>
+        </path>
+        
+        <!-- Checkmark with dynamic animation -->
+        <path d="M16 24 L22 30 L32 18"
+              stroke="#28a745"
+              stroke-width="3"
+              fill="none"
+              stroke-linecap="round"
+              stroke-linejoin="round">
+            <animate attributeName="stroke-dasharray"
+                     values="0,40;40,0"
+                     dur="1.5s"
+                     repeatCount="indefinite"/>
+            <animate attributeName="stroke-width"
+                     values="2.5;3;2.5"
+                     dur="1.5s"
+                     repeatCount="indefinite"/>
+        </path>
+    </svg>`;
+    break;
+
     case "unsafe":
       message.innerText =
-        "Caution! This email has been identified as potentially unsafe. You have the option to raise a dispute regarding its content.";
-      alertContainer.style.border = "4px solid red";
-      iconHtml = `
-                <svg width="80" height="80" viewBox="0 0 80 80">
-                    <line x1="26" y1="26" x2="54" y2="54" stroke="red" stroke-width="6" stroke-linecap="round">
-                        <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/>
-                    </line>
-                    <line x1="54" y1="26" x2="26" y2="54" stroke="red" stroke-width="6" stroke-linecap="round">
-                        <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/>
-                    </line>
-                </svg>`;
+        "Security Notice: Email requires verification. Raise a dispute to review content.";
+
+      alertContainer.style.width = "360px"; // Slightly wider for better text flow
+      alertContainer.style.padding = "24px"; // Increased padding
+      alertContainer.style.background =
+        "linear-gradient(135deg, #ffffff, #fafafa)"; // Diagonal gradient
+      alertContainer.style.border = "1px solid rgba(220, 53, 69, 0.2)"; // Subtle border all around
+      alertContainer.style.borderLeft = "6px solid #dc3545"; // Thicker left border
+      alertContainer.style.boxShadow =
+        "0 6px 16px rgba(220, 53, 69, 0.08), 0 3px 6px rgba(0, 0, 0, 0.12)"; // Multi-layered shadow
+      alertContainer.style.borderRadius = "8px"; // Increased border radius
+
+      // Enhanced SVG with more dynamic animations
+      iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
+    <defs>
+        <filter id="shadow">
+            <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#dc3545" flood-opacity="0.25"/>
+        </filter>
+    </defs>
+    
+    <!-- Shield outline with pulsing effect -->
+    <path d="M24 4 L42 12 V24 C42 34 34 41 24 44 C14 41 6 34 6 24 V12 L24 4Z"
+          fill="none"
+          stroke="#dc3545"
+          stroke-width="2.5"
+          filter="url(#shadow)">
+        <animate attributeName="stroke-dasharray"
+                 values="0,150;150,0"
+                 dur="2s"
+                 repeatCount="indefinite"/>
+        <animate attributeName="stroke-opacity"
+                 values="0.6;1;0.6"
+                 dur="2s"
+                 repeatCount="indefinite"/>
+    </path>
+    
+    <!-- Enhanced alert mark -->
+    <g transform="translate(24,24)">
+        <line x1="0" y1="-10" x2="0" y2="4"
+              stroke="#dc3545"
+              stroke-width="3"
+              stroke-linecap="round">
+            <animate attributeName="opacity"
+                     values="0.7;1;0.7"
+                     dur="1.5s"
+                     repeatCount="indefinite"/>
+            <animate attributeName="stroke-width"
+                     values="2.5;3;2.5"
+                     dur="1.5s"
+                     repeatCount="indefinite"/>
+        </line>
+        <circle cx="0" cy="8" r="2.2"
+                fill="#dc3545">
+            <animate attributeName="r"
+                     values="2;2.4;2"
+                     dur="1.5s"
+                     repeatCount="indefinite"/>
+            <animate attributeName="opacity"
+                     values="0.7;1;0.7"
+                     dur="1.5s"
+                     repeatCount="indefinite"/>
+        </circle>
+        </g>
+      </svg>`;
+
       break;
     case "inform":
-      message.innerText =
-        "Heads up! Server is busy, please wait for a moment and try again.";
-      alertContainer.style.border = "4px solid orange";
-      iconHtml = `
-                  <svg width="80" height="80">
-                      <circle cx="40" cy="40" r="36" stroke="orange" stroke-width="6" fill="none"/>
-                      <text x="40" y="48" text-anchor="middle" font-size="36" fill="orange" font-weight="bold">?</text>
-                      <animateTransform attributeName="transform" type="scale" values="1;1.2;1" dur="2s" repeatCount="indefinite"/>
-                  </svg>`;
-      break;
+        message.innerText = "System maintenance in progress - Your security is our priority";
+        
+        alertContainer.style.width = "360px";
+        alertContainer.style.padding = "24px";
+        alertContainer.style.background = "linear-gradient(135deg, #ffffff, #fff8f0)";
+        alertContainer.style.border = "1px solid rgba(255, 153, 0, 0.2)";
+        alertContainer.style.borderLeft = "6px solid #ff9900";
+        alertContainer.style.boxShadow = "0 6px 16px rgba(255, 153, 0, 0.08), 0 3px 6px rgba(0, 0, 0, 0.12)";
+        alertContainer.style.borderRadius = "8px";
+    
+        iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
+            <defs>
+                <filter id="shadow-warning">
+                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#ff9900" flood-opacity="0.25"/>
+                </filter>
+            </defs>
+            
+            <!-- Outer rotating circle -->
+            <circle cx="24" cy="24" r="20" 
+                    stroke="#ff9900" 
+                    stroke-width="2.5"
+                    fill="none"
+                    stroke-dasharray="31.4 31.4"
+                    filter="url(#shadow-warning)">
+                <animateTransform
+                    attributeName="transform"
+                    attributeType="XML"
+                    type="rotate"
+                    from="0 24 24"
+                    to="360 24 24"
+                    dur="3s"
+                    repeatCount="indefinite"/>
+            </circle>
+    
+            <!-- Inner rotating circle -->
+            <circle cx="24" cy="24" r="15"
+                    stroke="#ff9900"
+                    stroke-width="2.5"
+                    fill="none"
+                    stroke-dasharray="23.5 23.5"
+                    filter="url(#shadow-warning)">
+                <animateTransform
+                    attributeName="transform"
+                    attributeType="XML"
+                    type="rotate"
+                    from="360 24 24"
+                    to="0 24 24"
+                    dur="2s"
+                    repeatCount="indefinite"/>
+            </circle>
+    
+            <!-- Center pulsing dot -->
+            <circle cx="24" cy="24" r="4"
+                    fill="#ff9900">
+                <animate
+                    attributeName="r"
+                    values="3;4;3"
+                    dur="1s"
+                    repeatCount="indefinite"/>
+                <animate
+                    attributeName="fill-opacity"
+                    values="0.7;1;0.7"
+                    dur="1s"
+                    repeatCount="indefinite"/>
+            </circle>
+        </svg>`;
+        break;
+   
     case "pending":
       message.innerText =
         "Your request is being processed... Please hold on while we block the email currently being processed.";
@@ -728,6 +929,7 @@ function showAlert(key) {
   document.addEventListener("click", dismissOnOutsideClick, true);
   button.addEventListener("click", removeAlert);
 }
+
 
 async function runEmailExtraction() {
   console.log("Running email extraction code");
@@ -837,15 +1039,39 @@ async function runEmailExtraction() {
   };
 
   const closeEmail = async () => {
-    console.log(
-      "Attempting to force-close modal by removing it from the DOM..."
-    );
+    // Find and click the overlay to close
     const overlay = document.querySelector(
       ".fui-DialogSurface__backdrop.rsptlh5"
     );
-    overlay.click();
-    // Enable scrolling (if it was disabled during the modal display)
-    console.log("Modal forcibly removed from DOM");
+    if (overlay) {
+      overlay.click();
+    }
+
+    // Add keyboard escape handler
+    const handleEscape = (e) => {
+      if (e.key === "Escape") {
+        overlay?.click();
+        document.removeEventListener("keydown", handleEscape);
+      }
+    };
+    document.addEventListener("keydown", handleEscape);
+
+    // Add click outside handler
+    const handleClickOutside = (e) => {
+      const popup = document.querySelector(".lz61e.allowTextSelection");
+      if (popup && !popup.contains(e.target)) {
+        overlay?.click();
+        document.removeEventListener("click", handleClickOutside);
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
+
+    // const overlay = document.querySelector(
+    //   ".fui-DialogSurface__backdrop.rsptlh5"
+    // );
+    // overlay.click();
+    // // Enable scrolling (if it was disabled during the modal display)
+    // console.log("Modal forcibly removed from DOM");
   };
 
   // Start the extraction process
@@ -977,6 +1203,13 @@ function showPending() {
     }
   }, 5000);
 }
+
+// chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+//   if (message.action === "responseDelayStatus" , message.client === "outlook") {
+//     console.log("Server response delayed for more than 4 seconds");
+//     showAlert("pending");
+//   }
+// });
 
 chrome.storage.local.get("messages", function (result) {
   let messages = JSON.parse(result.messages || "{}"); // Ensure messages is an object
@@ -1162,7 +1395,14 @@ function checkReloadStatusOutlook() {
         console.log("Message does not exist in the local storage");
         shouldApplyPointerEvents = true;
         blockEmailBody();
-        alert("There is an issue, please refresh the page and try again");
+        chrome.runtime.sendMessage({
+          action: "pendingStatusOutlook",
+          emailId: userEmailId,
+          messageId: dataConvid,
+        });
+        console.log(
+          "There is an issue, please refresh the page and try again -------------------"
+        );
       }
     });
   }
@@ -1218,4 +1458,14 @@ window.addEventListener("click", (e) => {
     );
     showBlockedPopup();
   }
+  // const element = document.querySelector("#ConversationReadingPaneContainer");
+  // const junkBox = document.querySelector("#ItemReadingPaneContainer");
+
+  // if (shouldApplyPointerEvents && (element?.contains(e.target) || junkBox?.contains(e.target))) {
+  //   console.log("Clicked on the email body");
+  //   console.log("shouldApplyPointerEvents", shouldApplyPointerEvents);
+  // }
+  // else{
+  //   console.log("not clicked on the email body");
+  // }
 });
