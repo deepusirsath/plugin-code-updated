@@ -15,4 +15,5 @@ export const COMPONENTS = {
   LOADER: "loader",
   NO_DATA_FOUND: "no_data_found",
   EMAIL_PAGE_NOT_FOUND: "email_page_not_found",
+  OPENED_MAIL_NOT_FOUND: "opened_mail_not_found",
 };

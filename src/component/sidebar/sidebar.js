@@ -3,31 +3,45 @@ import { COMPONENTS } from "/src/constant/component.js";
 import { displayError } from "/src/helper/display_error.js";
 import { TARGET_ID } from "/src/constant/target_id.js";
 import { loadComponent } from "/src/helper/content_loader_helper.js";
+import { initializeDisputeForm } from "/src/pages/dispute/dispute.js";
+import { SIDEBAR_CONFIG } from "./sidebar_config.js";
 
 /**
- * Handles the click events for sidebar navigation buttons by loading corresponding components
- * @param {string} componentName - The name of the component to be loaded
- * @param {HTMLElement} clickedButton - The button element that was clicked
- * @returns {Promise<void>} A promise that resolves when the component is loaded and rendered
- * @throws {Error} If component loading fails, error is caught and displayed in errorDisplay element
- * @fires {CustomEvent} componentLoaded - Dispatched when component is successfully loaded
+ * Updates the active state of menu items in the sidebar
+ * @param {HTMLElement} clickedButton - The button element that was clicked in the sidebar
+ * @description This function:
+ * - Removes 'active' class from all menu items
+ * - Adds 'active' class to the clicked menu item's parent
+ * - Clears any existing error messages
+ * @example
+ * // When a sidebar button is clicked
+ * updateActiveMenuItem(buttonElement);
  */
-const handleButtonClick = async (componentName, clickedButton) => {
+const updateActiveMenuItem = (clickedButton) => {
+  const menuItems = document.querySelectorAll(".menu-item");
+  menuItems.forEach((item) => item.classList.remove("active"));
+  clickedButton.closest(".menu-item").classList.add("active");
+  document.getElementById("errorDisplay").innerHTML = "";
+};
+
+/**
+ * Handles loading of regular (non-dispute) components in the sidebar
+ * @param {string} componentName - The name of the component to be loaded
+ * @returns {Promise<void>} A promise that resolves when the component is loaded
+ * @fires {CustomEvent} componentLoaded - Dispatched with component details after successful loading
+ * @throws {Error} Caught and handled by displayError if component loading fails
+ * @example
+ * // Load a regular component
+ * await handleRegularButton('details');
+ */
+const handleRegularButton = async (componentName) => {
   try {
-    const menuItems = document.querySelectorAll(".menu-item");
-
-    // Remove active class from all menu items
-    menuItems.forEach((item) => item.classList.remove("active"));
-
-    // Add active class to clicked menu item
-    clickedButton.closest(".menu-item").classList.add("active");
-    document.getElementById("errorDisplay").innerHTML = "";
-
     await loadComponent({
       componentName,
       basePath: BASEPATH.PAGES,
       targetId: TARGET_ID.DATA_OUTPUT,
     });
+
     document.dispatchEvent(
       new CustomEvent("componentLoaded", {
         detail: { componentName },
@@ -39,50 +53,102 @@ const handleButtonClick = async (componentName, clickedButton) => {
 };
 
 /**
- * Event Listeners Setup
- * Attaches click event listeners to sidebar navigation buttons
- * Each button triggers handleButtonClick with its corresponding component:
- * - details-btn: Loads the details component
- * - dispute-mail: Loads the dispute mail component
- * - spam-mails: Loads the spam mails component
- * - activity-btn: Loads the activity component
- * - dispute-btn: Loads the dispute component
- *
- * @listens click
- * @param {Event} e - Click event object
- * @fires handleButtonClick
- *
- * The handleButtonClick function:
- * - Takes a component identifier and the clicked button element
- * - Handles component loading and rendering
- * - Component content is rendered in the designated output container
- * - Any errors during loading are handled appropriately
+ * Handles the loading and verification of dispute-related components
+ * @param {string} componentName - The name of the dispute component to be loaded
+ * @returns {Promise<void>} A promise that resolves when all checks and loading are complete
+ * @fires {CustomEvent} componentLoaded - Dispatched with component and dispute data after successful loading
+ * @throws {Error} Caught and handled by displayError if any operation fails
+ * @description
+ * This function performs several checks in sequence:
+ * 1. Verifies if a supported email service (Gmail/Outlook/Yahoo) is open
+ * 2. Loads the dispute component if email is open
+ * 3. Checks dispute status and dispatches event with dispute data
+ * 4. Falls back to "mail not found" component if no email service is open
+ * @example
+ * // Load dispute component with checks
+ * await handleDisputeButton('dispute');
  */
-document
-  .getElementById("details-btn")
-  .addEventListener("click", (e) =>
-    handleButtonClick(COMPONENTS.DETAILS, e.currentTarget)
-  );
-document
-  .getElementById("dispute-mail")
-  .addEventListener("click", (e) =>
-    handleButtonClick(COMPONENTS.DISPUTE_MAIL, e.currentTarget)
-  );
-document
-  .getElementById("spam-mails")
-  .addEventListener("click", (e) =>
-    handleButtonClick(COMPONENTS.SPAM_MAIL, e.currentTarget)
-  );
-document
-  .getElementById("activity-btn")
-  .addEventListener("click", (e) =>
-    handleButtonClick(COMPONENTS.ACTIVITY, e.currentTarget)
-  );
-document
-  .getElementById("dispute-btn")
-  .addEventListener("click", (e) =>
-    handleButtonClick(COMPONENTS.DISPUTE, e.currentTarget)
-  );
+const handleDisputeButton = async (componentName) => {
+  try {
+    chrome.runtime.sendMessage(
+      { action: "checkEmailPage" },
+      async function (response) {
+        console.log("response", response);
+        const openedServices = ["OpenedGmail", "OpenedOutlook", "OpenedYahoo"];
+
+        if (openedServices.includes(response)) {
+          await loadComponent({
+            componentName,
+            basePath: BASEPATH.PAGES,
+            targetId: TARGET_ID.DATA_OUTPUT,
+          });
+
+          chrome.runtime.sendMessage(
+            { action: "checkDispute" },
+            function (disputeResponse) {
+              if (disputeResponse) {
+                document.dispatchEvent(
+                  new CustomEvent("componentLoaded", {
+                    detail: { componentName, disputeData: disputeResponse },
+                  })
+                );
+              }
+            }
+          );
+        } else {
+          await loadComponent({
+            componentName: COMPONENTS.OPENED_MAIL_NOT_FOUND,
+            basePath: BASEPATH.COMPONENT,
+            targetId: TARGET_ID.DATA_OUTPUT,
+          });
+        }
+      }
+    );
+  } catch (error) {
+    displayError(error);
+  }
+};
+
+/**
+ * Handles the click events for sidebar navigation buttons by loading corresponding components
+ * @param {string} componentName - The name of the component to be loaded
+ * @param {HTMLElement} clickedButton - The button element that was clicked
+ * @returns {Promise<void>} A promise that resolves when the component is loaded and rendered
+ * @throws {Error} If component loading fails, error is caught and displayed in errorDisplay element
+ * @fires {CustomEvent} componentLoaded - Dispatched when component is successfully loaded
+ */
+const handleButtonClick = async (componentName, clickedButton) => {
+  updateActiveMenuItem(clickedButton);
+  if (clickedButton.id === "dispute-btn") {
+    handleDisputeButton(componentName).then(() => {
+      // Add event listener after component loads
+      document.addEventListener("componentLoaded", async (event) => {
+        if (event.detail.componentName === COMPONENTS.DISPUTE) {
+          initializeDisputeForm();
+        }
+      });
+    });
+  } else {
+    await handleRegularButton(componentName);
+  }
+};
+
+/**
+ * Initializes sidebar navigation by attaching click handlers to buttons
+ */
+const initializeSidebarNavigation = () => {
+  Object.values(SIDEBAR_CONFIG).forEach(({ buttonId, component }) => {
+    const button = document.getElementById(buttonId);
+    if (button) {
+      button.addEventListener("click", (event) =>
+        handleButtonClick(component, event.currentTarget)
+      );
+    }
+  });
+};
+
+// Initialize sidebar navigation
+initializeSidebarNavigation();
 
 /**
  * Toggles the sidebar visibility and adjusts the toggle button position
