@@ -24,12 +24,26 @@ import {
  * - If on mail service homepage: sendResponse("Gmail")
  */
 const handleMailResponse = (response, sendResponse, mailService) => {
+  console.log("Response:", response);
+  console.log("Mail Service:", mailService);
+  
   if (response && response.emailBodyExists) {
-    sendResponse(`Opened${mailService}`);
+    const responseValue = `Opened${mailService}`;
+    console.log("Sending response:", responseValue);
+    sendResponse(responseValue);
   } else {
+    console.log("Sending mail service:", mailService);
     sendResponse(mailService);
   }
 };
+
+// const handleMailResponse = (response, sendResponse, mailService) => {
+//   if (response && response.emailBodyExists) {
+//     sendResponse(`Opened${mailService}`);
+//   } else {
+//     sendResponse(mailService);
+//   }
+// };
 
 /**
  * Checks the current page status to determine which email service is active and if an email is opened
