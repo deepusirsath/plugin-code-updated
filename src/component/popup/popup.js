@@ -19,7 +19,7 @@ const loadRegistrationComponent = async () => {
 const EMAIL_PAGES = [
   "Gmail",
   "Outlook",
-  "OpendedGmail",
+  "OpenedGmail",
   "OpenedOutlook",
   "Yahoo",
   "OpenedYahoo",

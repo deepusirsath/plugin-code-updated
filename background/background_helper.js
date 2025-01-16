@@ -30,7 +30,6 @@ export let latitude = null;
 export let longitude = null;
 const baseUrl = "http://192.168.0.2:10101/plugin";
 
-
 /**
  * Handles the response from mail service checks and formats the appropriate response
  *
@@ -45,26 +44,14 @@ const baseUrl = "http://192.168.0.2:10101/plugin";
  * - If on mail service homepage: sendResponse("Gmail")
  */
 const handleMailResponse = (response, sendResponse, mailService) => {
-  console.log("Response:", response);
-  console.log("Mail Service:", mailService);
-  
   if (response && response.emailBodyExists) {
     const responseValue = `Opened${mailService}`;
-    console.log("Sending response:", responseValue);
+
     sendResponse(responseValue);
   } else {
-    console.log("Sending mail service:", mailService);
     sendResponse(mailService);
   }
 };
-
-// const handleMailResponse = (response, sendResponse, mailService) => {
-//   if (response && response.emailBodyExists) {
-//     sendResponse(`Opened${mailService}`);
-//   } else {
-//     sendResponse(mailService);
-//   }
-// };
 
 /**
  * Checks the current page status to determine which email service is active and if an email is opened
@@ -85,13 +72,19 @@ const handleMailResponse = (response, sendResponse, mailService) => {
  * - false - Not on any supported mail service
  */
 export const checkEmailPageStatus = (currentUrl, tabId, sendResponse) => {
-  switch (true) {
-    case isGmailPage(currentUrl):
-      sendResponse("Gmail");
-      break;
+  // First check if we're on any email service page
+  if (
+    !isGmailPage(currentUrl) &&
+    !isOutlookPage(currentUrl) &&
+    !isYahooPage(currentUrl)
+  ) {
+    sendResponse("Please select email service");
+    return;
+  }
 
+  // Then handle specific email service cases
+  switch (true) {
     case isGmailMailOpened(currentUrl):
-      console.log("url check called 1", currentUrl);
       chrome.tabs.sendMessage(
         tabId,
         { action: CHECK_GMAIL_MAIL_STATUS },
@@ -99,8 +92,11 @@ export const checkEmailPageStatus = (currentUrl, tabId, sendResponse) => {
       );
       return true;
 
+    case isGmailPage(currentUrl):
+      sendResponse("Gmail");
+      return true;
+
     case isOutlookPage(currentUrl):
-      console.log("url check called 2", currentUrl);
       chrome.tabs.sendMessage(
         tabId,
         { action: CHECK_OUTLOOK_MAIL_STATUS },
@@ -109,7 +105,6 @@ export const checkEmailPageStatus = (currentUrl, tabId, sendResponse) => {
       return true;
 
     case isYahooPage(currentUrl):
-      console.log("url check called 3", currentUrl);
       chrome.tabs.sendMessage(
         tabId,
         { action: CHECK_YAHOO_MAIL_STATUS },
