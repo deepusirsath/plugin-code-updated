@@ -27,6 +27,8 @@ export let user_email = null;
 export let currentMessageId = null; //Contains latest message Id which will send to server
 export let latitude = null;
 export let longitude = null;
+const baseUrl = "http://192.168.0.2:10101/plugin";
+
 
 /**
  * Handles the response from mail service checks and formats the appropriate response

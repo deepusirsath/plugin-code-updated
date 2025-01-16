@@ -1,21 +1,12 @@
-import { showAlert } from './component/showAlert/showAlert.js';
-
 console.log("Content script loaded for Gmail--------");
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) {
     findEmailId();
   }
 });
-window.addEventListener("focus", () => {
-  findEmailId();
-});
-
-setTimeout(() => {
-  shouldApplyPointerEvents = true;
-  blockEmailBody();
-}, 3000);
 
 let shouldApplyPointerEvents = true;
+blockEmailBody();
 let emailId = null;
 let messageId = null;
 let isValidSegmentLength = 32;
@@ -28,7 +19,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     chrome.storage.local.set({ registration: true });
     chrome.storage.local.get("registration", (data) => {
-        console.log("Registration status:", data.registration);
       if (chrome.runtime.lastError) {
         console.error(chrome.runtime.lastError);
         return;
@@ -37,10 +27,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         let url = window.location.href;
         console.log("URL:", url);
         const lastSegment = url.split("/").pop().split("#").pop();
-        console.log("Last Segment===================:", lastSegment, lastSegment.length);
 
         // Check if the last segment has exactly isValidSegmentLength characters
-        if (lastSegment.length >= isValidSegmentLength) {
+        if (lastSegment.length === isValidSegmentLength) {
           console.log(
             `The last segment "${lastSegment}" has exactly isValidSegmentLength characters.`
           );
@@ -64,7 +53,6 @@ const init = () => {
     .then(() => console.log("Operations completed"))
     .catch((error) => console.error("Error:", error));
 };
-
 
 // Function to extract message ID and EML content
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -205,11 +193,14 @@ async function extractMessageIdAndEml() {
                       );
                     });
                   }
-                } 
-                else {
-                  console.log("Message not found on server, extracting content");
+                } else {
+                  console.log(
+                    "Message not found on server, extracting content"
+                  );
                   setTimeout(() => {
-                    console.log("Script Executed for create url===========================");
+                    console.log(
+                      "Script Executed for create url==========================="
+                    );
                     createUrl(url, messageId);
                   }, 100);
                 }
@@ -240,7 +231,6 @@ function createUrl(url, messageId) {
   let prefixUrl = url.substr(0, url.search("/#"));
   console.log("prefixUrl", prefixUrl);
   let eml_Url = `${prefixUrl}?view=att&th=${messageId}&attid=0&disp=comp&safe=1&zw`;
-  
   console.log("Gmail EML Url ", eml_Url);
   try {
     chrome.runtime.sendMessage({
@@ -256,10 +246,14 @@ function createUrl(url, messageId) {
 
 // Listen for messages from the background script like if the pending staus is empty
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  const currentCount = 0;
-  if (request.action === "EmailNotFoundOnServerRequest" && request.client === "gmail" && currentCount < 3) {
-    console.log("Received message in content script EmailNotFoundOnServerRequest:", request);
-    currentCount++;
+  if (
+    request.action === "EmailNotFoundInPendingRequest" &&
+    request.client === "gmail"
+  ) {
+    console.log(
+      "Received message in content script EmailNotFoundInPendingRequest:",
+      request
+    );
     const { messageId } = request;
     createUrl(url, messageId);
   }
@@ -282,7 +276,166 @@ async function findEmailId() {
   console.log("Gmail email ID:", emailId);
 }
 
+// Function to show the alert to the user
+function showAlert(key) {
+  const elements = document.getElementsByClassName("nH a98 iY");
+  if (!elements || elements.length === 0) {
+    return; // Exit if target element not found
+  }
+  // Create the alert container
+  const alertContainer = document.createElement("div");
+  alertContainer.style.position = "fixed";
+  alertContainer.style.top = "50%";
+  alertContainer.style.left = "50%";
+  alertContainer.style.transform = "translate(-50%, -50%)";
+  alertContainer.style.zIndex = "1000";
+  alertContainer.style.width = "360px";
+  alertContainer.style.padding = "20px";
+  alertContainer.style.borderRadius = "12px";
+  alertContainer.style.boxShadow = "0 0 15px rgba(0, 0, 0, 0.3)";
+  alertContainer.style.display = "flex";
+  alertContainer.style.flexDirection = "column";
+  alertContainer.style.alignItems = "center";
+  alertContainer.style.backgroundColor = "#fff";
 
+  // Create the message and button
+  const message = document.createElement("p");
+  message.style.margin = "10px 0 15px";
+  message.style.fontSize = "18px";
+  message.style.textAlign = "center";
+
+  const button = document.createElement("button");
+  button.innerText = "Close";
+  button.style.padding = "10px 25px";
+  button.style.border = "none";
+  button.style.borderRadius = "6px";
+  button.style.cursor = "pointer";
+  button.style.backgroundColor = "#4C9ED9"; // Blue color
+  button.style.color = "#fff";
+  button.style.fontSize = "16px";
+  button.style.transition = "background-color 0.3s ease, transform 0.2s"; // Smooth transitions
+
+  button.addEventListener("mouseover", () => {
+    button.style.backgroundColor = "#2A7BB0"; // Darker blue on hover
+    button.style.transform = "scale(1.05)";
+  });
+
+  button.addEventListener("mouseout", () => {
+    button.style.backgroundColor = "#4C9ED9"; // Revert to original blue
+    button.style.transform = "scale(1)";
+  });
+
+  let iconHtml = "";
+  switch (key) {
+    case "safe":
+      message.innerText = "This mail is safe you can proceed!!";
+      alertContainer.style.border = "4px solid green";
+      iconHtml = `
+                <svg width="80" height="80">
+                    <circle cx="40" cy="40" r="36" stroke="green" stroke-width="6" fill="none"/>
+                    <polyline points="24,44 36,58 60,26" stroke="green" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <animate attributeName="stroke-dasharray" values="0,60;60,0" dur="1s" repeatCount="indefinite"/>
+                    </polyline>
+                </svg>`;
+      break;
+    case "unsafe":
+      message.innerText =
+        "Caution! This email has been identified as potentially unsafe. You have the option to raise a dispute regarding its content.";
+      alertContainer.style.border = "4px solid red";
+      iconHtml = `
+                  <svg width="80" height="80" viewBox="0 0 80 80">
+                      <line x1="26" y1="26" x2="54" y2="54" stroke="red" stroke-width="6" stroke-linecap="round">
+                          <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/>
+                      </line>
+                      <line x1="54" y1="26" x2="26" y2="54" stroke="red" stroke-width="6" stroke-linecap="round">
+                          <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/>
+                      </line>
+                  </svg>`;
+      break;
+    case "inform":
+      message.innerText =
+        "Heads up! Server is busy, please wait for a moment and try again.";
+      alertContainer.style.border = "4px solid orange";
+      iconHtml = `
+                    <svg width="80" height="80">
+                        <circle cx="40" cy="40" r="36" stroke="orange" stroke-width="6" fill="none"/>
+                        <text x="40" y="48" text-anchor="middle" font-size="36" fill="orange" font-weight="bold">?</text>
+                        <animateTransform attributeName="transform" type="scale" values="1;1.2;1" dur="2s" repeatCount="indefinite"/>
+                    </svg>`;
+      break;
+    case "pending":
+      message.innerText =
+        "Your request is being processed... Please hold on while we block the email currently being processed.";
+      alertContainer.style.border = "4px solid #4C9ED9"; // Softer blue border
+      alertContainer.style.backgroundColor = "#fff"; // Light background for a softer look
+      iconHtml = `
+            <svg width="80" height="30" viewBox="0 0 80 20">
+                <circle cx="20" cy="10" r="5" fill="#4C9ED9">
+                    <animate attributeName="cy" values="10;5;10" dur="0.6s" repeatCount="indefinite" begin="0s" />
+                </circle>
+                <circle cx="40" cy="10" r="5" fill="#4C9ED9">
+                    <animate attributeName="cy" values="10;5;10" dur="0.6s" repeatCount="indefinite" begin="0.2s" />
+                </circle>
+                <circle cx="60" cy="10" r="5" fill="#4C9ED9">
+                    <animate attributeName="cy" values="10;5;10" dur="0.6s" repeatCount="indefinite" begin="0.4s" />
+                </circle>
+            </svg>`;
+      break;
+    default:
+      console.log("Invalid key for showAlert");
+      return;
+  }
+
+  const iconContainer = document.createElement("div");
+  iconContainer.innerHTML = iconHtml;
+  iconContainer.style.marginBottom = "15px";
+
+  alertContainer.appendChild(iconContainer);
+  alertContainer.appendChild(message);
+  alertContainer.appendChild(button);
+  document.body.appendChild(alertContainer);
+
+  const removeAlert = () => {
+    if (alertContainer && alertContainer.parentNode) {
+      document.body.removeChild(alertContainer);
+      document.removeEventListener("click", dismissOnOutsideClick);
+      window.removeEventListener("keydown", handleEnterKey);
+    }
+  };
+
+  const handleEnterKey = (event) => {
+    if (event.key === "Enter") {
+      removeAlert();
+    }
+  };
+
+  window.addEventListener("keydown", handleEnterKey);
+
+  const dismissOnOutsideClick = (event) => {
+    if (!alertContainer.contains(event.target)) {
+      removeAlert();
+    }
+  };
+
+  const observer = new MutationObserver(() => {
+    const elements = document.getElementsByClassName("nH a98 iY");
+    if (!elements || elements.length === 0) {
+      if (alertContainer && alertContainer.parentNode) {
+        document.body.removeChild(alertContainer);
+      }
+      observer.disconnect();
+    }
+  });
+
+  // Start observing the document for DOM changes
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true,
+  });
+
+  document.addEventListener("click", dismissOnOutsideClick, true);
+  button.addEventListener("click", removeAlert);
+}
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (
     request.action === "erroRecievedFromServer" &&
@@ -304,31 +457,11 @@ document.addEventListener("click", function removeAlertOnClick(event) {
   }
 });
 
-function getElementsWithRetry(maxAttempts = 5, delayMs = 1000) {
-  let attempts = 0;
-  
-  return new Promise((resolve) => {
-    function tryGetElements() {
-      const elements = document.getElementsByClassName("nH a98 iY");
-      
-      if (elements && elements.length > 0) {
-        resolve(elements);
-      } else if (attempts < maxAttempts) {
-        attempts++;
-        setTimeout(tryGetElements, delayMs);
-      } else {
-        resolve(null);
-      }
-    }
-    
-    tryGetElements();
-  });
-}
-
 // Function to toggle pointer events means blocking the email body or unblocking it
-async function blockEmailBody() {
-  const elements = await getElementsWithRetry();
-  if (elements) {
+function blockEmailBody() {
+  const elements = document.getElementsByClassName("nH a98 iY");
+  if (elements && elements.length > 0) {
+    // Convert HTMLCollection to Array and apply styles to each element
     Array.from(elements).forEach((element) => {
       if (shouldApplyPointerEvents) {
         console.log("Pointer Event None");
@@ -339,36 +472,19 @@ async function blockEmailBody() {
       }
     });
   } else {
-    console.log("Elements not found after multiple attempts");
+    console.log("Elements not found");
   }
 }
-
-// function blockEmailBody() {
-//   const elements = document.getElementsByClassName("nH a98 iY");
-//   if (elements && elements.length > 0) {
-//     // Convert HTMLCollection to Array and apply styles to each element
-//     Array.from(elements).forEach((element) => {
-//       if (shouldApplyPointerEvents) {
-//         console.log("Pointer Event None");
-//         element.style.pointerEvents = "none";
-//       } else {
-//         console.log("Pointer Event All");
-//         element.style.pointerEvents = "all";
-//       }
-//     });
-//   } else {
-//     console.log("Elements not found");
-//   }
-// }
 
 // function to handle the server response and show the alert with the appropriate message
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.client === "gmail") {
+    // Check if the message is for Outlook
     console.log(
       "this is the function that will be called when the content script receives a message for the Gmail client"
     );
     if (message.action === "blockUrls") {
-      console.log("Gmail Content script received message:", message.action);
+      console.log("Outlook Content script received message:", message.action);
       shouldApplyPointerEvents = true;
       showAlert("unsafe");
       console.log("Blocking URLs for Gmail");
