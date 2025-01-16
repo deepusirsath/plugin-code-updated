@@ -105,6 +105,7 @@ const attachViewButtonListeners = (currentPage) => {
 
 const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
   try {
+    document.getElementById("noDataFound").innerHTML = "";
     showLoader();
     const spamMailResponse = searchQuery
       ? await filterSpamMails(searchQuery, page)
@@ -123,10 +124,12 @@ const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
     initializeSearchHandlers();
 
     if (!spamMailResponse.results || spamMailResponse.results.length === 0) {
+      document.getElementById("data-table").innerHTML = "";
+      document.getElementById("pagination").innerHTML = "";
       await loadComponent({
         componentName: COMPONENTS.NO_DATA_FOUND,
         basePath: BASEPATH.COMPONENT,
-        targetId: TARGET_ID.DATA_OUTPUT,
+        targetId: "noDataFound",
       });
       handleRefresh(() => loadSpamMailComponent(1));
       hideLoader();
