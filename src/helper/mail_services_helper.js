@@ -2,18 +2,10 @@ import {
   IS_GMAIL,
   IS_OUTLOOK,
   IS_YAHOO,
-} from "../constant/email_service_constant.js";
+} from "/src/constant/email_service.js";
 
-import RegexLibrary from "../library/regex.lib.js";
 
-/**
- * Checks if the provided URL is not one of the specific Gmail folder pages (e.g., inbox, drafts, sent, etc.).
- *
- * @param {string} url - The URL of the page you want to check.
- * @returns {boolean} - Returns true if the URL is not one of the specific Gmail folder pages, false otherwise.
- */
-export const isGmailHomePage = (url) =>
-  !RegexLibrary.GMAIL_INBOX_REG_EX.test(url);
+import RegexLibrary from "/src/library/regex.lib.js";
 
 /**
  * Checks if a specific Gmail email is opened by analyzing the URL structure.

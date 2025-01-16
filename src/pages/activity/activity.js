@@ -32,6 +32,7 @@ import { showLoader, hideLoader } from "/src/component/loader/loader.js";
  * createBarChart(data);
  */
 function createBarChart(data) {
+  const dataOutput = document.getElementById("data-output");
   const totalMail = data.totalMail || 0;
   const totalSpamMail = data.totalSpamMail || 0;
   const totalDisputeMail = data.totalDisputeMail || 0;
@@ -145,7 +146,6 @@ function createBarChart(data) {
  *
  * @throws {Error} Displays error message if API call fails
  */
-
 const getGraphData = async () => {
   showLoader();
   try {

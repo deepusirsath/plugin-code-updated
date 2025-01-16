@@ -1,14 +1,3 @@
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background: linear-gradient(to bottom right, #0e3a5b, #4b00b0);
-}
-
 #dataOutput {
   margin-top: -70px;
   height: 70vh;
