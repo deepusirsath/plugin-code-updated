@@ -25,15 +25,16 @@ export const createTable = () => {
   // Search button click handler
   elements.searchButton.addEventListener("click", () => {
     const searchQuery = elements.searchInput.value.trim();
-    onSearch(searchQuery);
+    if (typeof onSearch === "function") {
+      onSearch(searchQuery);
+    }
   });
 
   // Clear button click handler
   elements.clearButton.addEventListener("click", () => {
-    elements.searchInput.value = "";
-    elements.clearButton.style.display = "none";
+    elements.clearButton.style.display = "inline-block";
     if (onPageChange) {
-      onPageChange(1, ""); 
+      onPageChange(1, "");
     }
   });
 
