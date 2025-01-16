@@ -263,7 +263,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 // ________________________________________ GMAIL ______________________________________________
-
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   // Check for both URL changes and complete page loads
   if (changeInfo.url || changeInfo.status === "complete") {
@@ -293,20 +292,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // ________________________________________ OUTLOOK ______________________________________________
 
 // Listen for messages from the content script OF OUTLOOK and store messageId and eml data
-
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "outlookEmlContent") {
-    const emailContent = message.emailContent;
-    currentMessageId = message.dataConvid;
-    user_email = message.userEmailId;
+    console.log("Received message from content script:", message);
+    // let emailContent = message.emailContent;
+    // currentMessageId = message.dataConvid;
+    // user_email = message.userEmailId;
     getExtensionid().then(() => {
-      sendEmlToServer(currentMessageId, emailContent, "outlook", user_email);
+      sendEmlToServer(message.dataConvid, message.emailContent, "outlook", message.userEmailId);
     });
   }
 });
 
-// ---------------------------------------Yahoo Mail--------------------------------------------
 
+
+// ---------------------------------------Yahoo Mail--------------------------------------------
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.url) {
     if (

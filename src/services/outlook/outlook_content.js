@@ -9,7 +9,7 @@ document.addEventListener("visibilitychange", () => {
 
 const baseUrl = "http://192.168.0.2:10101/plugin";
 let userEmailId = null;
-
+let dataConvid = null;
 chrome.storage.local.get("registration", (data) => {
   if (chrome.runtime.lastError) {
     console.error(chrome.runtime.lastError);
@@ -1162,7 +1162,8 @@ function checkReloadStatusOutlook() {
         console.log("Message does not exist in the local storage");
         shouldApplyPointerEvents = true;
         blockEmailBody();
-        alert("There is an issue, please refresh the page and try again");
+        // alert("There is an issue, please refresh the page and try again");
+        console.log("There is an issue, please refresh the page and try again")
       }
     });
   }
