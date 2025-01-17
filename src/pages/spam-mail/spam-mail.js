@@ -23,6 +23,10 @@ import {
 let globalTable = null;
 let currentSearchQuery = "";
 
+export const setCurrentSearchQuery = (value) => {
+  currentSearchQuery = value;
+};
+
 const showPopup = async (msg_id, currentPage) => {
   showLoader();
   const viewDetailData = await getViewDetailOfSpamMail(msg_id);
@@ -121,9 +125,10 @@ const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
   try {
     document.getElementById("noDataFound").innerHTML = "";
     showLoader();
-    const spamMailResponse = searchQuery
-      ? await filterSpamMails(searchQuery, page)
-      : await getAllSpamMail(page);
+    const spamMailResponse =
+      searchQuery.length > 0
+        ? await filterSpamMails(searchQuery, page)
+        : await getAllSpamMail(page);
 
     await loadComponent({
       componentName: COMPONENTS.TABLE,

@@ -24,6 +24,10 @@ import {
 let globalTable = null;
 let currentSearchQuery = "";
 
+export const setCurrentSearchQuery = (value) => {
+  currentSearchQuery = value;
+};
+
 const showPopup = async (msg_id, currentPage) => {
   showLoader();
   const viewDetailData = await getViewDetailOfDisputeMail(msg_id);
@@ -125,9 +129,10 @@ const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
     await getEmailIds();
     document.getElementById("noDataFound").innerHTML = "";
     showLoader();
-    const disputeMailResponse = searchQuery
-      ? await filterDisputeMails(page, searchQuery)
-      : await getAllDisputeMail(page);
+    const disputeMailResponse =
+      searchQuery.length > 0
+        ? await filterDisputeMails(page, searchQuery)
+        : await getAllDisputeMail(page);
 
     await loadComponent({
       componentName: COMPONENTS.TABLE,
