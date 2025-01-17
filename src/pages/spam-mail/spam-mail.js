@@ -8,6 +8,10 @@ import { createViewButton } from "/src/component/view_button/view_button.js";
 import { createStatusChip } from "/src/component/status_chip/status_chip.js";
 import { createViewDetail } from "/src/component/view_detail/view_detail.js";
 import { loadComponent } from "/src/helper/content_loader_helper.js";
+import {
+  getCurrentEmail,
+  getEmailIds,
+} from "/src/helper/get_email_from_local_storage.js";
 import { showLoader, hideLoader } from "/src/component/loader/loader.js";
 import { handleRefresh } from "/src/component/no_data_found/no_data_found.js";
 import {
@@ -19,6 +23,10 @@ import {
 let globalTable = null;
 let currentSearchQuery = "";
 
+export const setCurrentSearchQuery = (value) => {
+  currentSearchQuery = value;
+};
+
 const showPopup = async (msg_id, currentPage) => {
   showLoader();
   const viewDetailData = await getViewDetailOfSpamMail(msg_id);
@@ -29,48 +37,57 @@ const showPopup = async (msg_id, currentPage) => {
 };
 
 const getViewDetailOfSpamMail = async (msg_id) => {
-  try {
-    const requestData = {
-      messageId: msg_id,
-      email: "ekvayu123@outlook.com",
-    };
-    const response = await postData(`${GET_ACTION_VIEW_DETAIL}`, requestData);
-    return response.data;
-  } catch (error) {
-    hideLoader();
-    displayError(error);
+  const currentEmail = getCurrentEmail();
+  if (currentEmail) {
+    try {
+      const requestData = {
+        messageId: msg_id,
+        email: currentEmail,
+      };
+      const response = await postData(`${GET_ACTION_VIEW_DETAIL}`, requestData);
+      return response.data;
+    } catch (error) {
+      hideLoader();
+      displayError(error);
+    }
   }
 };
 
 const getAllSpamMail = async (page = 1) => {
-  try {
-    const requestData = {
-      emailId: "ekvayu123@outlook.com",
-      page: page,
-    };
-    const response = await postData(`${SPAM_MAIL}?page=${page}`, requestData);
-    return response;
-  } catch (error) {
-    hideLoader();
-    displayError(error);
+  const currentEmail = getCurrentEmail();
+  if (currentEmail) {
+    try {
+      const requestData = {
+        emailId: currentEmail,
+        page: page,
+      };
+      const response = await postData(`${SPAM_MAIL}?page=${page}`, requestData);
+      return response;
+    } catch (error) {
+      hideLoader();
+      displayError(error);
+    }
   }
 };
 
 const filterSpamMails = async (searchQuery, page = 1) => {
-  try {
-    const requestData = {
-      receiver_email: "ekvayu123@outlook.com",
-      senders_email: searchQuery,
-      page: page,
-    };
-    const response = await postData(
-      `${FILTER_SPAM_MAIL}?page=${page}`,
-      requestData
-    );
-    return response;
-  } catch (error) {
-    hideLoader();
-    displayError(error);
+  const currentEmail = getCurrentEmail();
+  if (currentEmail) {
+    try {
+      const requestData = {
+        receiver_email: currentEmail,
+        senders_email: searchQuery,
+        page: page,
+      };
+      const response = await postData(
+        `${FILTER_SPAM_MAIL}?page=${page}`,
+        requestData
+      );
+      return response;
+    } catch (error) {
+      hideLoader();
+      displayError(error);
+    }
   }
 };
 
@@ -104,12 +121,14 @@ const attachViewButtonListeners = (currentPage) => {
 };
 
 const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
+  await getEmailIds();
   try {
     document.getElementById("noDataFound").innerHTML = "";
     showLoader();
-    const spamMailResponse = searchQuery
-      ? await filterSpamMails(searchQuery, page)
-      : await getAllSpamMail(page);
+    const spamMailResponse =
+      searchQuery.length > 0
+        ? await filterSpamMails(searchQuery, page)
+        : await getAllSpamMail(page);
 
     await loadComponent({
       componentName: COMPONENTS.TABLE,
@@ -139,7 +158,7 @@ const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
     const formattedData = spamMailResponse.results.map((item) => [
       item.senders_email,
       createStatusChip(item.status).outerHTML,
-      createViewButton(item.msg_id).outerHTML,
+      createViewButton(item.msg_id, item.status).outerHTML,
     ]);
 
     globalTable.setData(formattedData, {
@@ -165,4 +184,4 @@ document.addEventListener("componentLoaded", (event) => {
   }
 });
 
-loadSpamMailComponent();
+loadSpamMailComponent(1);

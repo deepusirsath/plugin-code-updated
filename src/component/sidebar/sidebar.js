@@ -5,6 +5,7 @@ import { TARGET_ID } from "/src/constant/target_id.js";
 import { loadComponent } from "/src/helper/content_loader_helper.js";
 import { initializeDisputeForm } from "/src/pages/dispute/dispute.js";
 import { SIDEBAR_CONFIG } from "./sidebar_config.js";
+import { setCurrentSearchQuery } from "/src/pages/spam-mail/spam-mail.js";
 
 /**
  * Updates the active state of menu items in the sidebar
@@ -22,6 +23,17 @@ const updateActiveMenuItem = (clickedButton) => {
   menuItems.forEach((item) => item.classList.remove("active"));
   clickedButton.closest(".menu-item").classList.add("active");
   document.getElementById("errorDisplay").innerHTML = "";
+
+  const searchInput = document.getElementById("search-input");
+
+  const clearButton = document.getElementById("clearButton");
+  if (searchInput) {
+    searchInput.value = "";
+    setCurrentSearchQuery("");
+  }
+  if (clearButton) {
+    clearButton.style.display = "none";
+  }
 };
 
 /**

@@ -2,6 +2,10 @@ import { COMPONENTS } from "/src/constant/component.js";
 import { GET_GRAPH_DATA } from "/src/routes/api_route.js";
 import { postData } from "/src/api/api_method.js";
 import { displayError } from "/src/helper/display_error.js";
+import {
+  getCurrentEmail,
+  getEmailIds,
+} from "/src/helper/get_email_from_local_storage.js";
 import { showLoader, hideLoader } from "/src/component/loader/loader.js";
 
 /**
@@ -147,22 +151,26 @@ function createBarChart(data) {
  * @throws {Error} Displays error message if API call fails
  */
 const getGraphData = async () => {
-  showLoader();
-  try {
-    const requestData = {
-      emailId: "neerajgupta@ekvayu.com",
-    };
-    const response = await postData(`${GET_GRAPH_DATA}`, requestData);
-    const chartData = {
-      totalMail: response.data.total_processed_emails,
-      totalSpamMail: response.data.total_spam_emails,
-      totalDisputeMail: response.data.total_disputes,
-    };
-    createBarChart(chartData);
-    hideLoader();
-  } catch (error) {
-    hideLoader();
-    displayError(error);
+  await getEmailIds();
+  const currentEmail = getCurrentEmail();
+  if (currentEmail) {
+    try {
+      showLoader();
+      const requestData = {
+        emailId: currentEmail,
+      };
+      const response = await postData(`${GET_GRAPH_DATA}`, requestData);
+      const chartData = {
+        totalMail: response.data.total_processed_emails,
+        totalSpamMail: response.data.total_spam_emails,
+        totalDisputeMail: response.data.total_disputes,
+      };
+      createBarChart(chartData);
+      hideLoader();
+    } catch (error) {
+      hideLoader();
+      displayError(error);
+    }
   }
 };
 

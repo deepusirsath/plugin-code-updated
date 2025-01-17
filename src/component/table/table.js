@@ -39,10 +39,10 @@ export const createTable = () => {
   });
 
   // Add input event listener to show/hide clear button based on input value
-elements.searchInput.addEventListener("input", () => {
-  const hasValue = elements.searchInput.value.trim().length > 0;
-  elements.clearButton.style.display = hasValue ? "inline-block" : "none";
-});
+  elements.searchInput.addEventListener("input", () => {
+    const hasValue = elements.searchInput.value.trim().length > 0;
+    elements.clearButton.style.display = hasValue ? "inline-block" : "none";
+  });
 
   const renderHeaders = (headers) => {
     elements.headerRow.innerHTML = headers
