@@ -1,6 +1,7 @@
 import { BASEPATH } from "/src/constant/basepath.js";
 import { COMPONENTS } from "/src/constant/component.js";
 import { TARGET_ID } from "/src/constant/target_id.js";
+import { MAIL_STATUS } from "/src/constant/mail_status.js";
 import { postData } from "/src/api/api_method.js";
 import { displayError } from "/src/helper/display_error.js";
 import { createTable } from "/src/component/table/table.js";
@@ -52,7 +53,7 @@ const getAllDisputeMail = async (page = 1) => {
       `${GET_DISPUTE_RAISE_DATA}?page=${page}`,
       requestData
     );
-    return response.results;
+    return response;
   } catch (error) {
     hideLoader();
     displayError(error);
@@ -70,7 +71,7 @@ const filterDisputeMails = async (searchQuery, page = 1) => {
       `${FILTER_DISPUTE_MAIL}?page=${page}`,
       requestData
     );
-    return response.results;
+    return response;
   } catch (error) {
     hideLoader();
     displayError(error);
@@ -126,7 +127,10 @@ const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
 
     initializeSearchHandlers();
 
-    if (!disputeMailResponse.data || disputeMailResponse.data.length === 0) {
+    if (
+      !disputeMailResponse.results.data ||
+      disputeMailResponse.results.data.length === 0
+    ) {
       document.getElementById("data-table").innerHTML = "";
       document.getElementById("pagination").innerHTML = "";
       await loadComponent({
@@ -139,9 +143,11 @@ const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
       return;
     }
 
-    const formattedData = disputeMailResponse.data.map((item) => [
+    const formattedData = disputeMailResponse?.results?.data?.map((item) => [
       item.sender_email,
-      createStatusChip(item.status).outerHTML,
+      createStatusChip(
+        item.status === 1 ? MAIL_STATUS.SAFE : item.status === 2 ? MAIL_STATUS.UNSAFE: MAIL_STATUS.PENDING
+      ).outerHTML,
       createViewButton(item.msg_id).outerHTML,
     ]);
 
