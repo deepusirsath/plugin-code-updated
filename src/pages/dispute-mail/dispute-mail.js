@@ -9,18 +9,18 @@ import { createStatusChip } from "/src/component/status_chip/status_chip.js";
 import { createViewDetail } from "/src/component/view_detail/view_detail.js";
 import { loadComponent } from "/src/helper/content_loader_helper.js";
 import { showLoader, hideLoader } from "/src/component/loader/loader.js";
+import { handleRefresh } from "/src/component/no_data_found/no_data_found.js";
 import {
   GET_DISPUTE_RAISE_DATA,
-  GET_ACTION_VIEW_DETAIL, FILTER_DISPUTE_MAIL
+  GET_ACTION_VIEW_DETAIL,FILTER_DISPUTE_MAIL 
 } from "/src/routes/api_route.js";
 
 
-//srch flt pg
 const showPopup = async (msg_id, currentPage) => {
   showLoader();
   const viewDetailData = await getViewDetailOfDisputeMail(msg_id);
   hideLoader();
-  createViewDetail(viewDetailData, () => loadDisputeMailComponent(currentPage));
+  createViewDetail(viewDetailData, loadDisputeComponent(currentPage));
 };
 
 const getViewDetailOfDisputeMail = async (msg_id) => {
@@ -37,14 +37,17 @@ const getViewDetailOfDisputeMail = async (msg_id) => {
   }
 };
 
-const getAllDisputeMail = async (page = 1, searchQuery) => {
+const getAllDisputeMail = async ( page = 1, searchQuery) => {
   try {
     const requestData = {
       emailId: "ekvayu123@outlook.com",
       page: page,
     };
-    const response = await postData(`${GET_DISPUTE_RAISE_DATA}?page=${page}`, requestData);
-    return response;
+    const response = await postData(
+      `${GET_DISPUTE_RAISE_DATA}?page=${page}`,
+      requestData
+    );
+    return response.results;
   } catch (error) {
     hideLoader();
     displayError(error);
@@ -70,16 +73,16 @@ const filterDisputeMails = async (searchQuery, page = 1) => {
 };
 
 const handleSearch = (value) => {
-  loadDisputeMailComponent(1, value);
+  loadDisputeComponent(1, value);
 };
 
-const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
+const loadDisputeComponent = async (page = 1, searchQuery = "") => {
   try {
     showLoader();
+
     const disputeMailResponse = searchQuery
       ? await filterDisputeMails(searchQuery, page)
       : await getAllDisputeMail(page);
-
     await loadComponent({
       componentName: COMPONENTS.TABLE,
       basePath: BASEPATH.COMPONENT,
@@ -90,13 +93,13 @@ const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
     const headers = ["Sender", "Status", "Action"];
     table.setHeaders(headers);
 
-    if (!disputeMailResponse.results || disputeMailResponse.results.length === 0) {
+    if (!disputeMailResponse.data || disputeMailResponse.data.length === 0) {
       await loadComponent({
         componentName: COMPONENTS.NO_DATA_FOUND,
         basePath: BASEPATH.COMPONENT,
         targetId: TARGET_ID.DATA_OUTPUT,
       });
-      handleRefresh(() => loadDisputeMailComponent(1, searchQuery));
+      handleRefresh(() => loadDisputeComponent(1, searchQuery));
       hideLoader();
       return;
     }
@@ -133,9 +136,12 @@ const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
       });
     };
 
-    const formattedData = disputeMailResponse.results.map((item) => [
-      item.senders_email,
-      createStatusChip(item.status).outerHTML,
+    // Format and display data
+    const formattedData = disputeMailResponse.data.map((item) => [
+      item.sender_email,
+      createStatusChip(
+        item.status === 1 ? "safe" : item.status === 2 ? "unsafe" : "pending"
+      ).outerHTML,
       createViewButton(item.msg_id).outerHTML,
     ]);
 
@@ -148,6 +154,13 @@ const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
       onSearch: handleSearch,
     });
 
+    // Add click handlers for view buttons
+    document.querySelectorAll(".view-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        showPopup(button.dataset.msg_id);
+      });
+    });
+
     attachViewButtonListeners(page);
     hideLoader();
   } catch (error) {
@@ -156,16 +169,10 @@ const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
   }
 };
 
-// Add event listener for search button
 document.addEventListener("componentLoaded", (event) => {
-  if (event.detail.componentName === COMPONENTS.SPAM_MAIL) {
-    loadDisputeMailComponent(1);
-
-    // const searchButton = document.getElementById("searchButton");
-    // if (searchButton) {
-    //   searchButton.addEventListener("click", handleSearch);
-    // }
+  if (event.detail.componentName === COMPONENTS.DISPUTE_MAIL) {
+    loadDisputeComponent();
   }
 });
 
-loadDisputeMailComponent();
+loadDisputeComponent();
