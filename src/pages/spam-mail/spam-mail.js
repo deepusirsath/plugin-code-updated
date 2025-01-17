@@ -165,4 +165,4 @@ document.addEventListener("componentLoaded", (event) => {
   }
 });
 
-loadSpamMailComponent();
+loadSpamMailComponent(1);
