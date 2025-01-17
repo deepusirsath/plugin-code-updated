@@ -1,6 +1,5 @@
-
 .popup-test {
-   position: fixed;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
@@ -57,5 +56,5 @@
   border-radius: 4px;
   white-space: pre-wrap;
   max-height: 300px; /* Set a fixed height */
-   overflow-y: auto; /* Enable vertical scrolling */
- }
+  overflow-y: auto; /* Enable vertical scrolling */
+}

@@ -38,7 +38,3 @@ export const createViewDetail = (createViewDetail, onClose) => {
   document.body.appendChild(popup);
   return popup;
 };
-
-
-
-
