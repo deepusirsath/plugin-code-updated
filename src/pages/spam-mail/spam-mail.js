@@ -139,7 +139,7 @@ const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
     const formattedData = spamMailResponse.results.map((item) => [
       item.senders_email,
       createStatusChip(item.status).outerHTML,
-      createViewButton(item.msg_id).outerHTML,
+      createViewButton(item.msg_id, item.status).outerHTML,
     ]);
 
     globalTable.setData(formattedData, {

@@ -146,9 +146,13 @@ const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
     const formattedData = disputeMailResponse?.results?.data?.map((item) => [
       item.sender_email,
       createStatusChip(
-        item.status === 1 ? MAIL_STATUS.SAFE : item.status === 2 ? MAIL_STATUS.UNSAFE: MAIL_STATUS.PENDING
+        item.status === 1
+          ? MAIL_STATUS.SAFE
+          : item.status === 2
+          ? MAIL_STATUS.UNSAFE
+          : MAIL_STATUS.PENDING
       ).outerHTML,
-      createViewButton(item.msg_id).outerHTML,
+      createViewButton(item.msg_id, item.status).outerHTML,
     ]);
 
     globalTable.setData(formattedData, {

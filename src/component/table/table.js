@@ -78,7 +78,6 @@ export const createTable = () => {
   };
 
   const setData = (data, paginationInfo) => {
-    console.log("setData called with data:", paginationInfo);
     if (paginationInfo) {
       totalItems = paginationInfo.totalItems;
       currentPage = paginationInfo.currentPage;
