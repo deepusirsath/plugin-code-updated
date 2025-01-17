@@ -129,6 +129,60 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   return true;
 });
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  const currentCount = 0;
+  if (
+    request.action === "EmailNotFoundOnServerRequest" &&
+    request.client === "outlook" &&
+    currentCount < 2
+  ) {
+    console.log(
+      "Received message in content script EmailNotFoundOnServerRequest on Outlook:",
+      request
+    );
+    currentCount++;
+    executeWithLoadingScreenAndExtraction();
+  }
+});
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (
+    request.action === "erroRecievedFromServer" &&
+    request.client === "outlook"
+  ) {
+    console.log(
+      "Received message from server to show the erroRecievedFromServer:"
+    );
+    showAlert("inform");
+  }
+});
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.client === "outlook") {
+    // Check if the message is for Outlook
+    console.log(
+      "this is the function that will be called when the content script receives a message for the Outlook client"
+    );
+
+    if (message.action === "blockUrls") {
+      console.log("Outlook Content script received message:", message.action);
+      shouldApplyPointerEvents = true;
+      showAlert("unsafe");
+      console.log("Blocking URLs for Outlook");
+    } else if (message.action === "unblock") {
+      shouldApplyPointerEvents = false;
+      console.log("Unblocking URLs for Outlook");
+      showAlert("safe");
+    } else if (message.action === "pending") {
+      console.log("Pending Status for Outlook");
+      shouldApplyPointerEvents = true;
+      showAlert("pending");
+      console.log("Blocking URLs for Outlook due to pending status");
+    }
+    blockEmailBody();
+    sendResponse({ status: "success" });
+  }
+});
 
 function detectMenuItems(event) {
   let target = event.target;
@@ -314,22 +368,7 @@ function showLoadingScreenFor5Seconds() {
   });
 }
 
-// Function to execute email extraction code with loading screen
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  const currentCount = 0;
-  if (
-    request.action === "EmailNotFoundOnServerRequest" &&
-    request.client === "outlook" &&
-    currentCount < 2
-  ) {
-    console.log(
-      "Received message in content script EmailNotFoundOnServerRequest on Outlook:",
-      request
-    );
-    currentCount++;
-    executeWithLoadingScreenAndExtraction();
-  }
-});
+
 async function executeWithLoadingScreenAndExtraction() {
   blockUserInteraction(); // Disable all user interactions
   showLoadingScreen(); // Show the loading screen indefinitely
@@ -611,19 +650,8 @@ function setupClickListener(attempts = 500) {
   }
 }
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (
-    request.action === "erroRecievedFromServer" &&
-    request.client === "outlook"
-  ) {
-    console.log(
-      "Received message from server to show the erroRecievedFromServer:"
-    );
-    showAlert("inform");
-  }
-});
 
-//Older one
+
 
 function showAlert(key) {
   // Create the alert container
@@ -1078,33 +1106,6 @@ async function runEmailExtraction() {
   await processNavigationButton();
 }
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.client === "outlook") {
-    // Check if the message is for Outlook
-    console.log(
-      "this is the function that will be called when the content script receives a message for the Outlook client"
-    );
-
-    if (message.action === "blockUrls") {
-      console.log("Outlook Content script received message:", message.action);
-      shouldApplyPointerEvents = true;
-      showAlert("unsafe");
-      console.log("Blocking URLs for Outlook");
-    } else if (message.action === "unblock") {
-      shouldApplyPointerEvents = false;
-      console.log("Unblocking URLs for Outlook");
-      showAlert("safe");
-    } else if (message.action === "pending") {
-      console.log("Pending Status for Outlook");
-      shouldApplyPointerEvents = true;
-      showAlert("pending");
-      console.log("Blocking URLs for Outlook due to pending status");
-    }
-    blockEmailBody();
-    sendResponse({ status: "success" });
-  }
-});
-
 // Function to find the Outlook email ID
 function findOutlookEmailId() {
   const outlookRegex =
@@ -1203,13 +1204,6 @@ function showPending() {
     }
   }, 5000);
 }
-
-// chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-//   if (message.action === "responseDelayStatus" , message.client === "outlook") {
-//     console.log("Server response delayed for more than 4 seconds");
-//     showAlert("pending");
-//   }
-// });
 
 chrome.storage.local.get("messages", function (result) {
   let messages = JSON.parse(result.messages || "{}"); // Ensure messages is an object

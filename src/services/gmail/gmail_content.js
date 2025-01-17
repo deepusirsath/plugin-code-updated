@@ -18,41 +18,116 @@ let emailId = null;
 let messageId = null;
 let isValidSegmentLength = 32;
 let url = window.location.href;
+let currentCount = 0;
 
-// Function to check if the current page is a Gmail page
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === "GmailDetectedForExtraction") {
-    console.log("Message received in content script - Gmail detected");
+  console.log("Message received in content script:", message);
 
-    chrome.storage.local.set({ registration: true });
-    chrome.storage.local.get("registration", (data) => {
-      if (chrome.runtime.lastError) {
-        console.error(chrome.runtime.lastError);
-        return;
-      }
-      if (data.registration) {
-        let url = window.location.href;
-        console.log("URL:", url);
-        const lastSegment = url.split("/").pop().split("#").pop();
-        console.log("Last Segment===================:", lastSegment, lastSegment.length);
+  switch (message.action) {
+    case "GmailDetectedForExtraction":
+      handleGmailDetectedForExtraction(sendResponse);
+      break;
 
-        // Check if the last segment has exactly isValidSegmentLength characters
-        if (lastSegment.length >= isValidSegmentLength) {
-          console.log(
-            `The last segment "${lastSegment}" has exactly isValidSegmentLength characters.`
-          );
-          // Single initialization
-          init();
-        } else {
-          console.log(
-            `The last segment "${lastSegment}" does not have 32 characters.`
-          );
-        }
+    case "checkGmailmail":
+    case "fetchDisputeMessageId":
+      handleCheckGmailMail(sendResponse);
+      return true;
+
+    case "EmailNotFoundOnServerRequest":
+      if (message.client === "gmail") {
+        handleEmailNotFoundOnServerRequest(message);
       }
-    });
-    sendResponse({ status: "received" });
+      break;
+
+    case "erroRecievedFromServer":
+      if (message.client === "gmail") {
+        showAlert("inform");
+      }
+      break;
+
+    default:
+      if (message.client === "gmail") {
+        handleGmailClientActions(message, sendResponse);
+      }
   }
 });
+
+function handleGmailDetectedForExtraction(sendResponse) {
+  console.log("Message received in content script - Gmail detected");
+  chrome.storage.local.set({ registration: true });
+  chrome.storage.local.get("registration", (data) => {
+    if (chrome.runtime.lastError) {
+      console.error(chrome.runtime.lastError);
+      return;
+    }
+    if (data.registration) {
+      let url = window.location.href;
+      console.log("URL:", url);
+      const lastSegment = url.split("/").pop().split("#").pop();
+      console.log("Last Segment:", lastSegment, lastSegment.length);
+
+      if (lastSegment.length >= isValidSegmentLength) {
+        console.log(`The last segment "${lastSegment}" meets the required length.`);
+        init();
+      } else {
+        console.log(`The last segment "${lastSegment}" does not meet the required length.`);
+      }
+    }
+  });
+  sendResponse({ status: "received" });
+}
+
+function handleCheckGmailMail(sendResponse) {
+  const node = document.querySelector("[data-legacy-message-id]");
+  const messageId = node?.getAttribute("data-legacy-message-id");
+  const gmailContainer = document.querySelector("div[role='main']");
+  const senderEmail = gmailContainer?.querySelector("span[email]")?.getAttribute("email");
+
+  if (messageId && emailId) {
+    sendResponse({
+      emailBodyExists: true,
+      messageId,
+      emailId,
+      senderEmail,
+    });
+  } else {
+    sendResponse({
+      emailBodyExists: false,
+      error: "Failed to extract Gmail message ID or email ID",
+    });
+  }
+}
+
+function handleEmailNotFoundOnServerRequest(request) {
+  if (currentCount < 3) {
+    console.log("Received EmailNotFoundOnServerRequest:", request);
+    currentCount++;
+    createUrl(url, request.messageId);
+  }
+}
+
+function handleGmailClientActions(message, sendResponse) {
+  console.log("Processing Gmail client action:", message.action);
+  switch (message.action) {
+    case "blockUrls":
+      shouldApplyPointerEvents = true;
+      showAlert("unsafe");
+      break;
+    case "unblock":
+      shouldApplyPointerEvents = false;
+      showAlert("safe");
+      break;
+    case "pending":
+      shouldApplyPointerEvents = true;
+      showAlert("pending");
+      break;
+  }
+  blockEmailBody();
+  sendResponse({ status: "success" });
+}
+
+
 
 // Function to initialize the script
 const init = () => {
@@ -63,38 +138,7 @@ const init = () => {
 };
 
 
-// Function to extract message ID and EML content
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (
-    message.action === "checkGmailmail" ||
-    message.action == "fetchDisputeMessageId"
-  ) {
-    const node = document.querySelector("[data-legacy-message-id]");
-    const messageId = node.getAttribute("data-legacy-message-id");
-    const gmailContainer = document.querySelector("div[role='main']");
-    if (gmailContainer) {
-      const senderEmail = gmailContainer
-        .querySelector("span[email]")
-        ?.getAttribute("email");
 
-      if (messageId && emailId) {
-        sendResponse({
-          emailBodyExists: true,
-          messageId: messageId,
-          emailId: emailId,
-          senderEmail: senderEmail,
-        });
-      } else {
-        sendResponse({
-          emailBodyExists: false,
-          error: "Failed to extract Gmail message ID or email ID",
-        });
-      }
-      // findMessageIdRecursive(sendResponse);
-      return true;
-    }
-  }
-});
 
 //Detect Gmail URL and extract message ID
 async function extractMessageIdAndEml() {
@@ -151,7 +195,8 @@ async function extractMessageIdAndEml() {
               messageId: messageId,
             });
           }
-        } else {
+        } 
+        else {
           shouldApplyPointerEvents = true;
           blockEmailBody();
           console.log(
@@ -169,7 +214,6 @@ async function extractMessageIdAndEml() {
                 "Response from background for firstCheckForEmail API:",
                 response
               );
-              //   let error = response.status;
               if (response.IsResponseRecieved === "success") {
                 if (response.data.code === 200) {
                   console.log(
@@ -222,8 +266,6 @@ async function extractMessageIdAndEml() {
               }
             }
           );
-          console.log("API call failed:");
-          // showAlert("inform");
         }
       });
     } else {
@@ -254,16 +296,7 @@ function createUrl(url, messageId) {
   }
 }
 
-// Listen for messages from the background script like if the pending staus is empty
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  const currentCount = 0;
-  if (request.action === "EmailNotFoundOnServerRequest" && request.client === "gmail" && currentCount < 3) {
-    console.log("Received message in content script EmailNotFoundOnServerRequest:", request);
-    currentCount++;
-    const { messageId } = request;
-    createUrl(url, messageId);
-  }
-});
+
 
 // Function to find the email ID
 async function findEmailId() {
@@ -603,17 +636,6 @@ button.addEventListener("mouseout", () => {
   button.addEventListener("click", removeAlert);
 }
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (
-    request.action === "erroRecievedFromServer" &&
-    request.client === "gmail"
-  ) {
-    console.log(
-      "Received message from server to show the erroRecievedFromServer:"
-    );
-    showAlert("inform");
-  }
-});
 
 // Function to remove the alert when clicked outside of it
 document.addEventListener("click", function removeAlertOnClick(event) {
@@ -662,32 +684,6 @@ async function blockEmailBody() {
     console.log("Elements not found after multiple attempts");
   }
 }
-
-// function to handle the server response and show the alert with the appropriate message
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.client === "gmail") {
-    console.log(
-      "this is the function that will be called when the content script receives a message for the Gmail client"
-    );
-    if (message.action === "blockUrls") {
-      console.log("Gmail Content script received message:", message.action);
-      shouldApplyPointerEvents = true;
-      showAlert("unsafe");
-      console.log("Blocking URLs for Gmail");
-    } else if (message.action === "unblock") {
-      shouldApplyPointerEvents = false;
-      console.log("Unblocking URLs for Gmail");
-      showAlert("safe");
-    } else if (message.action === "pending") {
-      console.log("Pending Status for Gmail");
-      shouldApplyPointerEvents = true;
-      showAlert("pending");
-      console.log("Blocking URLs for Gmail due to pending status");
-    }
-    blockEmailBody();
-    sendResponse({ status: "success" });
-  }
-});
 
 // Function to show the blocked popup
 function showBlockedPopup() {
@@ -740,3 +736,173 @@ window.addEventListener("click", (e) => {
     });
   }
 });
+
+
+
+
+
+
+
+// -----------------------------------------------older changess-----------------------------------------------------
+// // Function to check if the current page is a Gmail page
+// chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+//   if (message.action === "GmailDetectedForExtraction") {
+//     console.log("Message received in content script - Gmail detected");
+
+//     chrome.storage.local.set({ registration: true });
+//     chrome.storage.local.get("registration", (data) => {
+//       if (chrome.runtime.lastError) {
+//         console.error(chrome.runtime.lastError);
+//         return;
+//       }
+//       if (data.registration) {
+//         let url = window.location.href;
+//         console.log("URL:", url);
+//         const lastSegment = url.split("/").pop().split("#").pop();
+//         console.log("Last Segment===================:", lastSegment, lastSegment.length);
+
+//         // Check if the last segment has exactly isValidSegmentLength characters
+//         if (lastSegment.length >= isValidSegmentLength) {
+//           console.log(
+//             `The last segment "${lastSegment}" has exactly isValidSegmentLength characters.`
+//           );
+//           // Single initialization
+//           init();
+//         } else {
+//           console.log(
+//             `The last segment "${lastSegment}" does not have 32 characters.`
+//           );
+//         }
+//       }
+//     });
+//     sendResponse({ status: "received" });
+//   }
+// });
+// // function to handle the server response and show the alert with the appropriate message
+// chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+//   if (message.client === "gmail") {
+//     console.log(
+//       "this is the function that will be called when the content script receives a message for the Gmail client"
+//     );
+//     if (message.action === "blockUrls") {
+//       console.log("Gmail Content script received message:", message.action);
+//       shouldApplyPointerEvents = true;
+//       showAlert("unsafe");
+//       console.log("Blocking URLs for Gmail");
+//     } else if (message.action === "unblock") {
+//       shouldApplyPointerEvents = false;
+//       console.log("Unblocking URLs for Gmail");
+//       showAlert("safe");
+//     } else if (message.action === "pending") {
+//       console.log("Pending Status for Gmail");
+//       shouldApplyPointerEvents = true;
+//       showAlert("pending");
+//       console.log("Blocking URLs for Gmail due to pending status");
+//     }
+//     blockEmailBody();
+//     sendResponse({ status: "success" });
+//   }
+// });
+
+// // Function to extract message ID and EML content
+// chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+//   if (
+//     message.action === "checkGmailmail" ||
+//     message.action == "fetchDisputeMessageId"
+//   ) {
+//     const node = document.querySelector("[data-legacy-message-id]");
+//     const messageId = node.getAttribute("data-legacy-message-id");
+//     const gmailContainer = document.querySelector("div[role='main']");
+//     if (gmailContainer) {
+//       const senderEmail = gmailContainer
+//         .querySelector("span[email]")
+//         ?.getAttribute("email");
+
+//       if (messageId && emailId) {
+//         sendResponse({
+//           emailBodyExists: true,
+//           messageId: messageId,
+//           emailId: emailId,
+//           senderEmail: senderEmail,
+//         });
+//       } else {
+//         sendResponse({
+//           emailBodyExists: false,
+//           error: "Failed to extract Gmail message ID or email ID",
+//         });
+//       }
+//       // findMessageIdRecursive(sendResponse);
+//       return true;
+//     }
+//   }
+// });
+
+// // Listen for messages from the background script like if the pending staus is empty
+// chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+//   const currentCount = 0;
+//   if (request.action === "EmailNotFoundOnServerRequest" && request.client === "gmail" && currentCount < 3) {
+//     console.log("Received message in content script EmailNotFoundOnServerRequest:", request);
+//     currentCount++;
+//     const { messageId } = request;
+//     createUrl(url, messageId);
+//   }
+// });
+
+// chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+//   if (
+//     request.action === "erroRecievedFromServer" &&
+//     request.client === "gmail"
+//   ) {
+//     console.log(
+//       "Received message from server to show the erroRecievedFromServer:"
+//     );
+//     showAlert("inform");
+//   }
+// });
+
+
+
+
+// //  -------------------------------------Optimized but not used ---------------
+// else {
+//   shouldApplyPointerEvents = true;
+//   blockEmailBody();
+  
+//   const handleFirstEmailCheck = async () => {
+//     const response = await chrome.runtime.sendMessage({
+//       client: "gmail",
+//       action: "firstCheckForEmail", 
+//       messageId,
+//       email: emailId
+//     });
+
+//     if (response.IsResponseRecieved === "success" && response.data.code === 200) {
+//       const { data: serverData } = response.data;
+//       const resStatus = serverData.eml_status || serverData.email_status;
+//       const messId = serverData.messageId || serverData.msg_id;
+
+//       if (["safe", "unsafe", "pending"].includes(resStatus)) {
+//         const result = await chrome.storage.local.get("messages");
+//         const messages = JSON.parse(result.messages || "{}");
+//         messages[messId] = resStatus;
+
+//         await chrome.storage.local.set({
+//           messages: JSON.stringify(messages)
+//         });
+
+//         shouldApplyPointerEvents = resStatus !== "safe";
+//         blockEmailBody();
+//         showAlert(resStatus);
+//       }
+//     } else if (response.data.code !== 200) {
+//       setTimeout(() => createUrl(url, messageId), 100);
+//     } else if (response.status === "error") {
+//       showAlert("inform");
+//     }
+//   };
+
+//   handleFirstEmailCheck().catch(error => {
+//     console.error("Error in first email check:", error);
+//     showAlert("inform");
+//   });
+// }

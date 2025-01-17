@@ -65,6 +65,56 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   }
 });
 
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  const currentCount = 0;
+  if (request.action === "EmailNotFoundOnServerRequest" && request.client === "yahoo" && currentCount < 3) {
+    console.log("Received message in content script EmailNotFoundOnServerRequest on Yahoo:", request);
+    currentCount++ ;
+    executeExtractionScriptIfFailed();
+  }
+});
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (
+    request.action === "erroRecievedFromServer" &&
+    request.client === "yahoo"
+  ) {
+    console.log(
+      "Received message from server to show the erroRecievedFromServer:"
+    );
+    showAlert("inform");
+  }
+});
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.client === "yahoo") {
+    // Check if the message is for Outlook
+    console.log(
+      "this is the function that will be called when the content script receives a message for the yahoo client"
+    );
+    chrome.storage.local.remove(["gmail_email", "outlook_email"], () => {
+      console.log("Stored data removed.");
+    });
+    if (message.action === "blockUrls") {
+      console.log("Outlook Content script received message:", message.action);
+      shouldApplyPointerEvents = true;
+      showAlert("unsafe");
+      console.log("Blocking URLs for Yahoo");
+    } else if (message.action === "unblock") {
+      shouldApplyPointerEvents = false;
+      console.log("Unblocking URLs for Yahoo");
+      showAlert("safe");
+    } else if (message.action === "pending") {
+      console.log("Pending Status for Yahoo");
+      shouldApplyPointerEvents = true;
+      showAlert("pending");
+      console.log("Blocking URLs for Yahoo due to pending status");
+    }
+    blockEmailBody();
+    sendResponse({ status: "success" });
+  }
+});
+
 //Main function starts here-------------------
 if (
   url.includes("in.mail.yahoo.com") ||
@@ -120,14 +170,7 @@ async function executeExtractionScriptIfFailed() {
   }, 100);
 }
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  const currentCount = 0;
-  if (request.action === "EmailNotFoundOnServerRequest" && request.client === "yahoo" && currentCount < 3) {
-    console.log("Received message in content script EmailNotFoundOnServerRequest on Yahoo:", request);
-    currentCount++ ;
-    executeExtractionScriptIfFailed();
-  }
-});
+
 
 
 function showAlert(key) {
@@ -533,47 +576,7 @@ function createUrl(selectedMailboxId, lastMessageId, userEmail) {
     console.error("Error sending email content to background script:", error);
   }
 }
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (
-    request.action === "erroRecievedFromServer" &&
-    request.client === "yahoo"
-  ) {
-    console.log(
-      "Received message from server to show the erroRecievedFromServer:"
-    );
-    showAlert("inform");
-  }
-});
 
-//code to handle the response from the background script
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.client === "yahoo") {
-    // Check if the message is for Outlook
-    console.log(
-      "this is the function that will be called when the content script receives a message for the yahoo client"
-    );
-    chrome.storage.local.remove(["gmail_email", "outlook_email"], () => {
-      console.log("Stored data removed.");
-    });
-    if (message.action === "blockUrls") {
-      console.log("Outlook Content script received message:", message.action);
-      shouldApplyPointerEvents = true;
-      showAlert("unsafe");
-      console.log("Blocking URLs for Yahoo");
-    } else if (message.action === "unblock") {
-      shouldApplyPointerEvents = false;
-      console.log("Unblocking URLs for Yahoo");
-      showAlert("safe");
-    } else if (message.action === "pending") {
-      console.log("Pending Status for Yahoo");
-      shouldApplyPointerEvents = true;
-      showAlert("pending");
-      console.log("Blocking URLs for Yahoo due to pending status");
-    }
-    blockEmailBody();
-    sendResponse({ status: "success" });
-  }
-});
 
 chrome.storage.local.get(null, function (data) {
   console.log("Data retrieved from local storage:", data);
