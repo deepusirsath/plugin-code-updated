@@ -25,6 +25,7 @@ export const createTable = () => {
   // Search button click handler
   elements.searchButton.addEventListener("click", () => {
     const searchQuery = elements.searchInput.value.trim();
+      elements.clearButton.style.display = "inline-block"; // Show clear button when search has value
     onSearch(searchQuery);
   });
 
@@ -36,6 +37,12 @@ export const createTable = () => {
       onPageChange(1, ""); 
     }
   });
+
+  // Add input event listener to show/hide clear button based on input value
+elements.searchInput.addEventListener("input", () => {
+  const hasValue = elements.searchInput.value.trim().length > 0;
+  elements.clearButton.style.display = hasValue ? "inline-block" : "none";
+});
 
   const renderHeaders = (headers) => {
     elements.headerRow.innerHTML = headers
