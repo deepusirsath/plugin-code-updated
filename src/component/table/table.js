@@ -23,26 +23,26 @@ export const createTable = () => {
   elements.clearButton.style.display = "none";
 
   // Search button click handler
-  elements.searchButton.addEventListener("click", () => {
-    const searchQuery = elements.searchInput.value.trim();
-    if (typeof onSearch === "function") {
-      onSearch(searchQuery);
-    }
-  });
+  // elements.searchButton.addEventListener("click", () => {
+  //   const searchQuery = elements.searchInput.value.trim();
+  //   if (typeof onSearch === "function") {
+  //     onSearch(searchQuery);
+  //   }
+  // });
 
   // Clear button click handler
-  elements.clearButton.addEventListener("click", () => {
-    elements.clearButton.style.display = "inline-block";
-    if (onPageChange) {
-      onPageChange(1, "");
-    }
-  });
+  // elements.clearButton.addEventListener("click", () => {
+  //   elements.clearButton.style.display = "inline-block";
+  //   if (onPageChange) {
+  //     onPageChange(1, "");
+  //   }
+  // });
 
   // Add input event listener to show/hide clear button based on input value
-  elements.searchInput.addEventListener("input", () => {
-    const hasValue = elements.searchInput.value.trim().length > 0;
-    elements.clearButton.style.display = hasValue ? "inline-block" : "none";
-  });
+  // elements.searchInput.addEventListener("input", () => {
+  //   const hasValue = elements.searchInput.value.trim().length > 0;
+  //   elements.clearButton.style.display = hasValue ? "inline-block" : "none";
+  // });
 
   const renderHeaders = (headers) => {
     elements.headerRow.innerHTML = headers

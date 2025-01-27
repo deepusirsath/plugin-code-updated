@@ -29,12 +29,9 @@ export const setCurrentSearchQuery = (value) => {
 };
 
 const showPopup = async (msg_id, currentPage) => {
-  showLoader();
   const viewDetailData = await getViewDetailOfDisputeMail(msg_id);
-  hideLoader();
-  createViewDetail(viewDetailData, () =>
-    loadDisputeMailComponent(currentPage, currentSearchQuery)
-  );
+  createViewDetail(viewDetailData, () => {
+});
 };
 
 const getViewDetailOfDisputeMail = async (msg_id) => {
@@ -45,10 +42,12 @@ const getViewDetailOfDisputeMail = async (msg_id) => {
         messageId: msg_id,
         email: currentEmail,
       };
+      console.log('Request dataaaaaaa:', requestData);
       const response = await postData(`${GET_ACTION_VIEW_DETAIL}`, requestData);
+      console.log('Responseeeeeeeeee:', response);
       return response.data;
     } catch (error) {
-      hideLoader();
+      // hideLoader();
       displayError(error);
     }
   }
@@ -68,7 +67,7 @@ const getAllDisputeMail = async (page = 1) => {
       );
       return response;
     } catch (error) {
-      hideLoader();
+      // hideLoader();
       displayError(error);
     }
   }
@@ -89,36 +88,127 @@ const filterDisputeMails = async (page = 1, searchQuery) => {
       );
       return response;
     } catch (error) {
-      hideLoader();
+      // hideLoader();
       displayError(error);
     }
   }
 };
 
 const initializeSearchHandlers = () => {
-  const searchButton = document.getElementById("searchButton");
   const searchInput = document.getElementById("search-input");
+  const searchButton = document.getElementById("searchButton");
+  // const searchInput = document.getElementById("search-input");
   const clearButton = document.getElementById("clearButton");
 
-  if (searchButton && searchInput) {
-    searchButton.onclick = () => {
-      currentSearchQuery = searchInput.value.trim();
-      loadDisputeMailComponent(1, currentSearchQuery);
-    };
+  //orgl
+//   if (searchButton && searchInput) {
+//     searchButton.onclick = () => {
+//       currentSearchQuery = searchInput.value.trim();
+//       loadDisputeMailComponent(1, currentSearchQuery);
+//     };
 
-    if (clearButton) {
-      clearButton.onclick = () => {
-        searchInput.value = "";
-        currentSearchQuery = "";
-        loadDisputeMailComponent(1);
-      };
-    }
+//     if (clearButton) {
+//       clearButton.onclick = () => {
+//         searchInput.value = "";
+//         currentSearchQuery = "";
+//         loadDisputeMailComponent(1);
+//       };
+//     }
+//   }
+// }
+
+
+  //try 1
+  // if (searchButton && searchInput && clearButton) {
+  //   // Search button handler
+  //   searchButton.onclick = () => {
+  //     const searchValue = searchInput.value.trim();
+  //     if (searchValue) {
+  //       currentSearchQuery = searchValue;
+  //       clearButton.style.display = "block"; // Make clear button visible
+  //       loadDisputeMailComponent(1, currentSearchQuery);
+  //     }
+  //   };
+  
+  //   // Clear button handler
+  //   clearButton.onclick = async () => {
+  //     searchInput.value = "";
+  //     currentSearchQuery = "";
+      
+  //     // loadDisputeMailComponent(1);
+  //      await loadDisputeMailComponent(1);
+  //      if (globalTable) {
+  //       const response = await getAllDisputeMail(1); // Changed from getAllSpamMail to getAllDisputeMail
+  //       const formattedData = response.results.data.map((item) => [ // Added .data to match the structure
+  //         item.sender_email,
+  //         createStatusChip(
+  //           item.status === 1
+  //             ? MAIL_STATUS.SAFE
+  //             : item.status === 2
+  //             ? MAIL_STATUS.UNSAFE
+  //             : MAIL_STATUS.PENDING
+  //         ).outerHTML,
+  //         createViewButton(item.msg_id, item.status).outerHTML,
+  //       ]);
+  //       globalTable.setData(formattedData, {
+  //         totalItems: response.count,
+  //         currentPage: 1,
+  //         hasNext: !!response.next,
+  //         hasPrevious: !!response.previous,
+  //         onPageChange: (newPage) => loadDisputeMailComponent(newPage)
+  //       });
+  //       attachViewButtonListeners(1);
+  //     }
+  //   };
+  
+  //   // Keep clear button visible after search
+  //   if (currentSearchQuery) {
+  //     searchInput.value = currentSearchQuery;
+  //     clearButton.style.display = "block";
+  //   }
+  
+  //   // Show clear button when input has value
+  //   searchInput.addEventListener("input", () => {
+  //     clearButton.style.display = "block";
+  //   });
+  // }
+
+
+  //try2
+  if (searchButton && searchInput && clearButton) {
+    // Search button handler
+   searchButton.onclick = () => {
+    currentSearchQuery = searchInput.value.trim();
+    loadDisputeMailComponent(1, currentSearchQuery);
+    };
+  
+  //   // Clear button handler
+  if (clearButton) {
+    clearButton.onclick = async () => {
+      searchInput.value = "";
+      currentSearchQuery = "";
+       loadDisputeMailComponent(1);
+    };
   }
-};
+  
+    // Keep clear button visible after search
+    if (currentSearchQuery) {
+      searchInput.value = currentSearchQuery;
+      clearButton.style.display = "block";
+    }
+  
+    // Show clear button when input has value
+    searchInput.addEventListener("input", () => {
+      clearButton.style.display = "block";
+    });
+  }
+  };
 
 const attachViewButtonListeners = (currentPage) => {
   document.querySelectorAll(".view-button").forEach((button) => {
+    console.log('Button datasetttttt:', button.dataset);
     button.addEventListener("click", () => {
+      console.log('Clicked msg_idddddd:', button.dataset.msg_id);
       showPopup(button.dataset.msg_id, currentPage);
     });
   });
@@ -128,7 +218,7 @@ const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
   try {
     await getEmailIds();
     document.getElementById("noDataFound").innerHTML = "";
-    showLoader();
+    // showLoader();
     const disputeMailResponse =
       searchQuery.length > 0
         ? await filterDisputeMails(page, searchQuery)
@@ -147,6 +237,8 @@ const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
     initializeSearchHandlers();
 
     if (
+      !disputeMailResponse ||
+      !disputeMailResponse.results ||
       !disputeMailResponse.results.data ||
       disputeMailResponse.results.data.length === 0
     ) {
@@ -158,7 +250,7 @@ const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
         targetId: "noDataFound",
       });
       handleRefresh(() => loadDisputeMailComponent(1));
-      hideLoader();
+      // hideLoader();
       return;
     }
 
@@ -184,7 +276,7 @@ const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
     });
 
     attachViewButtonListeners(page);
-    hideLoader();
+    // hideLoader();
   } catch (error) {
     hideLoader();
     displayError(error);

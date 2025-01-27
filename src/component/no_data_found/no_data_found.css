@@ -3,14 +3,14 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
+  min-height: 200px;
   padding: 2rem;
   text-align: center;
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   max-width: 600px;
-  width: 90%;
+  width: 94%;
 }
 
 .empty-state-icon {
@@ -43,9 +43,11 @@
 }
 
 .btn-primary {
-  padding: 0.8rem 2rem;
+  /* padding: 0.8rem 2rem; */
+  padding: 9px 15px;
   font-weight: 500;
-  font-size: 1.05rem;
+  /* font-size: 1.05rem; */
+  font-size: 13px;
   cursor: pointer;
   background: #4caf50;
   color: white;
@@ -79,7 +81,7 @@
 
 @media (max-width: 640px) {
   .empty-state-container {
-    padding: 1.5rem;
+    padding: 0.5rem;
   }
 
   .empty-state-title {
@@ -90,10 +92,10 @@
     font-size: 0.9rem;
   }
 
-  .btn-primary {
+  /* .btn-primary {
     padding: 0.6rem 1.5rem;
     font-size: 1rem;
-  }
+  } */
 }
 
 
