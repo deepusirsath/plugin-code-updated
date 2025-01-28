@@ -61,37 +61,20 @@ export function initializeDisputeForm(disputeData) {
     checkWordCount(5);
   });
 
-  const data = new Promise((resolve) => {
-    chrome.storage.local.get("dispute_count", function (data) {
-      resolve(data);
-    });
-  });
-
-  const email_status = new Promise((resolve) => {
-    chrome.storage.local.get("email_status", function (data) {
-      resolve(data);
-    });
-  });
-
   /**
    * Gathers user input data and initiates the dispute process when the submit button is clicked.
    */
   submitButton.addEventListener("click", async () => {
-    // Get the current dispute count from chrome storage
-    const disputeData = await data;
-    const disputeCount = disputeData?.dispute_count || 0;
+    const disputeCount = disputeData.countRaise || 0;
     if (disputeCount < 3 && disputeCount >= 0) {
       const reasonText = reasonTextarea.value.trim();
       const messageId = document.getElementById("messageId").textContent;
       const receiver_email = await chrome.storage.local.get("receiver_email");
-
-      // Send reason and message ID back to the background script
       sendDispute(reasonText, messageId, receiver_email?.receiver_email);
     } else {
-      // Display "limit reached" message and disable button functionality
       alert("Dispute limit reached. You cannot submit more disputes.");
       window.close();
-      disableSubmitButton(); // Disable the submit button
+      disableSubmitButton();
     }
   });
 
