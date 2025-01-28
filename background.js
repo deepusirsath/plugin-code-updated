@@ -429,6 +429,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               });
               const data = await response.json();
               if (data?.data?.eml_status) {
+                //my code
+                chrome.storage.local.set({ email_status: data?.data?.eml_status });
                 return data?.data?.eml_status || null;
               }
             } catch (err) {
