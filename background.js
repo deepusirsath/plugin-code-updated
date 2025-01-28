@@ -430,7 +430,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               const data = await response.json();
               if (data?.data?.eml_status) {
                 //my code
-                chrome.storage.local.set({ email_status: data?.data?.eml_status });
+                chrome.storage.local.set({
+                  email_status: data?.data?.eml_status,
+                });
                 return data?.data?.eml_status || null;
               }
             } catch (err) {
@@ -447,63 +449,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true; // Keeps the message channel open for async sendResponse
   }
 });
-
-// Received message from popup script to show all spam mails in a list
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  if (request.action == "displayAllSpams") {
-    console.log("received response form popup to show all spams");
-    displayAllSpamMails(user_email);
-  }
-});
-
-async function displayAllSpamMails() {
-  try {
-    if (!pluginId) {
-      pluginId = await getExtensionid();
-    }
-    if (!user_email) {
-      console.log("Currently email is null", user_email);
-      const data = await new Promise((resolve) => {
-        chrome.storage.local.get("user_email", function (data) {
-          resolve(data);
-        });
-      });
-
-      if (data.user_email) {
-        user_email = data.user_email;
-        console.log("Retrieved email from storage:", user_email);
-      }
-    }
-
-    let sendingData = [user_email, pluginId];
-    console.log("data[1][3] , data[1][8]", sendingData);
-    console.log(JSON.stringify({ user_email, pluginId }));
-    const url = baseUrl + SPAM_MAIL;
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ emailId: user_email, pluginId }),
-    });
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
-
-    const data = await response.json();
-
-    console.log(data[1][3], data[1][10]);
-
-    // Handle the response data here
-    console.log("Server response:", data);
-    chrome.runtime.sendMessage({ action: "spamTables", content: data });
-  } catch (error) {
-    // Handle errors here
-    console.error("Error fetching data:", error.message);
-  }
-}
-
-// ----------------------------------------------------
 
 //Call the server for dipute count
 
@@ -625,23 +570,6 @@ async function sendEmlToServer(messageId, blob = null, client, user_email) {
     );
     handleEmailScanResponse(serverData, activeTabId, client);
     return true;
-    // if (currnetCode == 4 || currnetCode === 404) {
-    //   console.log(
-    //     "The data is not available on the server and server is giving 4 || 404"
-    //   );
-    //   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-    //     chrome.tabs.sendMessage(tabs[0].id, {
-    //       action: "EmailNotFoundOnServerRequest",
-    //       code: 404,
-    //       messageId: messageId,
-    //       client: client,
-    //     });
-    //   });
-    // }
-    // else {
-    //   // Handle the response using the separate handler function
-    //   handleEmailScanResponse(serverData, activeTabId, client);
-    // }
   } catch (error) {
     console.error("Error uploading file to the server:", error);
   }
@@ -741,26 +669,6 @@ async function checkDisputeStatus(messageId, email, sendResponse, client) {
     );
     handleEmailScanResponse(serverData, activeTabId, client);
     return true;
-    // if (currnetCode == 4 || currnetCode === 404) {
-    //   console.log(
-    //     "The data is not available on the server and server is giving 4 || 404"
-    //   );
-    //   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-    //     chrome.tabs.sendMessage(tabs[0].id, {
-    //       action: "EmailNotFoundOnServerRequest",
-    //       code: 404,
-    //       messageId: messageId,
-    //       client: client,
-    //     });
-    //   });
-    // }
-    // else {
-    //   chrome.storage.local.set({ email_status: data?.data?.eml_status });
-    //   sendResponse({
-    //     status: data?.data?.eml_status,
-    //   });
-    //   handleEmailScanResponse(serverData, activeTabId, client);
-    // }
   } catch (err) {
     console.error(err);
   }
@@ -844,25 +752,6 @@ async function checkPendingResponseStatus(messageId, email, client) {
     );
     handleEmailScanResponse(serverData, activeTabId, client);
     return true;
-    // if (currnetCode === 404 || currnetCode === 4) {
-    //   console.log("Response received from the server is passed and handling response");
-    //   chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-    //     chrome.tabs.sendMessage(tabs[0].id, {
-    //       action: "EmailNotFoundOnServerRequest",
-    //       code: 404,
-    //       messageId: messageId,
-    //       client: client,
-    //     });
-    //   });
-    //   return;
-    // }
-    // else{
-    // console.log(
-    //   "Response received from the server is passed and handling response Pending Request: ",
-    //   serverData
-    // );
-    // handleEmailScanResponse(serverData, activeTabId, client);
-    // }
   } catch (error) {
     console.log("Error in checkPendingResponseStatus:", error);
   }
@@ -992,10 +881,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 // ---------------------------------------Yahoo Mail--------------------------------------------
-// chrome.storage.local.remove("messages", function () {
-//   console.log("Messages cleared from local storage");
-// });
-
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.url) {
     if (
