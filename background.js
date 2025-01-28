@@ -404,7 +404,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           }
 
           async function checkAdminComment(messageId, email) {
-            const url = `http://192.168.0.2:10101/plugin/update-email-details/`;
+            const url = `http://192.168.0.2:10103/plugin/update-email-details/`;
             try {
               const response = await fetch(url, {
                 method: "POST",
@@ -1082,7 +1082,7 @@ chrome.runtime.onMessage.addListener((request, messageId, sendResponse) => {
 });
 
 async function checkAdminComment(messageId, email, sendResponse) {
-  const url = `http://192.168.0.2:10101/plugin/update-email-details/`;
+  const url = `http://192.168.0.2:10103/plugin/update-email-details/`;
   try {
     const response = await fetch(url, {
       method: "POST",

@@ -135,7 +135,7 @@ const handleButtonClick = async (componentName, clickedButton) => {
       // Add event listener after component loads
       document.addEventListener("componentLoaded", async (event) => {
         if (event.detail.componentName === COMPONENTS.DISPUTE) {
-          initializeDisputeForm();
+          initializeDisputeForm(event.detail.disputeData);
         }
       });
     });

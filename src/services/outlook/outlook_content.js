@@ -7,7 +7,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 
-const baseUrl = "http://192.168.0.2:10101/plugin";
+const baseUrl = "http://192.168.0.2:10103/plugin";
 let userEmailId = null;
 
 // Add the URL observer code here

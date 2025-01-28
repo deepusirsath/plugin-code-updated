@@ -1,6 +1,12 @@
-export function initializeDisputeForm() {
+export function initializeDisputeForm(disputeData) {
   const reasonTextarea = document.getElementById("reason");
   const submitButton = document.getElementById("submit");
+  document.getElementById("messageId").innerHTML = disputeData.messageId;
+  document.querySelector(".status").textContent = disputeData.status;
+  document.getElementById("emailId").textContent = disputeData.senderEmail;
+  document.getElementById("countRaise").textContent = disputeData.countRaise;
+  document.getElementById("adminRemark").textContent =
+    disputeData.adminRemark || " - ";
 
   /**
    * Calculates the word count of a given text.
@@ -52,7 +58,6 @@ export function initializeDisputeForm() {
   // Event listener to validate word count in the reason textarea
   reasonTextarea.addEventListener("input", (event) => {
     event.preventDefault();
-    console.log(event);
     checkWordCount(5);
   });
 
