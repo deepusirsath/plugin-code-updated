@@ -12,7 +12,7 @@ import {
   getCurrentEmail,
   getEmailIds,
 } from "/src/helper/get_email_from_local_storage.js";
-import { showLoader, hideLoader } from "/src/component/loader/loader.js";
+import { hideLoader } from "/src/component/loader/loader.js";
 import { handleRefresh } from "/src/component/no_data_found/no_data_found.js";
 import {
   SPAM_MAIL,
@@ -28,29 +28,22 @@ export const setCurrentSearchQuery = (value) => {
 };
 
 const showPopup = async (msg_id, currentPage) => {
-
   const viewDetailData = await getViewDetailOfSpamMail(msg_id);
-
-  createViewDetail(viewDetailData, () =>{
-    // loadSpamMailComponent(currentPage, currentSearchQuery)
-});
+  createViewDetail(viewDetailData, () => {});
 };
 
 const getViewDetailOfSpamMail = async (msg_id) => {
   const currentEmail = getCurrentEmail();
   if (currentEmail) {
     try {
-      // showLoader();
       const requestData = {
         messageId: msg_id,
         email: currentEmail,
       };
       const response = await postData(`${GET_ACTION_VIEW_DETAIL}`, requestData);
-      // hideLoader();
       return response.data;
     } catch (error) {
-      // hideLoader();
-      displayError(error);``
+      displayError(error);
     }
   }
 };
@@ -59,16 +52,13 @@ const getAllSpamMail = async (page = 1) => {
   const currentEmail = getCurrentEmail();
   if (currentEmail) {
     try {
-      // showLoader();
       const requestData = {
         emailId: currentEmail,
         page: page,
       };
       const response = await postData(`${SPAM_MAIL}?page=${page}`, requestData);
-      // hideLoader();
       return response;
     } catch (error) {
-      // hideLoader();
       displayError(error);
     }
   }
@@ -78,7 +68,6 @@ const filterSpamMails = async (searchQuery, page = 1) => {
   const currentEmail = getCurrentEmail();
   if (currentEmail) {
     try {
-      // showLoader();
       const requestData = {
         receiver_email: currentEmail,
         senders_email: searchQuery,
@@ -88,10 +77,8 @@ const filterSpamMails = async (searchQuery, page = 1) => {
         `${FILTER_SPAM_MAIL}?page=${page}`,
         requestData
       );
-      // hideLoader();
       return response;
     } catch (error) {
-      // hideLoader();
       displayError(error);
     }
   }
@@ -100,105 +87,35 @@ const filterSpamMails = async (searchQuery, page = 1) => {
 const initializeSearchHandlers = () => {
   const searchInput = document.getElementById("search-input");
   const searchButton = document.getElementById("searchButton");
-  // const searchInput = document.getElementById("search-input");
   const clearButton = document.getElementById("clearButton");
 
-  //orgl
-//   if (searchButton && searchInput) {
-//     searchButton.onclick = () => {
-//       currentSearchQuery = searchInput.value.trim();
-//       loadSpamMailComponent(1, currentSearchQuery);
-//     };
+  if (searchButton && searchInput && clearButton) {
+    //Search button handler
+    searchButton.onclick = () => {
+      currentSearchQuery = searchInput.value.trim();
+      loadSpamMailComponent(1, currentSearchQuery);
+    };
 
-//     if (clearButton) {
-//       clearButton.onclick = () => {
-//         searchInput.value = "";
-//         currentSearchQuery = "";
-//         loadSpamMailComponent(1);
-//       };
-//     }
-//   }
-// };
+    // Clear button handler
+    if (clearButton) {
+      clearButton.onclick = async () => {
+        searchInput.value = "";
+        currentSearchQuery = "";
+        loadSpamMailComponent(1);
+      };
+    }
 
+    // Keep clear button visible after search
+    if (currentSearchQuery) {
+      searchInput.value = currentSearchQuery;
+      clearButton.style.display = "block";
+    }
 
-//try1
-// if (searchButton && searchInput && clearButton) {
-//   // Search button handler
-//   searchButton.onclick = () => {
-//     const searchValue = searchInput.value.trim();
-//     if (searchValue) {
-//       currentSearchQuery = searchValue;
-//       clearButton.style.display = "block"; // Make clear button visible
-//       loadSpamMailComponent(1, currentSearchQuery);
-//     }
-//   };
-
-//   // Clear button handler
-//   clearButton.onclick = async () => {
-//     searchInput.value = "";
-//     currentSearchQuery = "";
-//     // loadSpamMailComponent(1);
-//     await loadSpamMailComponent(1);
-//       if (globalTable) {
-//         const response = await getAllSpamMail(1);
-//         const formattedData = response.results.map((item) => [
-//           item.senders_email,
-//           createStatusChip(item.status).outerHTML,
-//           createViewButton(item.msg_id, item.status).outerHTML,
-//         ]);
-//         globalTable.setData(formattedData, {
-//           totalItems: response.count,
-//           currentPage: 1,
-//           hasNext: !!response.next,
-//           hasPrevious: !!response.previous,
-//           onPageChange: (newPage) => loadSpamMailComponent(newPage)
-//         });
-//         attachViewButtonListeners(1);
-//       }
-
-//   };
-
-//   // Keep clear button visible after search
-//   if (currentSearchQuery) {
-//     searchInput.value = currentSearchQuery;
-//     clearButton.style.display = "block";
-//   }
-
-//   // Show clear button when input has value
-//   searchInput.addEventListener("input", () => {
-//     clearButton.style.display = "block";
-//   });
-// }
-
-
-//try2
-if (searchButton && searchInput && clearButton) {
-  //Search button handler
- searchButton.onclick = () => {
-  currentSearchQuery = searchInput.value.trim();
-  loadSpamMailComponent(1, currentSearchQuery);
-  };
-
-//   // Clear button handler
-if (clearButton) {
-  clearButton.onclick = async () => {
-    searchInput.value = "";
-    currentSearchQuery = "";
-     loadSpamMailComponent(1);
-  };
-}
-
-  // Keep clear button visible after search
-  if (currentSearchQuery) {
-    searchInput.value = currentSearchQuery;
-    clearButton.style.display = "block";
+    // Show clear button when input has value
+    searchInput.addEventListener("input", () => {
+      clearButton.style.display = "block";
+    });
   }
-
-  // Show clear button when input has value
-  searchInput.addEventListener("input", () => {
-    clearButton.style.display = "block";
-  });
-}
 };
 
 const attachViewButtonListeners = (currentPage) => {
@@ -213,7 +130,6 @@ const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
   await getEmailIds();
   try {
     document.getElementById("noDataFound").innerHTML = "";
-    // showLoader();
     const spamMailResponse =
       searchQuery.length > 0
         ? await filterSpamMails(searchQuery, page)
@@ -240,7 +156,6 @@ const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
         targetId: "noDataFound",
       });
       handleRefresh(() => loadSpamMailComponent(1));
-      // hideLoader();
       return;
     }
 
@@ -260,7 +175,6 @@ const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
     });
 
     attachViewButtonListeners(page);
-    // hideLoader();
   } catch (error) {
     hideLoader();
     displayError(error);

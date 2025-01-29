@@ -4,39 +4,24 @@ import { loadCSS } from "/src/helper/content_loader_helper.js";
 
 function extractBodyContent(htmlString) {
   const parser = new DOMParser();
-  const doc = parser.parseFromString(htmlString, 'text/html');
+  const doc = parser.parseFromString(htmlString, "text/html");
 
   // Remove the footer inside the email body
-  const footer = doc.querySelector('.footer');
+  const footer = doc.querySelector(".footer");
   if (footer) {
-      footer.remove();
+    footer.remove();
   }
 
   // Disable all anchor tags inside the parsed HTML
-  const anchorTags = doc.querySelectorAll('a');
-  anchorTags.forEach(anchor => {
-      anchor.style.pointerEvents = 'none'; // Disable clicking
-      anchor.style.color = 'gray'; // Optional: Change color to indicate disabled state
-      anchor.removeAttribute('href'); // Optional: Remove href attribute
+  const anchorTags = doc.querySelectorAll("a");
+  anchorTags.forEach((anchor) => {
+    anchor.style.pointerEvents = "none";
+    anchor.style.color = "gray";
+    anchor.removeAttribute("href");
   });
 
-  return doc.body.innerHTML; // Return the modified body content
+  return doc.body.innerHTML;
 }
-
-
-
-// function extractBodyContent(htmlString) {
-//   const parser = new DOMParser();
-//   const doc = parser.parseFromString(htmlString, 'text/html');
-
-//   // Remove the footer inside the email body
-//   const footer = doc.querySelector('.footer');
-//   if (footer) {
-//       footer.remove();
-//   }
-
-//   return doc.body.innerHTML; // Return only the cleaned body content
-// }
 
 export const createViewDetail = (createViewDetail, onClose) => {
   const view_detail = `/src/${BASEPATH.COMPONENT}/${COMPONENTS.VIEW_DETAIL}/${COMPONENTS.VIEW_DETAIL}`;
@@ -60,7 +45,9 @@ export const createViewDetail = (createViewDetail, onClose) => {
         </div>
         <div class="detail-row">
           <label>Body:</label>
-          <div id="email-body">${extractBodyContent(createViewDetail.body)}</div>                        
+          <div id="email-body">${extractBodyContent(
+            createViewDetail.body
+          )}</div>                        
         </div>
       </div>
     </div>

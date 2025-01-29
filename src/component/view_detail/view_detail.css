@@ -12,7 +12,6 @@
 }
 
 .popup-content {
-  /* margin-bottom:50px; */
   background: white;
   padding: 15px;
   border-radius: 8px;
@@ -22,7 +21,7 @@
   position: relative;
   word-break: break-word;
   overflow-wrap: break-word;
-  max-height: 80vh; /* Add this to limit height to 80% of viewport height */
+  max-height: 80vh; 
   overflow-y: auto;
   height: fit-content;
 }
@@ -31,7 +30,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  /* margin-bottom: 20px; */
   border-bottom: 1px solid #eee;
   padding-bottom: 10px;
 }
@@ -61,8 +59,8 @@
   background: #f9f9f9;
   border-radius: 4px;
   white-space: pre-wrap;
-  max-height: 250px; /* Set a fixed height */
-  overflow-y: auto; /* Enable vertical scrolling */
+  max-height: 250px; 
+  overflow-y: auto;
   word-break: break-word;
   overflow-wrap: break-word;
  

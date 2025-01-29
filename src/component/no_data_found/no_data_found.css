@@ -43,10 +43,8 @@
 }
 
 .btn-primary {
-  /* padding: 0.8rem 2rem; */
   padding: 9px 15px;
   font-weight: 500;
-  /* font-size: 1.05rem; */
   font-size: 13px;
   cursor: pointer;
   background: #4caf50;
@@ -91,13 +89,4 @@
   .empty-state-description {
     font-size: 0.9rem;
   }
-
-  /* .btn-primary {
-    padding: 0.6rem 1.5rem;
-    font-size: 1rem;
-  } */
 }
-
-
-
-
