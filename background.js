@@ -49,6 +49,7 @@ import { CHECK_EMAIL_PAGE_STATUS } from "./src/constant/background_action.js";
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === CHECK_EMAIL_PAGE_STATUS) {
     setTimeout(() => {
+      console.log("Checking email page status...");
       chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         if (!tabs || tabs.length === 0) {
           sendResponse(null);

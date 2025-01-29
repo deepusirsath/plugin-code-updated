@@ -1,3 +1,6 @@
+chrome.storage.local.get(null, function (data) {
+  console.log("Data retrieved from local storage:", data);
+});
 export function initializeDisputeForm() {
   const reasonTextarea = document.getElementById("reason");
   const submitButton = document.getElementById("submit");
