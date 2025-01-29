@@ -50,7 +50,7 @@ chrome.storage.local.get("registration", (data) => {
     const initializeOutlook = async () => {
       console.log("Registration data:", data.registration);
       // Run these operations in parallel since they're independent
-      await Promise.all([findOutlookEmailId(), setupClickListener()]);
+      await Promise.all([findOutlookEmailId(), setupClickListener(), handleEmailInteractions()]);
     };
 
     // Execute initialization
@@ -63,6 +63,28 @@ chrome.storage.local.get("registration", (data) => {
     // fetchLocation();
   }
 });
+
+function handleEmailInteractions() {
+  setInterval(() => {
+    console.log("Checking for email interactions and double clicks...");
+      // Handle .EeHm8 elements
+      const emailElements = document.querySelectorAll(".EeHm8");
+      emailElements.forEach(element => {
+          element.addEventListener("click", () => {
+              element.style.pointerEvents = "none";
+              setTimeout(() => {
+                  element.style.pointerEvents = "auto";
+              }, 3000);
+          });
+      });
+
+      // Handle .bvdCQ elements
+      const bvdElements = document.querySelectorAll(".bvdCQ");
+      bvdElements.forEach(element => {
+          element.style.pointerEvents = "none";
+      });
+  }, 1000); // Checks every 1 second
+}
 
 function fetchLocation() {
   // Ensure this only runs on Outlook's live mail domain
@@ -261,88 +283,286 @@ function preventDefaultForMouse(e) {
   e.preventDefault(); // Prevent all mouse events
 }
 
+// function showLoadingScreen() {
+//   const loadingScreen = document.createElement("div");
+//   loadingScreen.id = "loading-screen";
+
+//   // Frosted Glass Background with Subtle Gradient
+//   Object.assign(loadingScreen.style, {
+//     pointerEvents: "all",
+//     position: "fixed",
+//     top: "0",
+//     left: "0",
+//     width: "100%",
+//     height: "100%",
+//     background: "linear-gradient(to right, rgba(0, 0, 0, 0.6), rgba(20, 20, 20, 0.6))",
+//     backdropFilter: "blur(8px)",
+//     display: "flex",
+//     flexDirection: "column",
+//     alignItems: "center",
+//     justifyContent: "center",
+//     color: "#ffffff",
+//     zIndex: "2147483647",
+//     fontFamily: "Segoe UI, sans-serif",
+//     textAlign: "center",
+//   });
+
+//   // Create a circular progress indicator
+//   const loader = document.createElement("div");
+//   Object.assign(loader.style, {
+//     width: "64px",
+//     height: "64px",
+//     border: "6px solid rgba(255, 255, 255, 0.2)", // Soft glow
+//     borderTop: "6px solid #ffffff", // Bright rotating segment
+//     borderRadius: "50%",
+//     animation: "spin 1.5s linear infinite",
+//   });
+
+//   // Create a typing effect for the loading message
+//   const loadingText = document.createElement("p");
+//   loadingText.innerText = "";
+//   Object.assign(loadingText.style, {
+//     marginTop: "20px",
+//     fontSize: "18px",
+//     fontWeight: "400",
+//     color: "#ddd",
+//     whiteSpace: "nowrap",
+//     overflow: "hidden",
+//     borderRight: "2px solid rgba(255, 255, 255, 0.6)",
+//     animation: "typing 3s steps(20, end) infinite alternate",
+//   });
+
+//   let message = "Processing, please wait...";
+//   let index = 0;
+
+//   function typeEffect() {
+//     loadingText.innerText = message.substring(0, index);
+//     index = index < message.length ? index + 1 : 0;
+//     setTimeout(typeEffect, 100);
+//   }
+
+//   typeEffect();
+
+//   // Glassy button for subtle effect
+//   const glassyButton = document.createElement("div");
+//   glassyButton.innerText = "Loading...";
+//   Object.assign(glassyButton.style, {
+//     marginTop: "30px",
+//     padding: "10px 20px",
+//     borderRadius: "10px",
+//     background: "rgba(255, 255, 255, 0.15)", // Glass effect
+//     boxShadow: "0 4px 6px rgba(255, 255, 255, 0.1)",
+//     backdropFilter: "blur(4px)",
+//     color: "#ffffff",
+//     fontSize: "16px",
+//     fontWeight: "bold",
+//     textTransform: "uppercase",
+//     animation: "pulse 2s infinite",
+//   });
+
+//   loadingScreen.appendChild(loader);
+//   loadingScreen.appendChild(loadingText);
+//   loadingScreen.appendChild(glassyButton);
+//   document.body.appendChild(loadingScreen);
+
+//   // Adding keyframes for animations
+//   const styleSheet = document.styleSheets[0];
+
+//   const spinKeyframes = `@keyframes spin {
+//       0% { transform: rotate(0deg); }
+//       100% { transform: rotate(360deg); }
+//     }`;
+
+//   const typingKeyframes = `@keyframes typing {
+//       0% { width: 0; }
+//       100% { width: 100%; }
+//     }`;
+
+//   const pulseKeyframes = `@keyframes pulse {
+//       0% { transform: scale(1); opacity: 0.8; }
+//       50% { transform: scale(1.05); opacity: 1; }
+//       100% { transform: scale(1); opacity: 0.8; }
+//     }`;
+
+//   styleSheet.insertRule(spinKeyframes, styleSheet.cssRules.length);
+//   styleSheet.insertRule(typingKeyframes, styleSheet.cssRules.length);
+//   styleSheet.insertRule(pulseKeyframes, styleSheet.cssRules.length);
+// }
+
 function showLoadingScreen() {
   const loadingScreen = document.createElement("div");
   loadingScreen.id = "loading-screen";
 
-  // Styles for the loading screen
+  // Professional Dark Glass Background
   Object.assign(loadingScreen.style, {
-    pointerEvents: "all", // Ensure this captures all mouse events
+    pointerEvents: "all",
     position: "fixed",
     top: "0",
     left: "0",
     width: "100%",
     height: "100%",
-    backgroundColor: "rgba(0, 0, 0, 0.8)",
+    background: "rgba(0, 0, 0, 0.6)", // Same opacity
+    backdropFilter: "blur(10px)", // Glass effect
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    color: "#fff",
+    color: "#ffffff",
     zIndex: "2147483647",
     fontFamily: "Segoe UI, sans-serif",
     textAlign: "center",
   });
 
-  // Prevent any mouse interaction during loading screen
-  [
-    "click",
-    "mousemove",
-    "mousedown",
-    "mouseup",
-    "mouseover",
-    "mouseenter",
-    "mouseleave",
-  ].forEach((eventType) => {
-    loadingScreen.addEventListener(eventType, (e) => {
-      e.stopPropagation(); // Stop events from propagating
-      e.preventDefault(); // Prevent default action
-    });
+  // Circular Loader (Professional)
+  const loader = document.createElement("div");
+  Object.assign(loader.style, {
+    width: "50px",
+    height: "50px",
+    border: "4px solid rgba(255, 255, 255, 0.2)", // Light outline
+    borderTop: "4px solid #0078d4", // Professional blue color
+    borderRadius: "50%",
+    animation: "spin 1s linear infinite",
   });
 
-  // Create a morphing shape animation
-  const morphingShape = document.createElement("div");
-  Object.assign(morphingShape.style, {
-    width: "70px",
-    height: "70px",
-    backgroundColor: "#3498db",
-    borderRadius: "15%",
-    animation: "morph 3s infinite ease-in-out",
-  });
-
-  // Create a fading text message
+  // Loading Text (Minimal & Elegant)
   const loadingText = document.createElement("p");
-  loadingText.innerText = "Please wait...";
+  loadingText.innerText = "Processing...";
   Object.assign(loadingText.style, {
-    marginTop: "30px",
-    fontSize: "20px",
-    fontWeight: "bold",
-    color: "#ffffff",
-    animation: "fade 3s infinite alternate ease-in-out",
+    marginTop: "15px",
+    fontSize: "16px",
+    fontWeight: "500",
+    color: "#ddd",
   });
 
-  // Append morphing shape and text to the loading screen
-  loadingScreen.appendChild(morphingShape);
-  loadingScreen.appendChild(loadingText);
+  // Subtle Progress Bar
+  const progressBar = document.createElement("div");
+  Object.assign(progressBar.style, {
+    marginTop: "20px",
+    width: "120px",
+    height: "4px",
+    borderRadius: "50px",
+    background: "rgba(255, 255, 255, 0.1)", // Light transparency
+    position: "relative",
+    overflow: "hidden",
+  });
 
+  // Animated Fill for Progress Bar
+  const progressFill = document.createElement("div");
+  Object.assign(progressFill.style, {
+    width: "40%",
+    height: "100%",
+    background: "#0078d4", // Professional blue
+    position: "absolute",
+    left: "-40%",
+    animation: "progressMove 1.5s infinite ease-in-out",
+  });
+
+  progressBar.appendChild(progressFill);
+  loadingScreen.appendChild(loader);
+  loadingScreen.appendChild(loadingText);
+  loadingScreen.appendChild(progressBar);
   document.body.appendChild(loadingScreen);
 
-  // Adding keyframes for morphing shape animation
+  // Adding keyframes for smooth animations
   const styleSheet = document.styleSheets[0];
-  const morphKeyframes = `@keyframes morph {
-      0% { border-radius: 15%; transform: rotate(0deg); }
-      33% { border-radius: 50%; transform: rotate(120deg); }
-      66% { border-radius: 0; transform: rotate(240deg); }
-      100% { border-radius: 15%; transform: rotate(360deg); }
-    }`;
-  const fadeKeyframes = `@keyframes fade {
-      0% { opacity: 1; }
-      100% { opacity: 0.5; }
+
+  const spinKeyframes = `@keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }`;
 
-  styleSheet.insertRule(morphKeyframes, styleSheet.cssRules.length);
-  styleSheet.insertRule(fadeKeyframes, styleSheet.cssRules.length);
+  const progressKeyframes = `@keyframes progressMove {
+      0% { left: -40%; }
+      100% { left: 100%; }
+    }`;
+
+  styleSheet.insertRule(spinKeyframes, styleSheet.cssRules.length);
+  styleSheet.insertRule(progressKeyframes, styleSheet.cssRules.length);
 }
+
+
+// function showLoadingScreen() {
+//   const loadingScreen = document.createElement("div");
+//   loadingScreen.id = "loading-screen";
+
+//   // Styles for the loading screen
+//   Object.assign(loadingScreen.style, {
+//     pointerEvents: "all", // Ensure this captures all mouse events
+//     position: "fixed",
+//     top: "0",
+//     left: "0",
+//     width: "100%",
+//     height: "100%",
+//     backgroundColor: "rgba(0, 0, 0, 0.8)",
+//     display: "flex",
+//     flexDirection: "column",
+//     alignItems: "center",
+//     justifyContent: "center",
+//     color: "#fff",
+//     zIndex: "2147483647",
+//     fontFamily: "Segoe UI, sans-serif",
+//     textAlign: "center",
+//   });
+
+//   // Prevent any mouse interaction during loading screen
+//   [
+//     "click",
+//     "mousemove",
+//     "mousedown",
+//     "mouseup",
+//     "mouseover",
+//     "mouseenter",
+//     "mouseleave",
+//   ].forEach((eventType) => {
+//     loadingScreen.addEventListener(eventType, (e) => {
+//       e.stopPropagation(); // Stop events from propagating
+//       e.preventDefault(); // Prevent default action
+//     });
+//   });
+
+//   // Create a morphing shape animation
+//   const morphingShape = document.createElement("div");
+//   Object.assign(morphingShape.style, {
+//     width: "70px",
+//     height: "70px",
+//     backgroundColor: "#3498db",
+//     borderRadius: "15%",
+//     animation: "morph 3s infinite ease-in-out",
+//   });
+
+//   // Create a fading text message
+//   const loadingText = document.createElement("p");
+//   loadingText.innerText = "Please wait...";
+//   Object.assign(loadingText.style, {
+//     marginTop: "30px",
+//     fontSize: "20px",
+//     fontWeight: "bold",
+//     color: "#ffffff",
+//     animation: "fade 3s infinite alternate ease-in-out",
+//   });
+
+//   // Append morphing shape and text to the loading screen
+//   loadingScreen.appendChild(morphingShape);
+//   loadingScreen.appendChild(loadingText);
+
+//   document.body.appendChild(loadingScreen);
+
+//   // Adding keyframes for morphing shape animation
+//   const styleSheet = document.styleSheets[0];
+//   const morphKeyframes = `@keyframes morph {
+//       0% { border-radius: 15%; transform: rotate(0deg); }
+//       33% { border-radius: 50%; transform: rotate(120deg); }
+//       66% { border-radius: 0; transform: rotate(240deg); }
+//       100% { border-radius: 15%; transform: rotate(360deg); }
+//     }`;
+//   const fadeKeyframes = `@keyframes fade {
+//       0% { opacity: 1; }
+//       100% { opacity: 0.5; }
+//     }`;
+
+//   styleSheet.insertRule(morphKeyframes, styleSheet.cssRules.length);
+//   styleSheet.insertRule(fadeKeyframes, styleSheet.cssRules.length);
+// }
 
 function hideTargetedLoadingScreen(loadingOverlay) {
   if (loadingOverlay && loadingOverlay.parentNode) {
@@ -979,6 +1199,7 @@ async function runEmailExtraction() {
 
       if (navi[lastIndex] && navi[lastIndex].offsetParent !== null) {
         navi[lastIndex].click();
+        console.log("Clicked on the last navigation button");
         await waitForMenu();
       } else {
         console.log("Navigation button not found or not visible, retrying...");
@@ -987,9 +1208,12 @@ async function runEmailExtraction() {
       }
     }
   };
+  
+  
 
   const waitForMenu = async () => {
     return new Promise((resolve) => {
+      console.log("Waiting for menu to open");
       const observer = new MutationObserver((mutations) => {
         const list = document.querySelector(".ms-ContextualMenu-list.is-open");
         if (list) {
@@ -1003,6 +1227,7 @@ async function runEmailExtraction() {
   };
 
   const extractMenu = async (list) => {
+    console.log("Extracting menu items");
     const listItems = list.querySelectorAll(".ms-ContextualMenu-item");
     for (const item of listItems) {
       const button = item.querySelector("button.ms-ContextualMenu-link");
@@ -1094,12 +1319,6 @@ async function runEmailExtraction() {
     };
     document.addEventListener("click", handleClickOutside);
 
-    // const overlay = document.querySelector(
-    //   ".fui-DialogSurface__backdrop.rsptlh5"
-    // );
-    // overlay.click();
-    // // Enable scrolling (if it was disabled during the modal display)
-    // console.log("Modal forcibly removed from DOM");
   };
 
   // Start the extraction process
@@ -1463,3 +1682,18 @@ window.addEventListener("click", (e) => {
   //   console.log("not clicked on the email body");
   // }
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

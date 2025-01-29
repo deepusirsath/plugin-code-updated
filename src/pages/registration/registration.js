@@ -88,7 +88,16 @@ document.getElementById("submit").addEventListener("click", async function () {
     if (response.success) {
       alert("Form submitted successfully");
       chrome.storage.local.set({ registration: true });
-    } else {
+      console.log("Registration status stored");
+      chrome.runtime.sendMessage({ action: "reloadPage" }, function (response) {
+        if (response.success) {
+          window.close();
+        } else {
+          console.error("Failed to reload the page");
+        }
+      });
+    } 
+    else {
       alert(response.message || "Failed to submit form");
     }
   } catch (error) {
