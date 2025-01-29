@@ -1,10 +1,24 @@
+let messageReason = " ";
 document.addEventListener("visibilitychange", function () {
   chrome.storage.local.remove(["gmail_email", "outlook_email"], () => {
     console.log("Stored data removed.");
   });
+
   if (document.visibilityState === "visible") {
-    // When tab becomes visible, extract IDs and handle email storage
-    const { userEmail } = extractIdsFromNonceScripts();
+    // Extract only email from scripts
+    const scripts = Array.from(document.querySelectorAll("script[nonce]"));
+    let userEmail = null;
+
+    scripts.forEach((script) => {
+      const content = script.textContent || script.innerHTML;
+      const selectedMailboxRegex =
+        /"selectedMailbox":\{"id":"([A-Za-z0-9_-]+)","email":"([A-Za-z0-9@._-]+)"/;
+      const selectedMailboxMatch = selectedMailboxRegex.exec(content);
+
+      if (selectedMailboxMatch) {
+        userEmail = selectedMailboxMatch[2];
+      }
+    });
 
     if (userEmail) {
       chrome.storage.local.remove(["gmail_email", "outlook_email"], () => {
@@ -15,31 +29,34 @@ document.addEventListener("visibilitychange", function () {
     }
   }
 });
+
 let extractionDone = false;
 let shouldApplyPointerEvents = true;
 let sendMessageId;
 let sendUserEmail;
 const url = window.location.href;
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+
+function handleYahooMailCheck(message, sendResponse) {
   if (
     message.action == "checkYahoomail" ||
     message.action == "fetchDisputeMessageId"
   ) {
-    // Check if the div with id 'message-group-view-scroller' exists
     const emailBodySearch = document.querySelector(
       'div[data-test-id="message-group-view-scroller"]'
     );
+
     const senderEmailElement = document.querySelector(
       'span[data-test-id="email-pill"] + span, span[data-test-id="message-to"]'
     );
 
     const senderEmail =
       senderEmailElement?.innerText || senderEmailElement?.textContent;
+
     chrome.storage.local.remove(["gmail_email", "outlook_email"], () => {
       console.log("Stored data removed.");
     });
+
     if (emailBodySearch) {
-      // Send response back to background.js
       sendResponse({
         emailBodyExists: true,
         messageId: sendMessageId,
@@ -53,6 +70,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       });
     }
   }
+}
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  handleYahooMailCheck(message, sendResponse);
   return true; // Keeps the message channel open for async sendResponse
 });
 
@@ -62,56 +83,6 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     // Exit early since reload will reset the script
     window.location.reload();
     return;
-  }
-});
-
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  const currentCount = 0;
-  if (request.action === "EmailNotFoundOnServerRequest" && request.client === "yahoo" && currentCount < 3) {
-    console.log("Received message in content script EmailNotFoundOnServerRequest on Yahoo:", request);
-    currentCount++ ;
-    executeExtractionScriptIfFailed();
-  }
-});
-
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (
-    request.action === "erroRecievedFromServer" &&
-    request.client === "yahoo"
-  ) {
-    console.log(
-      "Received message from server to show the erroRecievedFromServer:"
-    );
-    showAlert("inform");
-  }
-});
-
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.client === "yahoo") {
-    // Check if the message is for Outlook
-    console.log(
-      "this is the function that will be called when the content script receives a message for the yahoo client"
-    );
-    chrome.storage.local.remove(["gmail_email", "outlook_email"], () => {
-      console.log("Stored data removed.");
-    });
-    if (message.action === "blockUrls") {
-      console.log("Outlook Content script received message:", message.action);
-      shouldApplyPointerEvents = true;
-      showAlert("unsafe");
-      console.log("Blocking URLs for Yahoo");
-    } else if (message.action === "unblock") {
-      shouldApplyPointerEvents = false;
-      console.log("Unblocking URLs for Yahoo");
-      showAlert("safe");
-    } else if (message.action === "pending") {
-      console.log("Pending Status for Yahoo");
-      shouldApplyPointerEvents = true;
-      showAlert("pending");
-      console.log("Blocking URLs for Yahoo due to pending status");
-    }
-    blockEmailBody();
-    sendResponse({ status: "success" });
   }
 });
 
@@ -139,13 +110,6 @@ if (
 async function executeExtractionScript() {
   setTimeout(() => {
     const { lastMessageId, userEmail } = extractIdsFromNonceScripts();
-    // fetchLocation()
-    console.log(
-      "Extracted messageId:",
-      lastMessageId,
-      "Extracted UserEmail:",
-      userEmail
-    );
     blockEmailBody();
     sendMessageId = lastMessageId;
     sendUserEmail = userEmail;
@@ -156,13 +120,6 @@ async function executeExtractionScript() {
 async function executeExtractionScriptIfFailed() {
   setTimeout(() => {
     const { lastMessageId, userEmail } = extractIdsFromNonceScripts();
-    // fetchLocation()
-    console.log(
-      "Extracted messageId:",
-      lastMessageId,
-      "Extracted UserEmail:",
-      userEmail
-    );
     blockEmailBody();
     sendMessageId = lastMessageId;
     sendUserEmail = userEmail;
@@ -170,100 +127,56 @@ async function executeExtractionScriptIfFailed() {
   }, 100);
 }
 
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (
+    request.action === "EmailNotFoundInPendingRequest" &&
+    request.client === "yahoo"
+  ) {
+    console.log(
+      "Received message in content script EmailNotFoundInPendingRequest:",
+      request
+    );
+    executeExtractionScriptIfFailed();
+  }
+});
 
+// let currentAlert = null; // Global variable to track the current alert
 
-
-function showAlert(key) {
-  // Common styles for alert container
-  const commonContainerStyles = {
-    position: "fixed",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    zIndex: "1000",
-    width: "360px",
-    padding: "24px",
-    borderRadius: "8px",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    backgroundColor: "#fff"
-  };
-
-  // Alert type specific configurations
-  const alertConfigs = {
-    safe: {
-      message: "Security verification complete - Safe to proceed",
-      styles: {
-        background: "linear-gradient(135deg, #ffffff, #f8fff8)",
-        border: "1px solid rgba(40, 167, 69, 0.2)",
-        borderLeft: "6px solid #28a745",
-        boxShadow: "0 6px 16px rgba(40, 167, 69, 0.08), 0 3px 6px rgba(0, 0, 0, 0.12)"
-      },
-      color: "#28a745"
-    },
-    unsafe: {
-      message: "Security Notice: Email requires verification. Raise a dispute to review content.",
-      styles: {
-        background: "linear-gradient(135deg, #ffffff, #fafafa)",
-        border: "1px solid rgba(220, 53, 69, 0.2)", 
-        borderLeft: "6px solid #dc3545",
-        boxShadow: "0 6px 16px rgba(220, 53, 69, 0.08), 0 3px 6px rgba(0, 0, 0, 0.12)"
-      },
-      color: "#dc3545"
-    },
-    inform: {
-      message: "System maintenance in progress - Your security is our priority",
-      styles: {
-        background: "linear-gradient(135deg, #ffffff, #fff8f0)",
-        border: "1px solid rgba(255, 153, 0, 0.2)",
-        borderLeft: "6px solid #ff9900",
-        boxShadow: "0 6px 16px rgba(255, 153, 0, 0.08), 0 3px 6px rgba(0, 0, 0, 0.12)"
-      },
-      color: "#ff9900"
-    },
-    pending: {
-      message: "Your request is being processed... Please hold on while we block the email currently being processed.",
-      styles: {
-        border: "4px solid #4C9ED9",
-        backgroundColor: "#fff"
-      },
-      color: "#4C9ED9"
-    }
-  };
-
-  const config = alertConfigs[key];
-  if (!config) {
-    console.log("Invalid key for showAlert");
+//Older one
+// Function to show the alert to the user
+function showAlert(key, messageReason = " ") {
+  const element = document.querySelector(
+    'div[data-test-id="message-group-view-scroller"]'
+  );
+  if (!element) {
     return;
   }
-
+  // Create the alert container
   const alertContainer = document.createElement("div");
-  Object.assign(alertContainer.style, commonContainerStyles, config.styles);
+  alertContainer.style.position = "fixed";
+  alertContainer.style.top = "50%";
+  alertContainer.style.left = "50%";
+  alertContainer.style.transform = "translate(-50%, -50%)";
+  alertContainer.style.zIndex = "1000";
+  alertContainer.style.width = "360px";
+  alertContainer.style.padding = "20px";
+  alertContainer.style.borderRadius = "12px";
+  alertContainer.style.boxShadow = "0 0 15px rgba(0, 0, 0, 0.3)";
+  alertContainer.style.display = "flex";
+  alertContainer.style.flexDirection = "column";
+  alertContainer.style.alignItems = "center";
+  alertContainer.style.backgroundColor = "#fff";
 
+  // Create the message and button
   const message = document.createElement("p");
-  Object.assign(message.style, {
-    margin: "10px 0 15px",
-    fontSize: "18px",
-    textAlign: "center"
-  });
-  message.innerText = config.message;
+  message.style.margin = "10px 0 15px";
+  message.style.fontSize = "18px";
+  message.style.textAlign = "center";
 
-  const button = createButton();
-  const iconContainer = createIconContainer(key, config.color);
-
-  alertContainer.append(iconContainer, message, button);
-  document.body.appendChild(alertContainer);
-
-  setupEventListeners(alertContainer, button);
-}
-
-// Helper functions
-function createButton() {
   const button = document.createElement("button");
   button.innerText = "Close";
-  
-  const buttonStyles = {
+
+  Object.assign(button.style, {
     padding: "8px 20px",
     border: "1px solid #4C9ED9",
     borderRadius: "4px",
@@ -274,40 +187,261 @@ function createButton() {
     fontWeight: "500",
     transition: "all 0.2s ease",
     fontFamily: "'Segoe UI', system-ui, sans-serif",
-    boxShadow: "0 1px 2px rgba(76, 158, 217, 0.15)"
-  };
+    boxShadow: "0 1px 2px rgba(76, 158, 217, 0.15)",
+  });
 
-  Object.assign(button.style, buttonStyles);
-  setupButtonHoverEffects(button);
-  return button;
-}
-
-function setupButtonHoverEffects(button) {
   button.addEventListener("mouseover", () => {
     Object.assign(button.style, {
       backgroundColor: "#3989c2",
-      transform: "translateY(-1px)"
+      transform: "translateY(-1px)",
     });
   });
 
   button.addEventListener("mouseout", () => {
     Object.assign(button.style, {
       backgroundColor: "#4C9ED9",
-      transform: "translateY(0)"
+      transform: "translateY(0)",
     });
   });
-}
 
-function createIconContainer(key, color) {
+  let iconHtml = "";
+  switch (key) {
+    case "safe":
+      message.innerText = "Security verification complete - Safe to proceed";
+
+      alertContainer.style.width = "360px";
+      alertContainer.style.padding = "24px";
+      alertContainer.style.background =
+        "linear-gradient(135deg, #ffffff, #f8fff8)";
+      alertContainer.style.border = "1px solid rgba(40, 167, 69, 0.2)";
+      alertContainer.style.borderLeft = "6px solid #28a745";
+      alertContainer.style.boxShadow =
+        "0 6px 16px rgba(40, 167, 69, 0.08), 0 3px 6px rgba(0, 0, 0, 0.12)";
+      alertContainer.style.borderRadius = "8px";
+
+      iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
+        <defs>
+            <filter id="shadow-success">
+                <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#28a745" flood-opacity="0.25"/>
+            </filter>
+        </defs>
+        
+        <!-- Shield outline with pulsing effect -->
+        <path d="M24 4 L42 12 V24 C42 34 34 41 24 44 C14 41 6 34 6 24 V12 L24 4Z"
+              fill="none"
+              stroke="#28a745"
+              stroke-width="2.5"
+              filter="url(#shadow-success)">
+            <animate attributeName="stroke-dasharray"
+                     values="0,150;150,0"
+                     dur="2s"
+                     repeatCount="indefinite"/>
+            <animate attributeName="stroke-opacity"
+                     values="0.6;1;0.6"
+                     dur="2s"
+                     repeatCount="indefinite"/>
+        </path>
+        
+        <!-- Checkmark with dynamic animation -->
+        <path d="M16 24 L22 30 L32 18"
+              stroke="#28a745"
+              stroke-width="3"
+              fill="none"
+              stroke-linecap="round"
+              stroke-linejoin="round">
+            <animate attributeName="stroke-dasharray"
+                     values="0,40;40,0"
+                     dur="1.5s"
+                     repeatCount="indefinite"/>
+            <animate attributeName="stroke-width"
+                     values="2.5;3;2.5"
+                     dur="1.5s"
+                     repeatCount="indefinite"/>
+        </path>
+    </svg>`;
+      break;
+
+    case "unsafe":
+      message.innerHTML = `
+    <div style="font-family: 'Segoe UI', sans-serif;">
+        <div style="font-size: 16px; color: #333;font-weight : bolder">
+            Security Notice: This email has been identified as unsafe.
+        </div>
+        <hr style="border: 0; height: 1px; background: #e0e0e0; margin: 8px 0;"/>
+        <div style="color: #dc3545; font-size: 16px; font-weight : bold">${messageReason}</div>
+    </div>`;
+
+
+      alertContainer.style.width = "360px"; // Slightly wider for better text flow
+      alertContainer.style.padding = "24px"; // Increased padding
+      alertContainer.style.background =
+        "linear-gradient(135deg, #ffffff, #fafafa)"; // Diagonal gradient
+      alertContainer.style.border = "1px solid rgba(220, 53, 69, 0.2)"; // Subtle border all around
+      alertContainer.style.borderLeft = "6px solid #dc3545"; // Thicker left border
+      alertContainer.style.boxShadow =
+        "0 6px 16px rgba(220, 53, 69, 0.08), 0 3px 6px rgba(0, 0, 0, 0.12)"; // Multi-layered shadow
+      alertContainer.style.borderRadius = "8px"; // Increased border radius
+
+      // Enhanced SVG with more dynamic animations
+      iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
+    <defs>
+        <filter id="shadow">
+            <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#dc3545" flood-opacity="0.25"/>
+        </filter>
+    </defs>
+    
+    <!-- Shield outline with pulsing effect -->
+    <path d="M24 4 L42 12 V24 C42 34 34 41 24 44 C14 41 6 34 6 24 V12 L24 4Z"
+          fill="none"
+          stroke="#dc3545"
+          stroke-width="2.5"
+          filter="url(#shadow)">
+        <animate attributeName="stroke-dasharray"
+                 values="0,150;150,0"
+                 dur="2s"
+                 repeatCount="indefinite"/>
+        <animate attributeName="stroke-opacity"
+                 values="0.6;1;0.6"
+                 dur="2s"
+                 repeatCount="indefinite"/>
+    </path>
+    
+    <!-- Enhanced alert mark -->
+    <g transform="translate(24,24)">
+        <line x1="0" y1="-10" x2="0" y2="4"
+              stroke="#dc3545"
+              stroke-width="3"
+              stroke-linecap="round">
+            <animate attributeName="opacity"
+                     values="0.7;1;0.7"
+                     dur="1.5s"
+                     repeatCount="indefinite"/>
+            <animate attributeName="stroke-width"
+                     values="2.5;3;2.5"
+                     dur="1.5s"
+                     repeatCount="indefinite"/>
+        </line>
+        <circle cx="0" cy="8" r="2.2"
+                fill="#dc3545">
+            <animate attributeName="r"
+                     values="2;2.4;2"
+                     dur="1.5s"
+                     repeatCount="indefinite"/>
+            <animate attributeName="opacity"
+                     values="0.7;1;0.7"
+                     dur="1.5s"
+                     repeatCount="indefinite"/>
+        </circle>
+        </g>
+      </svg>`;
+
+      break;
+    case "inform":
+      message.innerText =
+        "System maintenance in progress - Your security is our priority";
+
+      alertContainer.style.width = "360px";
+      alertContainer.style.padding = "24px";
+      alertContainer.style.background =
+        "linear-gradient(135deg, #ffffff, #fff8f0)";
+      alertContainer.style.border = "1px solid rgba(255, 153, 0, 0.2)";
+      alertContainer.style.borderLeft = "6px solid #ff9900";
+      alertContainer.style.boxShadow =
+        "0 6px 16px rgba(255, 153, 0, 0.08), 0 3px 6px rgba(0, 0, 0, 0.12)";
+      alertContainer.style.borderRadius = "8px";
+
+      iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
+            <defs>
+                <filter id="shadow-warning">
+                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#ff9900" flood-opacity="0.25"/>
+                </filter>
+            </defs>
+            
+            <!-- Outer rotating circle -->
+            <circle cx="24" cy="24" r="20" 
+                    stroke="#ff9900" 
+                    stroke-width="2.5"
+                    fill="none"
+                    stroke-dasharray="31.4 31.4"
+                    filter="url(#shadow-warning)">
+                <animateTransform
+                    attributeName="transform"
+                    attributeType="XML"
+                    type="rotate"
+                    from="0 24 24"
+                    to="360 24 24"
+                    dur="3s"
+                    repeatCount="indefinite"/>
+            </circle>
+    
+            <!-- Inner rotating circle -->
+            <circle cx="24" cy="24" r="15"
+                    stroke="#ff9900"
+                    stroke-width="2.5"
+                    fill="none"
+                    stroke-dasharray="23.5 23.5"
+                    filter="url(#shadow-warning)">
+                <animateTransform
+                    attributeName="transform"
+                    attributeType="XML"
+                    type="rotate"
+                    from="360 24 24"
+                    to="0 24 24"
+                    dur="2s"
+                    repeatCount="indefinite"/>
+            </circle>
+    
+            <!-- Center pulsing dot -->
+            <circle cx="24" cy="24" r="4"
+                    fill="#ff9900">
+                <animate
+                    attributeName="r"
+                    values="3;4;3"
+                    dur="1s"
+                    repeatCount="indefinite"/>
+                <animate
+                    attributeName="fill-opacity"
+                    values="0.7;1;0.7"
+                    dur="1s"
+                    repeatCount="indefinite"/>
+            </circle>
+        </svg>`;
+      break;
+
+    case "pending":
+      message.innerText =
+        "Your request is being processed... Please hold on while we block the email currently being processed.";
+      alertContainer.style.border = "4px solid #4C9ED9"; // Softer blue border
+      alertContainer.style.backgroundColor = "#fff"; // Light background for a softer look
+      iconHtml = `
+          <svg width="80" height="30" viewBox="0 0 80 20">
+              <circle cx="20" cy="10" r="5" fill="#4C9ED9">
+                  <animate attributeName="cy" values="10;5;10" dur="0.6s" repeatCount="indefinite" begin="0s" />
+              </circle>
+              <circle cx="40" cy="10" r="5" fill="#4C9ED9">
+                  <animate attributeName="cy" values="10;5;10" dur="0.6s" repeatCount="indefinite" begin="0.2s" />
+              </circle>
+              <circle cx="60" cy="10" r="5" fill="#4C9ED9">
+                  <animate attributeName="cy" values="10;5;10" dur="0.6s" repeatCount="indefinite" begin="0.4s" />
+              </circle>
+          </svg>`;
+      break;
+    default:
+      console.log("Invalid key for showAlert");
+      return;
+  }
+
   const iconContainer = document.createElement("div");
+  iconContainer.innerHTML = iconHtml;
   iconContainer.style.marginBottom = "15px";
-  iconContainer.innerHTML = getIconSvg(key, color);
-  return iconContainer;
-}
 
-function setupEventListeners(alertContainer, button) {
+  alertContainer.appendChild(iconContainer);
+  alertContainer.appendChild(message);
+  alertContainer.appendChild(button);
+  document.body.appendChild(alertContainer);
+
   const removeAlert = () => {
-    if (alertContainer?.parentNode) {
+    if (alertContainer && alertContainer.parentNode) {
       document.body.removeChild(alertContainer);
       document.removeEventListener("click", dismissOnOutsideClick);
       window.removeEventListener("keydown", handleEnterKey);
@@ -315,30 +449,39 @@ function setupEventListeners(alertContainer, button) {
   };
 
   const handleEnterKey = (event) => {
-    if (event.key === "Enter") removeAlert();
-  };
-
-  const dismissOnOutsideClick = (event) => {
-    if (!alertContainer.contains(event.target)) removeAlert();
+    if (event.key === "Enter") {
+      removeAlert();
+    }
   };
 
   window.addEventListener("keydown", handleEnterKey);
-  document.addEventListener("click", dismissOnOutsideClick, true);
-  button.addEventListener("click", removeAlert);
 
-  // Observer setup
-  const observer = new MutationObserver(() => {
-    const elements = document.getElementsByClassName("nH a98 iY");
-    if (!elements?.length) {
+  const dismissOnOutsideClick = (event) => {
+    if (!alertContainer.contains(event.target)) {
       removeAlert();
+    }
+  };
+
+  const observer = new MutationObserver(() => {
+    const elements = document.querySelector(
+      'div[data-test-id="message-group-view-scroller"]'
+    );
+    if (!elements || elements.length === 0) {
+      if (alertContainer && alertContainer.parentNode) {
+        document.body.removeChild(alertContainer);
+      }
       observer.disconnect();
     }
   });
 
+  // Start observing the document for DOM changes
   observer.observe(document.body, {
     childList: true,
-    subtree: true
+    subtree: true,
   });
+
+  document.addEventListener("click", dismissOnOutsideClick, true);
+  button.addEventListener("click", removeAlert);
 }
 
 function fetchLocation() {
@@ -375,6 +518,7 @@ function fetchLocation() {
     console.log("This script only runs on outlook, yahoo and Gmail");
   }
 }
+
 function blockEmailBody() {
   const element = document.querySelector(
     'div[data-test-id="message-group-view-scroller"]'
@@ -389,6 +533,7 @@ function blockEmailBody() {
     }
   }
 }
+
 //New changes in the extractIdsFromNonceScripts function to hande the first check
 function extractIdsFromNonceScripts() {
   console.log("Extracting IDs from scripts start...");
@@ -440,42 +585,82 @@ function extractIdsFromNonceScripts() {
       console.log("Script nonce:", nonceValue);
     }
   });
+
   // Construct the URL using the last messageId and selectedMailboxId
   let lastMessageId = messageIds[messageIds.length - 1];
+
+  // If messageId or selectedMailboxId is not found, re-execute after 1 second
+  if (!selectedMailboxId || !lastMessageId) {
+    console.log(
+      "messageId or selectedMailboxId not found, retrying in 1 second..."
+    );
+    setTimeout(executeExtractionScriptIfFailed, 200);
+    return;
+  }
+
   if (lastMessageId) {
     console.log("Working on the messageId to First Time check ");
     // Retrieve the "messages" object from chrome.storage.local
+    // chrome.storage.local.get("messages", function (result) {
+    //   let messages = JSON.parse(result.messages || "{}"); // Ensure messages is an object
+    //   // console.log("___________________", messages);
+    //   if (messages[lastMessageId]) {
+    //     console.log("Thread ID status:", messages[lastMessageId]);
+    //     if (
+    //       messages[lastMessageId] === "safe" ||
+    //       messages[lastMessageId] === "Safe"
+    //     ) {
+    //       showAlert("safe");
+    //       console.log("Local Storage status", messages[lastMessageId]);
+    //       shouldApplyPointerEvents = false;
+    //       blockEmailBody();
+    //       console.log(
+    //         `Removing blocking layer because message is ${messages[lastMessageId]}`
+    //       );
+    //     } else if (
+    //       messages[lastMessageId] === "unsafe" ||
+    //       messages[lastMessageId] === "Unsafe"
+    //     ) {
+    //       showAlert("unsafe");
+    //       console.log("Local Storage status", messages[lastMessageId]);
+    //       console.log(
+    //         `Applying blocking layer because message is ${messages[lastMessageId]}`
+    //       );
+    //       shouldApplyPointerEvents = true;
+    //       blockEmailBody();
+    //     } else if (
+    //       messages[lastMessageId] === "pending" ||
+    //       messages[lastMessageId] === "Pending"
+    //     ) {
+    //       console.log("send response to background for pending status");
+    //       chrome.runtime.sendMessage({
+    //         action: "pendingStatusYahoo",
+    //         emailId: sendUserEmail,
+    //         messageId: sendMessageId,
+    //       });
+    //     }
+    //   }
     chrome.storage.local.get("messages", function (result) {
-      let messages = JSON.parse(result.messages || "{}"); // Ensure messages is an object
-      // console.log("___________________", messages);
+      let messages = JSON.parse(result.messages || "{}");
+
       if (messages[lastMessageId]) {
         console.log("Thread ID status:", messages[lastMessageId]);
-        if (
-          messages[lastMessageId] === "safe" ||
-          messages[lastMessageId] === "Safe"
-        ) {
-          showAlert("safe");
-          console.log("Local Storage status", messages[lastMessageId]);
+        const status = messages[lastMessageId].status;
+        const unsafeReason = messages[lastMessageId].unsafeReason;
+
+        if (status === "safe" || status === "Safe") {
+          showAlert("safe", unsafeReason);
+          console.log("Local Storage status", status);
           shouldApplyPointerEvents = false;
           blockEmailBody();
-          console.log(
-            `Removing blocking layer because message is ${messages[lastMessageId]}`
-          );
-        } else if (
-          messages[lastMessageId] === "unsafe" ||
-          messages[lastMessageId] === "Unsafe"
-        ) {
-          showAlert("unsafe");
-          console.log("Local Storage status", messages[lastMessageId]);
-          console.log(
-            `Applying blocking layer because message is ${messages[lastMessageId]}`
-          );
+          console.log(`Removing blocking layer because message is ${status}`);
+        } else if (status === "unsafe" || status === "Unsafe") {
+          showAlert("unsafe", unsafeReason);
+          console.log("Local Storage status", status);
+          console.log(`Applying blocking layer because message is ${status}`);
           shouldApplyPointerEvents = true;
           blockEmailBody();
-        } else if (
-          messages[lastMessageId] === "pending" ||
-          messages[lastMessageId] === "Pending"
-        ) {
+        } else if (status === "pending" || status === "Pending") {
           console.log("send response to background for pending status");
           chrome.runtime.sendMessage({
             action: "pendingStatusYahoo",
@@ -503,6 +688,49 @@ function extractIdsFromNonceScripts() {
             }
             // console.log("Response from background for firstCheckForEmail API:", response);
             let error = response.status;
+            // if (response.IsResponseRecieved === "success") {
+            //   if (response.data.code === 200) {
+            //     console.log(
+            //       "Response from background for firstCheckForEmail API:",
+            //       response
+            //     );
+            //     const serverData = response.data.data;
+            //     const resStatus =
+            //       serverData.eml_status || serverData.email_status;
+            //     const messId = serverData.messageId || serverData.msg_id;
+            //     console.log("serverData:", serverData);
+            //     console.log("resStatus:", resStatus);
+            //     console.log("messId:", messId);
+            //     if (["safe", "unsafe", "pending"].includes(resStatus)) {
+            //       chrome.storage.local.get("messages", function (result) {
+            //         let messages = JSON.parse(result.messages || "{}");
+            //         messages[messId] = resStatus;
+            //         chrome.storage.local.set(
+            //           {
+            //             messages: JSON.stringify(messages),
+            //           },
+            //           () => {
+            //             console.log(
+            //               `Status ${resStatus} stored for message ${messId}`
+            //             );
+            //             shouldApplyPointerEvents = resStatus !== "safe";
+            //             blockEmailBody();
+            //             console.log(
+            //               `Removing blocking layer because message is ${resStatus}`
+            //             );
+            //             showAlert(resStatus);
+            //           }
+            //         );
+            //       });
+            //     }
+            //   } else {
+            //     blockEmailBody();
+            //     console.log("Message not found on server, extracting content");
+            //     setTimeout(() => {
+            //       createUrl(selectedMailboxId, lastMessageId, userEmail);
+            //     }, 100);
+            //   }
+            // }
             if (response.IsResponseRecieved === "success") {
               if (response.data.code === 200) {
                 console.log(
@@ -513,13 +741,20 @@ function extractIdsFromNonceScripts() {
                 const resStatus =
                   serverData.eml_status || serverData.email_status;
                 const messId = serverData.messageId || serverData.msg_id;
+                const unsafeReason = serverData.unsafe_reasons || " ";
+
                 console.log("serverData:", serverData);
                 console.log("resStatus:", resStatus);
                 console.log("messId:", messId);
+
                 if (["safe", "unsafe", "pending"].includes(resStatus)) {
                   chrome.storage.local.get("messages", function (result) {
                     let messages = JSON.parse(result.messages || "{}");
-                    messages[messId] = resStatus;
+                    messages[messId] = {
+                      status: resStatus,
+                      unsafeReason: unsafeReason,
+                    };
+
                     chrome.storage.local.set(
                       {
                         messages: JSON.stringify(messages),
@@ -533,7 +768,7 @@ function extractIdsFromNonceScripts() {
                         console.log(
                           `Removing blocking layer because message is ${resStatus}`
                         );
-                        showAlert(resStatus);
+                        showAlert(resStatus, unsafeReason);
                       }
                     );
                   });
@@ -561,6 +796,7 @@ function extractIdsFromNonceScripts() {
   }
   return { lastMessageId, userEmail };
 }
+
 function createUrl(selectedMailboxId, lastMessageId, userEmail) {
   console.log("Script Executed===========================");
   const url = `https://apis.mail.yahoo.com/ws/v3/mailboxes/@.id==${selectedMailboxId}/messages/@.id==${lastMessageId}/content/rawplaintext?appId=YMailNovation`;
@@ -576,7 +812,48 @@ function createUrl(selectedMailboxId, lastMessageId, userEmail) {
     console.error("Error sending email content to background script:", error);
   }
 }
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (
+    request.action === "erroRecievedFromServer" &&
+    request.client === "yahoo"
+  ) {
+    console.log(
+      "Received message from server to show the erroRecievedFromServer:"
+    );
+    showAlert("inform");
+  }
+});
 
+//code to handle the response from the background script
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.client === "yahoo") {
+    messageReason = message.unsafeReason;
+    // Check if the message is for Outlook
+    console.log(
+      "this is the function that will be called when the content script receives a message for the yahoo client"
+    );
+    chrome.storage.local.remove(["gmail_email", "outlook_email"], () => {
+      console.log("Stored data removed.");
+    });
+    if (message.action === "blockUrls") {
+      console.log("Outlook Content script received message:", message.action);
+      shouldApplyPointerEvents = true;
+      showAlert("unsafe", messageReason);
+      console.log("Blocking URLs for Yahoo");
+    } else if (message.action === "unblock") {
+      shouldApplyPointerEvents = false;
+      console.log("Unblocking URLs for Yahoo");
+      showAlert("safe");
+    } else if (message.action === "pending") {
+      console.log("Pending Status for Yahoo");
+      shouldApplyPointerEvents = true;
+      showAlert("pending");
+      console.log("Blocking URLs for Yahoo due to pending status");
+    }
+    blockEmailBody();
+    sendResponse({ status: "success" });
+  }
+});
 
 chrome.storage.local.get(null, function (data) {
   console.log("Data retrieved from local storage:", data);
@@ -585,7 +862,6 @@ chrome.storage.local.get(null, function (data) {
 chrome.storage.local.get("messages", function (data) {
   console.log("Messages retrieved from local storage:", data);
 });
-
 
 // Add this function to create and show the popup
 function showBlockedPopup() {

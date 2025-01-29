@@ -1,50 +1,20 @@
 console.log("Content script loaded.");
-
+let messageReason =  " ";
 // Listen for tab activation/focus
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") {
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
     findOutlookEmailId();
   }
 });
 
-const baseUrl = "http://192.168.0.2:10103/plugin";
+const baseUrl = "http://192.168.0.2:10101/plugin";
 let userEmailId = null;
-
-// Add the URL observer code here
-let currentUrl = window.location.href;
-
-const urlObserver = new MutationObserver(() => {
-  if (currentUrl !== window.location.href) {
-    currentUrl = window.location.href;
-    const alertContainer = document.querySelector('div[style*="position: fixed"][style*="top: 50%"]');
-    if (alertContainer) {
-      alertContainer.remove();
-    }
-  }
-});
-
-// Wait for document body to be available
-if (document.body) {
-  urlObserver.observe(document.body, {
-    childList: true,
-    subtree: true
-  });
-} else {
-  document.addEventListener('DOMContentLoaded', () => {
-    urlObserver.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
-  });
-}
-
 
 chrome.storage.local.get("registration", (data) => {
   if (chrome.runtime.lastError) {
     console.error(chrome.runtime.lastError);
     return;
   }
-
   if (data.registration) {
     console.log("Registration data:", data.registration);
     const initializeOutlook = async () => {
@@ -57,10 +27,6 @@ chrome.storage.local.get("registration", (data) => {
     initializeOutlook().catch((error) =>
       console.error("Failed to initialize Outlook:", error)
     );
-    // setupClickListener();
-    // findOutlookEmailId();
-    // blockEmailBody();
-    // fetchLocation();
   }
 });
 
@@ -151,61 +117,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   return true;
 });
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  const currentCount = 0;
-  if (
-    request.action === "EmailNotFoundOnServerRequest" &&
-    request.client === "outlook" &&
-    currentCount < 2
-  ) {
-    console.log(
-      "Received message in content script EmailNotFoundOnServerRequest on Outlook:",
-      request
-    );
-    currentCount++;
-    executeWithLoadingScreenAndExtraction();
-  }
-});
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (
-    request.action === "erroRecievedFromServer" &&
-    request.client === "outlook"
-  ) {
-    console.log(
-      "Received message from server to show the erroRecievedFromServer:"
-    );
-    showAlert("inform");
-  }
-});
-
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.client === "outlook") {
-    // Check if the message is for Outlook
-    console.log(
-      "this is the function that will be called when the content script receives a message for the Outlook client"
-    );
-
-    if (message.action === "blockUrls") {
-      console.log("Outlook Content script received message:", message.action);
-      shouldApplyPointerEvents = true;
-      showAlert("unsafe");
-      console.log("Blocking URLs for Outlook");
-    } else if (message.action === "unblock") {
-      shouldApplyPointerEvents = false;
-      console.log("Unblocking URLs for Outlook");
-      showAlert("safe");
-    } else if (message.action === "pending") {
-      console.log("Pending Status for Outlook");
-      shouldApplyPointerEvents = true;
-      showAlert("pending");
-      console.log("Blocking URLs for Outlook due to pending status");
-    }
-    blockEmailBody();
-    sendResponse({ status: "success" });
-  }
-});
-
+// Content.js
 function detectMenuItems(event) {
   let target = event.target;
 
@@ -283,286 +196,88 @@ function preventDefaultForMouse(e) {
   e.preventDefault(); // Prevent all mouse events
 }
 
-// function showLoadingScreen() {
-//   const loadingScreen = document.createElement("div");
-//   loadingScreen.id = "loading-screen";
-
-//   // Frosted Glass Background with Subtle Gradient
-//   Object.assign(loadingScreen.style, {
-//     pointerEvents: "all",
-//     position: "fixed",
-//     top: "0",
-//     left: "0",
-//     width: "100%",
-//     height: "100%",
-//     background: "linear-gradient(to right, rgba(0, 0, 0, 0.6), rgba(20, 20, 20, 0.6))",
-//     backdropFilter: "blur(8px)",
-//     display: "flex",
-//     flexDirection: "column",
-//     alignItems: "center",
-//     justifyContent: "center",
-//     color: "#ffffff",
-//     zIndex: "2147483647",
-//     fontFamily: "Segoe UI, sans-serif",
-//     textAlign: "center",
-//   });
-
-//   // Create a circular progress indicator
-//   const loader = document.createElement("div");
-//   Object.assign(loader.style, {
-//     width: "64px",
-//     height: "64px",
-//     border: "6px solid rgba(255, 255, 255, 0.2)", // Soft glow
-//     borderTop: "6px solid #ffffff", // Bright rotating segment
-//     borderRadius: "50%",
-//     animation: "spin 1.5s linear infinite",
-//   });
-
-//   // Create a typing effect for the loading message
-//   const loadingText = document.createElement("p");
-//   loadingText.innerText = "";
-//   Object.assign(loadingText.style, {
-//     marginTop: "20px",
-//     fontSize: "18px",
-//     fontWeight: "400",
-//     color: "#ddd",
-//     whiteSpace: "nowrap",
-//     overflow: "hidden",
-//     borderRight: "2px solid rgba(255, 255, 255, 0.6)",
-//     animation: "typing 3s steps(20, end) infinite alternate",
-//   });
-
-//   let message = "Processing, please wait...";
-//   let index = 0;
-
-//   function typeEffect() {
-//     loadingText.innerText = message.substring(0, index);
-//     index = index < message.length ? index + 1 : 0;
-//     setTimeout(typeEffect, 100);
-//   }
-
-//   typeEffect();
-
-//   // Glassy button for subtle effect
-//   const glassyButton = document.createElement("div");
-//   glassyButton.innerText = "Loading...";
-//   Object.assign(glassyButton.style, {
-//     marginTop: "30px",
-//     padding: "10px 20px",
-//     borderRadius: "10px",
-//     background: "rgba(255, 255, 255, 0.15)", // Glass effect
-//     boxShadow: "0 4px 6px rgba(255, 255, 255, 0.1)",
-//     backdropFilter: "blur(4px)",
-//     color: "#ffffff",
-//     fontSize: "16px",
-//     fontWeight: "bold",
-//     textTransform: "uppercase",
-//     animation: "pulse 2s infinite",
-//   });
-
-//   loadingScreen.appendChild(loader);
-//   loadingScreen.appendChild(loadingText);
-//   loadingScreen.appendChild(glassyButton);
-//   document.body.appendChild(loadingScreen);
-
-//   // Adding keyframes for animations
-//   const styleSheet = document.styleSheets[0];
-
-//   const spinKeyframes = `@keyframes spin {
-//       0% { transform: rotate(0deg); }
-//       100% { transform: rotate(360deg); }
-//     }`;
-
-//   const typingKeyframes = `@keyframes typing {
-//       0% { width: 0; }
-//       100% { width: 100%; }
-//     }`;
-
-//   const pulseKeyframes = `@keyframes pulse {
-//       0% { transform: scale(1); opacity: 0.8; }
-//       50% { transform: scale(1.05); opacity: 1; }
-//       100% { transform: scale(1); opacity: 0.8; }
-//     }`;
-
-//   styleSheet.insertRule(spinKeyframes, styleSheet.cssRules.length);
-//   styleSheet.insertRule(typingKeyframes, styleSheet.cssRules.length);
-//   styleSheet.insertRule(pulseKeyframes, styleSheet.cssRules.length);
-// }
-
 function showLoadingScreen() {
   const loadingScreen = document.createElement("div");
   loadingScreen.id = "loading-screen";
 
-  // Professional Dark Glass Background
+  // Styles for the loading screen
   Object.assign(loadingScreen.style, {
-    pointerEvents: "all",
+    pointerEvents: "all", // Ensure this captures all mouse events
     position: "fixed",
     top: "0",
     left: "0",
     width: "100%",
     height: "100%",
-    background: "rgba(0, 0, 0, 0.6)", // Same opacity
-    backdropFilter: "blur(10px)", // Glass effect
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    color: "#ffffff",
+    color: "#fff",
     zIndex: "2147483647",
     fontFamily: "Segoe UI, sans-serif",
     textAlign: "center",
   });
 
-  // Circular Loader (Professional)
-  const loader = document.createElement("div");
-  Object.assign(loader.style, {
-    width: "50px",
-    height: "50px",
-    border: "4px solid rgba(255, 255, 255, 0.2)", // Light outline
-    borderTop: "4px solid #0078d4", // Professional blue color
-    borderRadius: "50%",
-    animation: "spin 1s linear infinite",
+  // Prevent any mouse interaction during loading screen
+  [
+    "click",
+    "mousemove",
+    "mousedown",
+    "mouseup",
+    "mouseover",
+    "mouseenter",
+    "mouseleave",
+  ].forEach((eventType) => {
+    loadingScreen.addEventListener(eventType, (e) => {
+      e.stopPropagation(); // Stop events from propagating
+      e.preventDefault(); // Prevent default action
+    });
   });
 
-  // Loading Text (Minimal & Elegant)
+  // Create a morphing shape animation
+  const morphingShape = document.createElement("div");
+  Object.assign(morphingShape.style, {
+    width: "70px",
+    height: "70px",
+    backgroundColor: "#3498db",
+    borderRadius: "15%",
+    animation: "morph 3s infinite ease-in-out",
+  });
+
+  // Create a fading text message
   const loadingText = document.createElement("p");
-  loadingText.innerText = "Processing...";
+  loadingText.innerText = "Please wait...";
   Object.assign(loadingText.style, {
-    marginTop: "15px",
-    fontSize: "16px",
-    fontWeight: "500",
-    color: "#ddd",
+    marginTop: "30px",
+    fontSize: "20px",
+    fontWeight: "bold",
+    color: "#ffffff",
+    animation: "fade 3s infinite alternate ease-in-out",
   });
 
-  // Subtle Progress Bar
-  const progressBar = document.createElement("div");
-  Object.assign(progressBar.style, {
-    marginTop: "20px",
-    width: "120px",
-    height: "4px",
-    borderRadius: "50px",
-    background: "rgba(255, 255, 255, 0.1)", // Light transparency
-    position: "relative",
-    overflow: "hidden",
-  });
-
-  // Animated Fill for Progress Bar
-  const progressFill = document.createElement("div");
-  Object.assign(progressFill.style, {
-    width: "40%",
-    height: "100%",
-    background: "#0078d4", // Professional blue
-    position: "absolute",
-    left: "-40%",
-    animation: "progressMove 1.5s infinite ease-in-out",
-  });
-
-  progressBar.appendChild(progressFill);
-  loadingScreen.appendChild(loader);
+  // Append morphing shape and text to the loading screen
+  loadingScreen.appendChild(morphingShape);
   loadingScreen.appendChild(loadingText);
-  loadingScreen.appendChild(progressBar);
+
   document.body.appendChild(loadingScreen);
 
-  // Adding keyframes for smooth animations
+  // Adding keyframes for morphing shape animation
   const styleSheet = document.styleSheets[0];
-
-  const spinKeyframes = `@keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+  const morphKeyframes = `@keyframes morph {
+      0% { border-radius: 15%; transform: rotate(0deg); }
+      33% { border-radius: 50%; transform: rotate(120deg); }
+      66% { border-radius: 0; transform: rotate(240deg); }
+      100% { border-radius: 15%; transform: rotate(360deg); }
+    }`;
+  const fadeKeyframes = `@keyframes fade {
+      0% { opacity: 1; }
+      100% { opacity: 0.5; }
     }`;
 
-  const progressKeyframes = `@keyframes progressMove {
-      0% { left: -40%; }
-      100% { left: 100%; }
-    }`;
-
-  styleSheet.insertRule(spinKeyframes, styleSheet.cssRules.length);
-  styleSheet.insertRule(progressKeyframes, styleSheet.cssRules.length);
+  styleSheet.insertRule(morphKeyframes, styleSheet.cssRules.length);
+  styleSheet.insertRule(fadeKeyframes, styleSheet.cssRules.length);
 }
-
-
-// function showLoadingScreen() {
-//   const loadingScreen = document.createElement("div");
-//   loadingScreen.id = "loading-screen";
-
-//   // Styles for the loading screen
-//   Object.assign(loadingScreen.style, {
-//     pointerEvents: "all", // Ensure this captures all mouse events
-//     position: "fixed",
-//     top: "0",
-//     left: "0",
-//     width: "100%",
-//     height: "100%",
-//     backgroundColor: "rgba(0, 0, 0, 0.8)",
-//     display: "flex",
-//     flexDirection: "column",
-//     alignItems: "center",
-//     justifyContent: "center",
-//     color: "#fff",
-//     zIndex: "2147483647",
-//     fontFamily: "Segoe UI, sans-serif",
-//     textAlign: "center",
-//   });
-
-//   // Prevent any mouse interaction during loading screen
-//   [
-//     "click",
-//     "mousemove",
-//     "mousedown",
-//     "mouseup",
-//     "mouseover",
-//     "mouseenter",
-//     "mouseleave",
-//   ].forEach((eventType) => {
-//     loadingScreen.addEventListener(eventType, (e) => {
-//       e.stopPropagation(); // Stop events from propagating
-//       e.preventDefault(); // Prevent default action
-//     });
-//   });
-
-//   // Create a morphing shape animation
-//   const morphingShape = document.createElement("div");
-//   Object.assign(morphingShape.style, {
-//     width: "70px",
-//     height: "70px",
-//     backgroundColor: "#3498db",
-//     borderRadius: "15%",
-//     animation: "morph 3s infinite ease-in-out",
-//   });
-
-//   // Create a fading text message
-//   const loadingText = document.createElement("p");
-//   loadingText.innerText = "Please wait...";
-//   Object.assign(loadingText.style, {
-//     marginTop: "30px",
-//     fontSize: "20px",
-//     fontWeight: "bold",
-//     color: "#ffffff",
-//     animation: "fade 3s infinite alternate ease-in-out",
-//   });
-
-//   // Append morphing shape and text to the loading screen
-//   loadingScreen.appendChild(morphingShape);
-//   loadingScreen.appendChild(loadingText);
-
-//   document.body.appendChild(loadingScreen);
-
-//   // Adding keyframes for morphing shape animation
-//   const styleSheet = document.styleSheets[0];
-//   const morphKeyframes = `@keyframes morph {
-//       0% { border-radius: 15%; transform: rotate(0deg); }
-//       33% { border-radius: 50%; transform: rotate(120deg); }
-//       66% { border-radius: 0; transform: rotate(240deg); }
-//       100% { border-radius: 15%; transform: rotate(360deg); }
-//     }`;
-//   const fadeKeyframes = `@keyframes fade {
-//       0% { opacity: 1; }
-//       100% { opacity: 0.5; }
-//     }`;
-
-//   styleSheet.insertRule(morphKeyframes, styleSheet.cssRules.length);
-//   styleSheet.insertRule(fadeKeyframes, styleSheet.cssRules.length);
-// }
 
 function hideTargetedLoadingScreen(loadingOverlay) {
   if (loadingOverlay && loadingOverlay.parentNode) {
@@ -588,6 +303,7 @@ function showLoadingScreenFor5Seconds() {
   });
 }
 
+// Function to execute email extraction code with loading screen
 
 async function executeWithLoadingScreenAndExtraction() {
   blockUserInteraction(); // Disable all user interactions
@@ -600,6 +316,7 @@ async function executeWithLoadingScreenAndExtraction() {
     unblockUserInteraction(); // Re-enable user interactions
   }
 }
+
 
 // Updated blockEmailBody function to toggle pointer-events
 
@@ -714,145 +431,262 @@ function setupClickListener(attempts = 500) {
               shouldApplyPointerEvents = false;
               blockEmailBody();
               return;
-            } else if (dataConvid) {
-              console.log("data-convid found, running email extraction");
-              // Retrieve the "messages" object from chrome.storage.local
-              chrome.storage.local.get("messages", function (result) {
-                let messages = JSON.parse(result.messages || "{}"); // Ensure messages is an object
-                console.log(
-                  "messageId already stored___________________",
-                  messages
-                );
+            } 
+            // else if (dataConvid) {
+            //   console.log("data-convid found, running email extraction");
+            //   // Retrieve the "messages" object from chrome.storage.local
+            //   chrome.storage.local.get("messages", function (result) {
+            //     let messages = JSON.parse(result.messages || "{}"); // Ensure messages is an object
+            //     console.log(
+            //       "messageId already stored___________________",
+            //       messages
+            //     );
 
-                if (messages[dataConvid]) {
-                  console.log(
-                    "data-convid found in local storage yehhhhhhhhhhhhhhhhhhhhhhhhh"
-                  );
-                  console.log("Thread ID status:", messages[dataConvid]);
-                  if (messages[dataConvid] === "safe") {
-                    console.log("Local Storage status", messages[dataConvid]);
-                    shouldApplyPointerEvents = false;
-                    blockEmailBody();
-                    showAlert("safe");
-                    // alert('Safe Environment');
-                    console.log(
-                      `Removing blocking layer because message is ${messages[dataConvid]}`
-                    );
-                  } else if (messages[dataConvid] === "unsafe") {
-                    console.log("Local Storage status", messages[dataConvid]);
-                    console.log(
-                      `Applying blocking layer because message is ${messages[dataConvid]}`
-                    );
-                    showAlert("unsafe");
-                    // alert('Unsafe Environment');
-                    shouldApplyPointerEvents = true;
-                    blockEmailBody();
-                  } else if (messages[dataConvid] === "pending") {
-                    console.log("Pending status in Local Storage");
-                    showAlert("pending");
-                    chrome.storage.local.get("outlook_email", (data) => {
-                      console.log(
-                        "Email Id is stored in the Local",
-                        data.outlook_email
-                      );
-                      console.log(
-                        "send response to background for pending status in outlook ============================="
-                      );
-                      chrome.runtime.sendMessage({
-                        action: "pendingStatusOutlook",
-                        emailId: data.outlook_email,
-                        messageId: dataConvid,
-                      });
-                      shouldApplyPointerEvents = true;
-                      blockEmailBody();
-                    });
-                  } else {
-                    console.log(
-                      "Applying blocking layer because message is not Present in Local storage"
-                    );
-                    shouldApplyPointerEvents = true;
-                    blockEmailBody();
-                  }
-                } else {
-                  shouldApplyPointerEvents = true;
-                  blockEmailBody();
-                  console.log(
-                    "Sending message to background for first check for firstCheckForEmail API"
-                  );
-                  chrome.runtime.sendMessage(
-                    {
-                      client: "outlook",
-                      action: "firstCheckForEmail",
-                      messageId: dataConvid,
-                      email: userEmailId,
-                    },
-                    (response) => {
-                      // console.log("Response from background for firstCheckForEmail API:", response);
-                      let error = response.status;
-                      if (response.IsResponseRecieved === "success") {
-                        if (response.data.code === 200) {
-                          console.log(
-                            "Response from background for firstCheckForEmail API:",
-                            response
-                          );
-                          const serverData = response.data.data;
-                          const resStatus =
-                            serverData.eml_status || serverData.email_status;
-                          const messId =
-                            serverData.messageId || serverData.msg_id;
-                          console.log("serverData:", serverData);
-                          console.log("resStatus:", resStatus);
-                          console.log("messId:", messId);
-                          if (
-                            ["safe", "unsafe", "pending"].includes(resStatus)
-                          ) {
-                            chrome.storage.local.get(
-                              "messages",
-                              function (result) {
-                                let messages = JSON.parse(
-                                  result.messages || "{}"
-                                );
-                                messages[messId] = resStatus;
-                                chrome.storage.local.set(
-                                  {
-                                    messages: JSON.stringify(messages),
-                                  },
-                                  () => {
-                                    console.log(
-                                      `Status ${resStatus} stored for message ${messId}`
-                                    );
-                                    shouldApplyPointerEvents =
-                                      resStatus !== "safe";
-                                    blockEmailBody();
-                                    console.log(
-                                      `Removing blocking layer because message is ${resStatus}`
-                                    );
-                                    showAlert(resStatus);
-                                  }
-                                );
-                              }
-                            );
-                          }
-                        } else {
-                          console.log(
-                            "Message not found on server, extracting content"
-                          );
+            //     if (messages[dataConvid]) {
+            //       console.log(
+            //         "data-convid found in local storage yehhhhhhhhhhhhhhhhhhhhhhhhh"
+            //       );
+            //       console.log("Thread ID status:", messages[dataConvid]);
+            //       if (messages[dataConvid] === "safe") {
+            //         console.log("Local Storage status", messages[dataConvid]);
+            //         shouldApplyPointerEvents = false;
+            //         blockEmailBody();
+            //         showAlert("safe");
+            //         // alert('Safe Environment');
+            //         console.log(
+            //           `Removing blocking layer because message is ${messages[dataConvid]}`
+            //         );
+            //       } else if (messages[dataConvid] === "unsafe") {
+            //         console.log("Local Storage status", messages[dataConvid]);
+            //         console.log(
+            //           `Applying blocking layer because message is ${messages[dataConvid]}`
+            //         );
+            //         showAlert("unsafe");
+            //         // alert('Unsafe Environment');
+            //         shouldApplyPointerEvents = true;
+            //         blockEmailBody();
+            //       } else if (messages[dataConvid] === "pending") {
+            //         console.log("Pending status in Local Storage");
+            //         showAlert("pending");
+            //         chrome.storage.local.get("outlook_email", (data) => {
+            //           console.log(
+            //             "Email Id is stored in the Local",
+            //             data.outlook_email
+            //           );
+            //           console.log(
+            //             "send response to background for pending status in outlook ============================="
+            //           );
+            //           chrome.runtime.sendMessage({
+            //             action: "pendingStatusOutlook",
+            //             emailId: data.outlook_email,
+            //             messageId: dataConvid,
+            //           });
+            //           shouldApplyPointerEvents = true;
+            //           blockEmailBody();
+            //         });
+            //       } else {
+            //         console.log(
+            //           "Applying blocking layer because message is not Present in Local storage"
+            //         );
+            //         shouldApplyPointerEvents = true;
+            //         blockEmailBody();
+            //       }
+            //     } else {
+            //       shouldApplyPointerEvents = true;
+            //       blockEmailBody();
+            //       console.log(
+            //         "Sending message to background for first check for firstCheckForEmail API"
+            //       );
+            //       chrome.runtime
+            //         .sendMessage(
+            //           {
+            //             client: "outlook",
+            //             action: "firstCheckForEmail",
+            //             messageId: dataConvid,
+            //             email: userEmailId,
+            //           },
+            //           (response) => {
+            //             // console.log("Response from background for firstCheckForEmail API:", response);
+            //             let error = response.status;
+            //             if (response.IsResponseRecieved === "success") {
+            //               if (response.data.code === 200) {
+            //                 console.log(
+            //                   "Response from background for firstCheckForEmail API:",
+            //                   response
+            //                 );
+            //                 const serverData = response.data.data;
+            //                 const resStatus =
+            //                   serverData.eml_status || serverData.email_status;
+            //                 const messId =
+            //                   serverData.messageId || serverData.msg_id;
+            //                 console.log("serverData:", serverData);
+            //                 console.log("resStatus:", resStatus);
+            //                 console.log("messId:", messId);
+            //                 if (
+            //                   ["safe", "unsafe", "pending"].includes(resStatus)
+            //                 ) {
+            //                   chrome.storage.local.get(
+            //                     "messages",
+            //                     function (result) {
+            //                       let messages = JSON.parse(
+            //                         result.messages || "{}"
+            //                       );
+            //                       messages[messId] = resStatus;
+            //                       chrome.storage.local.set(
+            //                         {
+            //                           messages: JSON.stringify(messages),
+            //                         },
+            //                         () => {
+            //                           console.log(
+            //                             `Status ${resStatus} stored for message ${messId}`
+            //                           );
+            //                           shouldApplyPointerEvents =
+            //                             resStatus !== "safe";
+            //                           blockEmailBody();
+            //                           console.log(
+            //                             `Removing blocking layer because message is ${resStatus}`
+            //                           );
+            //                           showAlert(resStatus);
+            //                         }
+            //                       );
+            //                     }
+            //                   );
+            //                 }
+            //               } else {
+            //                 console.log(
+            //                   "Message not found on server, extracting content"
+            //                 );
+            //                 shouldApplyPointerEvents = true;
+            //                 blockEmailBody();
+            //                 setTimeout(() => {
+            //                   executeWithLoadingScreenAndExtraction();
+            //                 }, 100);
+            //               }
+            //             } else if (response.status === "error") {
+            //               console.log("API call failed ok:", error);
+            //               showAlert("inform");
+            //               // extractEmlContent(dataConvid);
+            //             }
+            //           }
+            //         )
+            //         .catch((error) => {
+            //           console.log("API call failed:", error);
+            //           showAlert("inform");
+            //         });
+            //     }
+            //   });
+            // } 
+            else if (dataConvid) {
+              console.log("data-convid found, running email extraction");
+              chrome.storage.local.get("messages", function (result) {
+                  let messages = JSON.parse(result.messages || "{}");
+                  console.log("messageId already stored___________________", messages);
+          
+                  if (messages[dataConvid]) {
+                      console.log("data-convid found in local storage yehhhhhhhhhhhhhhhhhhhhhhhhh");
+                      const status = messages[dataConvid].status;
+                      const unsafeReason = messages[dataConvid].unsafeReason;
+                      console.log("Thread ID status:", status);
+          
+                      if (status === "safe") {
+                          console.log("Local Storage status", status);
+                          shouldApplyPointerEvents = false;
+                          blockEmailBody();
+                          showAlert("safe", unsafeReason);
+                          console.log(`Removing blocking layer because message is ${status}`);
+                      } else if (status === "unsafe") {
+                          console.log("Local Storage status", status);
+                          console.log(`Applying blocking layer because message is ${status}`);
+                          showAlert("unsafe", unsafeReason);
                           shouldApplyPointerEvents = true;
                           blockEmailBody();
-                          setTimeout(() => {
-                            executeWithLoadingScreenAndExtraction();
-                          }, 100);
-                        }
-                      } else if (response.status === "error") {
-                        console.log("API call failed ok:", error);
-                        showAlert("inform");
-                        // extractEmlContent(dataConvid);
+                      } else if (status === "pending") {
+                          console.log("Pending status in Local Storage");
+                          showAlert("pending", unsafeReason);
+                          chrome.storage.local.get("outlook_email", (data) => {
+                              console.log("Email Id is stored in the Local", data.outlook_email);
+                              console.log("send response to background for pending status in outlook =============================");
+                              chrome.runtime.sendMessage({
+                                  action: "pendingStatusOutlook",
+                                  emailId: data.outlook_email,
+                                  messageId: dataConvid,
+                              });
+                              shouldApplyPointerEvents = true;
+                              blockEmailBody();
+                          });
+                      } else {
+                          console.log("Applying blocking layer because message is not Present in Local storage");
+                          shouldApplyPointerEvents = true;
+                          blockEmailBody();
                       }
-                    }
-                  );
-                }
+                  } else {
+                      shouldApplyPointerEvents = true;
+                      blockEmailBody();
+                      console.log("Sending message to background for first check for firstCheckForEmail API");
+                      chrome.runtime.sendMessage(
+                          {
+                              client: "outlook",
+                              action: "firstCheckForEmail",
+                              messageId: dataConvid,
+                              email: userEmailId,
+                          },
+                          (response) => {
+                              let error = response.status;
+                              if (response.IsResponseRecieved === "success") {
+                                  if (response.data.code === 200) {
+                                      console.log("Response from background for firstCheckForEmail API:", response);
+                                      const serverData = response.data.data;
+                                      const resStatus = serverData.eml_status || serverData.email_status;
+                                      const messId = serverData.messageId || serverData.msg_id;
+                                      const unsafeReason = serverData.unsafe_reasons || " ";
+          
+                                      console.log("serverData:", serverData);
+                                      console.log("resStatus:", resStatus);
+                                      console.log("messId:", messId);
+          
+                                      if (["safe", "unsafe", "pending"].includes(resStatus)) {
+                                          chrome.storage.local.get("messages", function (result) {
+                                              let messages = JSON.parse(result.messages || "{}");
+                                              messages[messId] = {
+                                                  status: resStatus,
+                                                  unsafeReason: unsafeReason
+                                              };
+          
+                                              chrome.storage.local.set(
+                                                  {
+                                                      messages: JSON.stringify(messages),
+                                                  },
+                                                  () => {
+                                                      console.log(`Status ${resStatus} stored for message ${messId}`);
+                                                      shouldApplyPointerEvents = resStatus !== "safe";
+                                                      blockEmailBody();
+                                                      console.log(`Removing blocking layer because message is ${resStatus}`);
+                                                      showAlert(resStatus, unsafeReason);
+                                                  }
+                                              );
+                                          });
+                                      }
+                                  } else {
+                                      console.log("Message not found on server, extracting content");
+                                      shouldApplyPointerEvents = true;
+                                      blockEmailBody();
+                                      setTimeout(() => {
+                                          executeWithLoadingScreenAndExtraction();
+                                      }, 100);
+                                  }
+                              } else if (response.status === "error") {
+                                  console.log("API call failed ok:", error);
+                                  showAlert("inform");
+                              }
+                          }
+                      ).catch((error) => {
+                          console.log("API call failed:", error);
+                          showAlert("inform");
+                      });
+                  }
               });
-            } else {
+          }          
+            else {
               console.log("data-convid not found or null, skipping extraction");
             }
           });
@@ -870,10 +704,32 @@ function setupClickListener(attempts = 500) {
   }
 }
 
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (
+    request.action === "erroRecievedFromServer" &&
+    request.client === "outlook"
+  ) {
+    console.log(
+      "Received message from server to show the erroRecievedFromServer:"
+    );
+    showAlert("inform");
+  }
+});
 
+// Add the URL observer code here
+let currentUrl = window.location.href;
 
+const urlObserver = new MutationObserver(() => {
+  if (currentUrl !== window.location.href) {
+    currentUrl = window.location.href;
+    const alertContainer = document.querySelector('div[style*="position: fixed"][style*="top: 50%"]');
+    if (alertContainer) {
+      alertContainer.remove();
+    }
+  }
+});
 
-function showAlert(key) {
+function showAlert(key, messageReason = " ") {
   // Create the alert container
   const alertContainer = document.createElement("div");
   alertContainer.style.position = "fixed";
@@ -984,8 +840,16 @@ button.addEventListener("mouseout", () => {
     break;
 
     case "unsafe":
-      message.innerText =
-        "Security Notice: Email requires verification. Raise a dispute to review content.";
+      message.innerHTML = `
+    <div style="font-family: 'Segoe UI', sans-serif;">
+        <div style="font-size: 16px; color: #333;font-weight : bolder">
+            Security Notice: This email has been identified as unsafe.
+        </div>
+        <hr style="border: 0; height: 1px; background: #e0e0e0; margin: 8px 0;"/>
+        <div style="color: #dc3545; font-size: 16px; font-weight : bold">${messageReason}</div>
+    </div>`;
+
+
 
       alertContainer.style.width = "360px"; // Slightly wider for better text flow
       alertContainer.style.padding = "24px"; // Increased padding
@@ -1178,42 +1042,103 @@ button.addEventListener("mouseout", () => {
   button.addEventListener("click", removeAlert);
 }
 
-
 async function runEmailExtraction() {
   console.log("Running email extraction code");
 
   // Batch processing for DOM interactions
+  // const processNavigationButton = async () => {
+  //   // First find which container is active
+  //   const activeContainer =
+  //     document.querySelector("#ConversationReadingPaneContainer") ||
+  //     document.querySelector("#ItemReadingPaneContainer");
+
+  //   if (activeContainer) {
+  //     console.log("Active container found");
+  //     // Find all menu buttons within the active container
+  //     const navi = activeContainer.querySelectorAll(".ms-Button--hasMenu");
+
+  //     // Get the last button from the collection
+  //     const lastIndex = navi.length - 1;
+
+  //     if (navi[lastIndex] && navi[lastIndex].offsetParent !== null) {
+  //       navi[lastIndex].click();
+  //       await waitForMenu();
+  //     } else {
+  //       console.log("Navigation button not found or not visible, retrying...");
+  //       await new Promise((resolve) => setTimeout(resolve, 500));
+  //       await processNavigationButton();
+  //     }
+  //   }
+  // };
+  // First find which container is active
   const processNavigationButton = async () => {
-    // First find which container is active
-    const activeContainer =
-      document.querySelector("#ConversationReadingPaneContainer") ||
-      document.querySelector("#ItemReadingPaneContainer");
-
+    let activeContainer = document.querySelector("#ConversationReadingPaneContainer");
     if (activeContainer) {
-      console.log("Active container found");
-      // Find all menu buttons within the active container
-      const navi = activeContainer.querySelectorAll(".ms-Button--hasMenu");
+        console.log("Active container found (ConversationReadingPaneContainer)");
 
-      // Get the last button from the collection
-      const lastIndex = navi.length - 1;
+        // Find all elements with class "aVla3" inside the active container
+        const elements = activeContainer.querySelectorAll(".aVla3");
 
-      if (navi[lastIndex] && navi[lastIndex].offsetParent !== null) {
-        navi[lastIndex].click();
-        console.log("Clicked on the last navigation button");
-        await waitForMenu();
-      } else {
-        console.log("Navigation button not found or not visible, retrying...");
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        await processNavigationButton();
-      }
+        if (elements.length > 0) {
+            let lastElement = elements[elements.length - 1]; // Default last element
+
+            // Check if the last "aVla3" element contains a div with class "o4zjZ SfSRI"
+            if (lastElement.querySelector(".o4zjZ.SfSRI") && elements.length > 1) {
+                lastElement = elements[elements.length - 2]; // Use second last element
+            }
+
+            // Find the nested div with `aria-expanded`
+            const expandedDiv = lastElement.querySelector('div[aria-expanded]');
+
+            if (expandedDiv) {
+                const isExpanded = expandedDiv.getAttribute("aria-expanded") === "true";
+
+                if (!isExpanded) {
+                    // Execute first set of actions
+                    let clickElements = document.querySelectorAll('.GjFKx.WWy1F.YoK0k');
+                    if (clickElements.length > 0) {
+                        // Click the last element in the list
+                        clickElements[clickElements.length - 1].click();
+                    }
+                }
+                // Execute the navigation process
+                const navi = activeContainer.querySelectorAll(".ms-Button--hasMenu");
+                const lastIndex = navi.length - 1;
+
+                if (navi[lastIndex] && navi[lastIndex].offsetParent !== null) {
+                    navi[lastIndex].click();
+                    await waitForMenu();
+                } else {
+                    console.log("Navigation button not found or not visible, retrying...");
+                    await new Promise((resolve) => setTimeout(resolve, 500));
+                    await processNavigationButton();
+                }
+            }
+        }
+    } 
+    else {
+        // If `#ConversationReadingPaneContainer` is not found, fallback to `#ItemReadingPaneContainer`
+        activeContainer = document.querySelector("#ItemReadingPaneContainer");
+
+        if (activeContainer) {
+            console.log("Active container found (ItemReadingPaneContainer)");
+            // Execute the navigation process for ItemReadingPaneContainer (without new functionality)
+            const navi = activeContainer.querySelectorAll(".ms-Button--hasMenu");
+            const lastIndex = navi.length - 1;
+            if (navi[lastIndex] && navi[lastIndex].offsetParent !== null) {
+                navi[lastIndex].click();
+                await waitForMenu();
+            } else {
+                console.log("Navigation button not found or not visible, retrying...");
+                await new Promise((resolve) => setTimeout(resolve, 500));
+                await processNavigationButton();
+            }
+        }
     }
   };
-  
-  
 
   const waitForMenu = async () => {
     return new Promise((resolve) => {
-      console.log("Waiting for menu to open");
       const observer = new MutationObserver((mutations) => {
         const list = document.querySelector(".ms-ContextualMenu-list.is-open");
         if (list) {
@@ -1227,7 +1152,6 @@ async function runEmailExtraction() {
   };
 
   const extractMenu = async (list) => {
-    console.log("Extracting menu items");
     const listItems = list.querySelectorAll(".ms-ContextualMenu-item");
     for (const item of listItems) {
       const button = item.querySelector("button.ms-ContextualMenu-link");
@@ -1266,7 +1190,7 @@ async function runEmailExtraction() {
     const element = document.querySelector(".lz61e.allowTextSelection");
     if (element && element.innerText.trim().length > 0) {
       const emailContent = element.innerText;
-      // console.log("Extracted email content:", emailContent);
+      console.log("Extracted email content:", emailContent);
       await sendContentToBackground(emailContent);
       await closeEmail();
     } else {
@@ -1292,38 +1216,48 @@ async function runEmailExtraction() {
   };
 
   const closeEmail = async () => {
-    // Find and click the overlay to close
+    console.log(
+      "Attempting to force-close modal by removing it from the DOM..."
+    );
     const overlay = document.querySelector(
       ".fui-DialogSurface__backdrop.rsptlh5"
     );
-    if (overlay) {
-      overlay.click();
-    }
-
-    // Add keyboard escape handler
-    const handleEscape = (e) => {
-      if (e.key === "Escape") {
-        overlay?.click();
-        document.removeEventListener("keydown", handleEscape);
-      }
-    };
-    document.addEventListener("keydown", handleEscape);
-
-    // Add click outside handler
-    const handleClickOutside = (e) => {
-      const popup = document.querySelector(".lz61e.allowTextSelection");
-      if (popup && !popup.contains(e.target)) {
-        overlay?.click();
-        document.removeEventListener("click", handleClickOutside);
-      }
-    };
-    document.addEventListener("click", handleClickOutside);
-
+    overlay.click();
+    // Enable scrolling (if it was disabled during the modal display)
+    console.log("Modal forcibly removed from DOM");
   };
 
   // Start the extraction process
   await processNavigationButton();
 }
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.client === "outlook") {
+    messageReason = message.unsafeReason;
+    // Check if the message is for Outlook
+    console.log(
+      "this is the function that will be called when the content script receives a message for the Outlook client"
+    );
+
+    if (message.action === "blockUrls") {
+      console.log("Outlook Content script received message:", message.action);
+      shouldApplyPointerEvents = true;
+      showAlert("unsafe", messageReason);
+      console.log("Blocking URLs for Outlook");
+    } else if (message.action === "unblock") {
+      shouldApplyPointerEvents = false;
+      console.log("Unblocking URLs for Outlook");
+      showAlert("safe");
+    } else if (message.action === "pending") {
+      console.log("Pending Status for Outlook");
+      shouldApplyPointerEvents = true;
+      showAlert("pending");
+      console.log("Blocking URLs for Outlook due to pending status");
+    }
+    blockEmailBody();
+    sendResponse({ status: "success" });
+  }
+});
 
 // Function to find the Outlook email ID
 function findOutlookEmailId() {
@@ -1424,6 +1358,13 @@ function showPending() {
   }, 5000);
 }
 
+// chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+//   if (message.action === "responseDelayStatus" , message.client === "outlook") {
+//     console.log("Server response delayed for more than 4 seconds");
+//     showAlert("pending");
+//   }
+// });
+
 chrome.storage.local.get("messages", function (result) {
   let messages = JSON.parse(result.messages || "{}"); // Ensure messages is an object
   console.log(
@@ -1444,6 +1385,10 @@ chrome.storage.local.get("registration", (data) => {
     });
   }
 });
+
+// window.addEventListener("load", () => {
+//   setTimeout(checkReloadStatusOutlook, 1000);
+// });
 
 function checkReloadStatusOutlook() {
   findScrollBar();
@@ -1561,63 +1506,132 @@ function checkReloadStatusOutlook() {
     chrome.storage.local.get("messages", function (result) {
       let messages = JSON.parse(result.messages || "{}");
       console.log("Message Id ", messages);
+  
       if (messages[dataConvid]) {
-        console.log(
-          "Message already exists in the local storage",
-          messages[dataConvid]
-        );
-        if (messages[dataConvid] === "safe") {
-          console.log("Message is already safe");
-          shouldApplyPointerEvents = false;
-          blockEmailBody();
-          showAlert("safe");
-        } else if (messages[dataConvid] === "unsafe") {
-          console.log("Message is already unsafe");
-          // shouldApplyPointerEvents = true;
-          setTimeout(() => {
-            shouldApplyPointerEvents = true;
-            blockEmailBody();
-          }, 500);
-          showAlert("unsafe");
-        } else if (messages[dataConvid] === "pending") {
-          console.log("Message is already pending");
-          showAlert("pending");
-          console.log(
-            "send response to background for pending status in outlook on reload section"
-          );
-          chrome.storage.local.get("outlook_email", (data) => {
-            setTimeout(() => {
-              shouldApplyPointerEvents = true;
+          console.log("Message already exists in the local storage", messages[dataConvid]);
+          const status = messages[dataConvid].status;
+          const unsafeReason = messages[dataConvid].unsafeReason;
+  
+          if (status === "safe") {
+              console.log("Message is already safe");
+              shouldApplyPointerEvents = false;
               blockEmailBody();
-            }, 1000);
-            console.log(
-              "Email Id is stored in the Localaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-              data.outlook_email
-            );
-            console.log(
-              "send response to background for pending status in outlook ============================="
-            );
-            chrome.runtime.sendMessage({
-              action: "pendingStatusOutlook",
-              emailId: data.outlook_email,
-              messageId: dataConvid,
-            });
-          });
-        }
+              showAlert("safe", unsafeReason);
+          } else if (status === "unsafe") {
+              console.log("Message is already unsafe");
+              setTimeout(() => {
+                  shouldApplyPointerEvents = true;
+                  blockEmailBody();
+              }, 500);
+              showAlert("unsafe", unsafeReason);
+          } else if (status === "pending") {
+              console.log("Message is already pending");
+              showAlert("pending", unsafeReason);
+              console.log("send response to background for pending status in outlook on reload section");
+              
+              chrome.storage.local.get("outlook_email", (data) => {
+                  setTimeout(() => {
+                      shouldApplyPointerEvents = true;
+                      blockEmailBody();
+                  }, 1000);
+                  console.log("Email Id is stored in the Local", data.outlook_email);
+                  console.log("send response to background for pending status in outlook =============================");
+                  chrome.runtime.sendMessage({
+                      action: "pendingStatusOutlook",
+                      emailId: data.outlook_email,
+                      messageId: dataConvid,
+                  });
+              });
+          }
       } else {
-        console.log("Message does not exist in the local storage");
-        shouldApplyPointerEvents = true;
-        blockEmailBody();
-        chrome.runtime.sendMessage({
-          action: "pendingStatusOutlook",
-          emailId: userEmailId,
-          messageId: dataConvid,
-        });
-        console.log(
-          "There is an issue, please refresh the page and try again -------------------"
-        );
+          console.log("Message does not exist in the local storage");
+          shouldApplyPointerEvents = true;
+          blockEmailBody();
       }
-    });
+  });
+  
+    // chrome.storage.local.get("messages", function (result) {
+    //   let messages = JSON.parse(result.messages || "{}");
+    //   console.log("Message Id ", messages);
+    //   if (messages[dataConvid]) {
+    //     console.log(
+    //       "Message already exists in the local storage",
+    //       messages[dataConvid]
+    //     );
+    //     if (messages[dataConvid] === "safe") {
+    //       console.log("Message is already safe");
+    //       shouldApplyPointerEvents = false;
+    //       blockEmailBody();
+    //       showAlert("safe");
+    //     } else if (messages[dataConvid] === "unsafe") {
+    //       console.log("Message is already unsafe");
+    //       // shouldApplyPointerEvents = true;
+    //       setTimeout(() => {
+    //         shouldApplyPointerEvents = true;
+    //         blockEmailBody();
+    //       }, 500);
+    //       showAlert("unsafe");
+    //     } else if (messages[dataConvid] === "pending") {
+    //       console.log("Message is already pending");
+    //       showAlert("pending");
+    //       console.log(
+    //         "send response to background for pending status in outlook on reload section"
+    //       );
+    //       chrome.storage.local.get("outlook_email", (data) => {
+    //         setTimeout(() => {
+    //           shouldApplyPointerEvents = true;
+    //           blockEmailBody();
+    //         }, 1000);
+    //         console.log(
+    //           "Email Id is stored in the Localaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    //           data.outlook_email
+    //         );
+    //         console.log(
+    //           "send response to background for pending status in outlook ============================="
+    //         );
+    //         chrome.runtime.sendMessage({
+    //           action: "pendingStatusOutlook",
+    //           emailId: data.outlook_email,
+    //           messageId: dataConvid,
+    //         });
+    //       });
+    //     }
+    //   } else {
+    //     console.log("Message does not exist in the local storage");
+    //     shouldApplyPointerEvents = true;
+    //     blockEmailBody();
+    //     // alert("There is an issue, please refresh the page and try again");
+    //     // const element = document.querySelector("#ConversationReadingPaneContainer");
+    //     // const junkBox = document.querySelector("#ItemReadingPaneContainer");
+    //     // if(element || junkBox){
+    //     //   window.location.reload();
+    //     // }
+    //     // externalCallForPendingStatus();
+    //   }
+    //   // function externalCallForPendingStatus( attempts = 10) {
+    //   //   console.log("Message does not exist in the local storage");
+    //   //   const mailBody = document.querySelector(".GjFKx.WWy1F.YoK0k");
+    //   //   if(mailBody){
+    //   //     console.log("Mail body found");
+    //   //     mailBody.click();
+    //   //     // setTimeout(()=>{
+    //   //       console.log("Mail body clicked");
+    //   //       shouldApplyPointerEvents = true;
+    //   //       blockEmailBody();
+    //   //       // executeWithLoadingScreenAndExtraction();
+    //   //     // }, 1000);
+    //   //   }
+    //   //   else if(attempts > 0){
+    //   //     setTimeout(() => externalCallForPendingStatus(attempts - 1), 500);
+    //   //   }
+    //   //   else{
+    //   //     console.log("Mail body not found, Meaning the email is not loaded yet or No mail is opened");
+    //   //     shouldApplyPointerEvents = true;
+    //   //     blockEmailBody();
+    //   //     // alert("Mail body not found");
+    //   //   }
+    //   // }
+    // });
   }
 }
 
@@ -1682,18 +1696,3 @@ window.addEventListener("click", (e) => {
   //   console.log("not clicked on the email body");
   // }
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
