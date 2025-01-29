@@ -7,7 +7,6 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
-const baseUrl = "http://192.168.0.2:10101/plugin";
 let userEmailId = null;
 
 chrome.storage.local.get("registration", (data) => {

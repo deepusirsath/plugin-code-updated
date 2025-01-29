@@ -1156,7 +1156,7 @@ chrome.runtime.onMessage.addListener((request, messageId, sendResponse) => {
 });
 
 async function checkAdminComment(messageId, email) {
-  const url = `http://192.168.0.2:10101/plugin/update-email-details/`;
+  const url = `${baseUrl}/update-email-details/`;
   try {
     const response = await fetch(url, {
       method: "POST",

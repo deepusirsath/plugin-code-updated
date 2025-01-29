@@ -1,3 +1,4 @@
+import config from "../config.js";
 import {
   CHECK_GMAIL_MAIL_STATUS,
   CHECK_OUTLOOK_MAIL_STATUS,
@@ -28,7 +29,7 @@ export let user_email = null;
 export let currentMessageId; //Contains latest message Id which will send to server
 export let latitude = null;
 export let longitude = null;
-const baseUrl = "http://192.168.0.2:10101/plugin";
+const baseUrl = config.BASE_URL;
 
 /**
  * Handles the response from mail service checks and formats the appropriate response
@@ -537,7 +538,7 @@ export const emlExtractionYahoo = async (
 };
 
 export const checkAdminComment = async (messageId, email) => {
-  const url = `http://192.168.0.2:10101/plugin/update-email-details/`;
+  const url = `${baseUrl}/update-email-details/`;
   try {
     const response = await fetch(url, {
       method: "POST",
