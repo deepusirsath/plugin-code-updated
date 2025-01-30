@@ -1,3 +1,10 @@
+import {
+  DISPUTES_RAISE,
+  PLUGIN_COUNTER,
+  UPDATE_EMAIL_STATUS,
+} from "/src/routes/api_route.js";
+import { postData } from "/src/api/api_method.js";
+
 export function initializeDisputeForm(disputeData) {
   const reasonTextarea = document.getElementById("reason");
   const submitButton = document.getElementById("submit");
@@ -124,3 +131,51 @@ export function initializeDisputeForm(disputeData) {
     );
   });
 }
+
+export const checkAdminComment = async (messageId, email) => {
+  try {
+    const data = await postData(UPDATE_EMAIL_STATUS, {
+      messageId,
+      email,
+    });
+    return data?.data[0]?.admin_comment || null;
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+};
+
+export const sendDisputeToServer = async (reason, email, messageId) => {
+  try {
+    const data = await postData(DISPUTES_RAISE, {
+      userComment: reason,
+      email,
+      msgId: messageId,
+    });
+
+    if (data) {
+      chrome.storage.local.set({ email_status: "Dispute" });
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error sending dispute to server:", error);
+  }
+};
+
+export const checkDisputeCount = async (messageId) => {
+  try {
+    const data = await postData(PLUGIN_COUNTER, { messageId });
+    const dispute_count = data.counter || 0;
+
+    if (dispute_count) {
+      chrome.storage.local.set({
+        dispute_count: data.counter || 0,
+      });
+    }
+
+    return { dispute_count };
+  } catch (err) {
+    console.error(err);
+  }
+};

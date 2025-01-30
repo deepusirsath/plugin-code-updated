@@ -8,14 +8,15 @@ import {
 import config from "./config.js";
 import {
   CHECK_EMAIL,
-  DISPUTES_RAISE,
   PLUGINS_ENABLE_DISABLE,
-  SPAM_MAIL,
   VERIFY_LICENSE,
-  PLUGIN_COUNTER,
   PENDING_STATUS_CHECK,
 } from "./src/routes/api_route.js";
-console.log("Background script is running.");
+import {
+  sendDisputeToServer,
+  checkAdminComment,
+  checkDisputeCount,
+} from "./src/pages/dispute/dispute.js";
 
 const baseUrl = config.BASE_URL;
 
@@ -28,9 +29,6 @@ let browserInfo = null;
 let operatingSystem = null;
 let macId = null;
 
-// chrome.storage.local.remove("messages", function () {
-//   console.log("Messages removed");
-// });
 async function fetchDeviceDataToSend() {
   try {
     const response = await fetch("http://localhost:3000/deviceIdentifiers");
@@ -175,8 +173,6 @@ async function getExtensionid() {
   });
 }
 
-// getExtensionid();
-
 // fetching user Ipv4 address
 async function fetchIpAddress() {
   return fetch("https://api64.ipify.org?format=json")
@@ -309,7 +305,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 const handleMailResponse = (response, sendResponse, mailService) => {
   if (response && response.emailBodyExists) {
     const responseValue = `Opened${mailService}`;
-
     sendResponse(responseValue);
   } else {
     sendResponse(mailService);
@@ -456,26 +451,24 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-// ----------------------------------------------------
-
-//Call the server for dipute count
-
-async function checkDisputeCount(messageId) {
-  const url = `${baseUrl}${PLUGIN_COUNTER}`;
+async function checkDisputeStatus(messageId, email, sendResponse, client) {
+  const url = `${baseUrl}${PENDING_STATUS_CHECK}`;
   try {
+    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    const activeTabId = tabs && tabs[0] ? tabs[0].id : null;
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messageId: messageId }),
+      body: JSON.stringify({ messageId: messageId, email: email }),
     });
     const data = await response.json();
-    const dispute_count = data.counter ? data.counter : 0;
-    if (dispute_count) {
-      chrome.storage.local.set({
-        dispute_count: data.counter || 0,
-      });
+    const serverData = data.data;
+
+    if (data?.data?.eml_status) {
+      chrome.storage.local.set({ email_status: data?.data?.eml_status });
+      handleEmailScanResponse(serverData, activeTabId, client);
+      return data?.data?.eml_status || null;
     }
-    return { dispute_count };
   } catch (err) {
     console.error(err);
   }
@@ -497,27 +490,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
 });
-
-// Send Dispute with reason to server
-async function sendDisputeToServer(reason, email, messageId) {
-  try {
-    const url = `${baseUrl}${DISPUTES_RAISE}`;
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ userComment: reason, email, msgId: messageId }),
-    });
-    if (response.ok) {
-      chrome.storage.local.set({ email_status: "Dispute" });
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error("Error sending dispute to server:", error);
-  }
-}
 
 // -----------------------------------New  Code-----------------------------
 
@@ -640,29 +612,6 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
       });
     }
   });
-}
-
-async function checkDisputeStatus(messageId, email, sendResponse, client) {
-  const url = `${baseUrl}${PENDING_STATUS_CHECK}`;
-  try {
-    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-    const activeTabId = tabs && tabs[0] ? tabs[0].id : null;
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messageId: messageId, email: email }),
-    });
-    const data = await response.json();
-    const serverData = data.data;
-
-    if (data?.data?.eml_status) {
-      chrome.storage.local.set({ email_status: data?.data?.eml_status });
-      handleEmailScanResponse(serverData, activeTabId, client);
-      return data?.data?.eml_status || null;
-    }
-  } catch (err) {
-    console.error(err);
-  }
 }
 
 // Here the content script message is received by the background script for Pending Status
@@ -942,22 +891,6 @@ chrome.runtime.onMessage.addListener((request, messageId, sendResponse) => {
     return true;
   }
 });
-
-async function checkAdminComment(messageId, email) {
-  const url = `${baseUrl}/update-email-details/`;
-  try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messageId: messageId, email: email }),
-    });
-    const data = await response.json();
-    return data?.data[0]?.admin_comment || null;
-  } catch (err) {
-    console.error(err);
-    return null;
-  }
-}
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const client = message.client;
