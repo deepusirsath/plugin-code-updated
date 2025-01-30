@@ -50,9 +50,9 @@ const getViewDetailOfDisputeMail = async (msg_id) => {
 };
 
 const getAllDisputeMail = async (page = 1) => {
-  showLoader();
   const currentEmail = getCurrentEmail();
   if (currentEmail) {
+    showLoader();
     try {
       const requestData = {
         emailId: currentEmail,
@@ -65,16 +65,18 @@ const getAllDisputeMail = async (page = 1) => {
       hideLoader();
       return response;
     } catch (error) {
-      displayError(error);
       hideLoader();
+      displayError(error);
     }
+    hideLoader();
   }
+  
 };
 
 const filterDisputeMails = async (page = 1, searchQuery) => {
-  showLoader();
   const currentEmail = getCurrentEmail();
   if (currentEmail) {
+    showLoader();
     try {
       const requestData = {
         receiver_email: currentEmail,
@@ -91,6 +93,7 @@ const filterDisputeMails = async (page = 1, searchQuery) => {
       hideLoader();
       displayError(error);
     }
+    hideLoader();
   }
 };
 

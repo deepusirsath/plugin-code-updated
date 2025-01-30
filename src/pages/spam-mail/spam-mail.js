@@ -50,8 +50,8 @@ const getViewDetailOfSpamMail = async (msg_id) => {
 
 const getAllSpamMail = async (page = 1) => {
   const currentEmail = getCurrentEmail();
-  showLoader();
   if (currentEmail) {
+    showLoader();
     try {
       const requestData = {
         emailId: currentEmail,
@@ -64,13 +64,14 @@ const getAllSpamMail = async (page = 1) => {
       displayError(error);
       hideLoader();
     }
+    hideLoader();
   }
 };
 
 const filterSpamMails = async (searchQuery, page = 1) => {
-  showLoader();
   const currentEmail = getCurrentEmail();
   if (currentEmail) {
+    showLoader();
     try {
       const requestData = {
         receiver_email: currentEmail,
@@ -87,6 +88,7 @@ const filterSpamMails = async (searchQuery, page = 1) => {
       hideLoader();
       displayError(error);
     }
+    hideLoader();
   }
 };
 
