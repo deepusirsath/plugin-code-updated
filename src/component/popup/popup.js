@@ -75,49 +75,8 @@ async function handleEmailPageResponse(response) {
   }
 }
 
-
-
-// Handle the email page check response
-// async function handleEmailPageResponse(response) {
-//   if (isEmailPage(response)) {
-//     try {
-//       const isUserLoggedIn = false;
-//       if (isUserLoggedIn) {
-//         await loadAuthenticatedComponents();
-//         const detailsBtn = document.getElementById("details-btn");
-//         if (detailsBtn) {
-//           detailsBtn.click();
-//           detailsBtn.closest(".menu-item").classList.add("active");
-//         }
-//       } else {
-//         await loadRegistrationComponent();
-//       }
-//     } catch (error) {
-//       displayError(error);
-//     }
-//   } else {
-//     loadComponent({
-//       componentName: COMPONENTS.HEADER,
-//       basePath: BASEPATH.COMPONENT,
-//       targetId: TARGET_ID.HEADER,
-//     });
-//     loadComponent({
-//       componentName: COMPONENTS.FOOTER,
-//       basePath: BASEPATH.COMPONENT,
-//       targetId: TARGET_ID.FOOTER,
-//     });
-
-//     loadComponent({
-//       componentName: COMPONENTS.EMAIL_PAGE_NOT_FOUND,
-//       basePath: BASEPATH.COMPONENT,
-//       targetId: TARGET_ID.DATA_OUTPUT,
-//     });
-//   }
-// }
-
 document.addEventListener("DOMContentLoaded", async () => {
   chrome.runtime.sendMessage({ action: "checkEmailPage" }, (response) => {
     handleEmailPageResponse(response);
   });
 });
- 

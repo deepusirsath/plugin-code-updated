@@ -57,20 +57,6 @@ document.getElementById("submit").addEventListener("click", async function () {
     chrome: document.getElementById("chrome").value,
   };
 
-  // chrome.storage.local.get(["deviceData"], async (result) => {
-  //   if (result?.deviceData) {
-  //     const {
-  //       arch,
-  //       hostname,
-  //       macAddress,
-  //       osPlatform,
-  //       osRelease,
-  //       osType,
-  //       serialNumber,
-  //       uid,
-  //     } = result.deviceData;
-  //   }
-  // });
 
   try {
     const response = await postData("/register", {
@@ -96,7 +82,7 @@ document.getElementById("submit").addEventListener("click", async function () {
           console.error("Failed to reload the page");
         }
       });
-    } 
+    }
     else {
       alert(response.message || "Failed to submit form");
     }

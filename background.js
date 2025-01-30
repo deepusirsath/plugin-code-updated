@@ -64,7 +64,7 @@ chrome.storage.local.get(null, function (data) {
   console.log("Data retrieved from local storage:", data);
 });
 
-chrome.storage.local.set({ registration: true });
+//chrome.storage.local.set({ registration: true });
 
 // Check for registration if not registered then called backend for true and false response
 function checkRegistration() {
@@ -84,7 +84,7 @@ function checkRegistration() {
         .then((response) => response.json())
         .then((data) => {
           if (data.success) {
-            // Server responded with true, store registration status
+          //  Server responded with true, store registration status
             chrome.storage.local.set({ registration: true }, () => {
               if (chrome.runtime.lastError) {
                 console.error(
