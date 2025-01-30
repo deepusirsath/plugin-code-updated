@@ -1,7 +1,7 @@
 import { authenticatedRoutes } from "/src/routes/authenticated_route.js";
+import { UnauthenticatedRoute } from "/src/routes/unauthenticated_route.js";
 import { displayError } from "/src/helper/display_error.js";
 import { loadComponent } from "/src/helper/content_loader_helper.js";
-import { UnauthenticatedRoute } from "/src/routes/unauthenticated_route.js";
 import { COMPONENTS } from "/src/constant/component.js";
 import { BASEPATH } from "/src/constant/basepath.js";
 import { TARGET_ID } from "/src/constant/target_id.js";

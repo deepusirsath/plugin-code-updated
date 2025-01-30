@@ -193,5 +193,3 @@ document.addEventListener("componentLoaded", (event) => {
     loadSpamMailComponent(1);
   }
 });
-
-loadSpamMailComponent(1);

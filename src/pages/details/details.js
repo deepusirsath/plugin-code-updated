@@ -34,10 +34,10 @@ export const getAllDetails = async () => {
   }
 };
 
-document.addEventListener("componentLoaded", (event) => {
-  if (event.detail.componentName === COMPONENTS.DETAILS) {
-    getAllDetails();
-  }
-});
+// document.addEventListener("componentLoaded", (event) => {
+//   if (event.detail.componentName === COMPONENTS.DETAILS) {
+//     getAllDetails();
+//   }
+// });
 
-getAllDetails();
+// getAllDetails();
