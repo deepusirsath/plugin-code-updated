@@ -13,10 +13,10 @@
 
 .popup-content {
   background: white;
-  padding: 15px;
+  /* padding: 15px; */
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  max-width: 400px;
+  max-width: 413px;
   width: 75%;
   position: relative;
   word-break: break-word;
@@ -31,7 +31,7 @@
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid #eee;
-  padding-bottom: 10px;
+  padding: 10px;
 }
 
 .close-popup {
@@ -44,12 +44,17 @@
 
 .detail-row {
   margin-bottom: 15px;
+  padding-left: 8px;
+  display: flex;
 }
 
 .detail-row label {
+  font-size: 13px;
   font-weight: bold;
-  display: inline-block;
-  width: 80px;
+  /* display: inline-block; */
+  min-width: 60px;
+  width: 60px;
+  flex-shrink: 0;
   color: #555;
 }
 
@@ -67,10 +72,11 @@
 }
 
 .remarks-detail{
-  padding: 14px 18px;
+  padding: 13px 18px;
   color: #d00;
   background: linear-gradient(45deg, #fff0f0, #ffe6e6);
-  margin-bottom: 15px;
+  /* margin-bottom: 6px; */
+  margin: 5px;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
   border: 2px solid #ff4444;
