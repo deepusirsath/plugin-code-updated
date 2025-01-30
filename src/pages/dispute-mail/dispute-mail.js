@@ -13,7 +13,7 @@ import {
   getCurrentEmail,
   getEmailIds,
 } from "/src/helper/get_email_from_local_storage.js";
-import { hideLoader } from "/src/component/loader/loader.js";
+import { showLoader, hideLoader } from "/src/component/loader/loader.js";
 import { handleRefresh } from "/src/component/no_data_found/no_data_found.js";
 import {
   GET_DISPUTE_RAISE_DATA,
@@ -50,6 +50,7 @@ const getViewDetailOfDisputeMail = async (msg_id) => {
 };
 
 const getAllDisputeMail = async (page = 1) => {
+  showLoader();
   const currentEmail = getCurrentEmail();
   if (currentEmail) {
     try {
@@ -61,14 +62,17 @@ const getAllDisputeMail = async (page = 1) => {
         `${GET_DISPUTE_RAISE_DATA}?page=${page}`,
         requestData
       );
+      hideLoader();
       return response;
     } catch (error) {
       displayError(error);
+      hideLoader();
     }
   }
 };
 
 const filterDisputeMails = async (page = 1, searchQuery) => {
+  showLoader();
   const currentEmail = getCurrentEmail();
   if (currentEmail) {
     try {
@@ -81,8 +85,10 @@ const filterDisputeMails = async (page = 1, searchQuery) => {
         `${FILTER_DISPUTE_MAIL}?page=${page}`,
         requestData
       );
+      hideLoader();
       return response;
     } catch (error) {
+      hideLoader();
       displayError(error);
     }
   }

@@ -12,7 +12,7 @@ import {
   getCurrentEmail,
   getEmailIds,
 } from "/src/helper/get_email_from_local_storage.js";
-import { hideLoader } from "/src/component/loader/loader.js";
+import { showLoader, hideLoader } from "/src/component/loader/loader.js";
 import { handleRefresh } from "/src/component/no_data_found/no_data_found.js";
 import {
   SPAM_MAIL,
@@ -50,6 +50,7 @@ const getViewDetailOfSpamMail = async (msg_id) => {
 
 const getAllSpamMail = async (page = 1) => {
   const currentEmail = getCurrentEmail();
+  showLoader();
   if (currentEmail) {
     try {
       const requestData = {
@@ -57,14 +58,17 @@ const getAllSpamMail = async (page = 1) => {
         page: page,
       };
       const response = await postData(`${SPAM_MAIL}?page=${page}`, requestData);
+      hideLoader();
       return response;
     } catch (error) {
       displayError(error);
+      hideLoader();
     }
   }
 };
 
 const filterSpamMails = async (searchQuery, page = 1) => {
+  showLoader();
   const currentEmail = getCurrentEmail();
   if (currentEmail) {
     try {
@@ -77,8 +81,10 @@ const filterSpamMails = async (searchQuery, page = 1) => {
         `${FILTER_SPAM_MAIL}?page=${page}`,
         requestData
       );
+      hideLoader();
       return response;
     } catch (error) {
+      hideLoader();
       displayError(error);
     }
   }
@@ -128,6 +134,7 @@ const attachViewButtonListeners = (currentPage) => {
 
 const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
   await getEmailIds();
+
   try {
     document.getElementById("noDataFound").innerHTML = "";
     const spamMailResponse =

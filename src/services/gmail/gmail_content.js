@@ -739,24 +739,63 @@ button.addEventListener("mouseout", () => {
         </svg>`;
         break;
    
-    case "pending":
-      message.innerText =
-        "Your request is being processed... Please hold on while we block the email currently being processed.";
-      alertContainer.style.border = "4px solid #4C9ED9"; // Softer blue border
-      alertContainer.style.backgroundColor = "#fff"; // Light background for a softer look
-      iconHtml = `
-          <svg width="80" height="30" viewBox="0 0 80 20">
-              <circle cx="20" cy="10" r="5" fill="#4C9ED9">
-                  <animate attributeName="cy" values="10;5;10" dur="0.6s" repeatCount="indefinite" begin="0s" />
-              </circle>
-              <circle cx="40" cy="10" r="5" fill="#4C9ED9">
-                  <animate attributeName="cy" values="10;5;10" dur="0.6s" repeatCount="indefinite" begin="0.2s" />
-              </circle>
-              <circle cx="60" cy="10" r="5" fill="#4C9ED9">
-                  <animate attributeName="cy" values="10;5;10" dur="0.6s" repeatCount="indefinite" begin="0.4s" />
-              </circle>
-          </svg>`;
-      break;
+        case "pending":
+          message.innerText =
+            "We're processing your request.... Please wait for the procedure to be finished.";
+    
+          alertContainer.style.background =
+            "linear-gradient(145deg, #ffffff, #f0f8ff)";
+          alertContainer.style.border = "1px solid rgba(0, 123, 255, 0.15)";
+          alertContainer.style.borderLeft = "6px solid #007bff";
+          alertContainer.style.boxShadow =
+            "0 8px 20px rgba(0, 123, 255, 0.06), 0 4px 8px rgba(0, 0, 0, 0.08)";
+          alertContainer.style.borderRadius = "12px";
+    
+          iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
+            <defs>
+                <linearGradient id="pendingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#007bff;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#0056b3;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            
+            <!-- Outer rotating circle -->
+            <circle cx="24" cy="24" r="20" 
+                    stroke="url(#pendingGradient)" 
+                    stroke-width="3" 
+                    fill="none" 
+                    stroke-dasharray="31.4 31.4">
+                <animateTransform 
+                    attributeName="transform"
+                    type="rotate"
+                    from="0 24 24"
+                    to="360 24 24"
+                    dur="2.5s"
+                    repeatCount="indefinite"
+                    calcMode="spline"
+                    keySplines="0.4 0 0.2 1"/>
+            </circle>
+            
+            <!-- Inner pulsing dots -->
+            <g fill="#007bff">
+                <circle cx="24" cy="24" r="2">
+                    <animate attributeName="opacity"
+                        values="0.3;1;0.3" dur="1.5s"
+                        repeatCount="indefinite" begin="0s"/>
+                </circle>
+                <circle cx="32" cy="24" r="2">
+                    <animate attributeName="opacity"
+                        values="0.3;1;0.3" dur="1.5s"
+                        repeatCount="indefinite" begin="0.5s"/>
+                </circle>
+                <circle cx="16" cy="24" r="2">
+                    <animate attributeName="opacity"
+                        values="0.3;1;0.3" dur="1.5s"
+                        repeatCount="indefinite" begin="1s"/>
+                </circle>
+            </g>
+        </svg>`;
+          break;
     default:
       console.log("Invalid key for showAlert");
       return;
