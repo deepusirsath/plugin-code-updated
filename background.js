@@ -64,7 +64,7 @@ chrome.storage.local.get(null, function (data) {
   console.log("Data retrieved from local storage:", data);
 });
 
-//chrome.storage.local.set({ registration: true });
+chrome.storage.local.set({ registration: true });
 
 // Check for registration if not registered then called backend for true and false response
 function checkRegistration() {
@@ -84,7 +84,7 @@ function checkRegistration() {
         .then((response) => response.json())
         .then((data) => {
           if (data.success) {
-          //  Server responded with true, store registration status
+            //  Server responded with true, store registration status
             chrome.storage.local.set({ registration: true }, () => {
               if (chrome.runtime.lastError) {
                 console.error(
@@ -218,7 +218,7 @@ function userBrowserInfo() {
       if ((tem = ua.match(/version\/(\d+)/i)) != null) M.splice(1, 1, tem[1]);
       return M.join(" ");
     })();
-    console.log( "something here",navigator.sayswho);
+    console.log("something here", navigator.sayswho);
     // userData.push({type: 'userAgent', value: navigator.sayswho});
     browserInfo = navigator.sayswho;
     chrome.storage.local.set({ browserInfo: navigator.sayswho }, () => {
@@ -452,61 +452,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-// Received message from popup script to show all spam mails in a list
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  if (request.action == "displayAllSpams") {
-    console.log("received response form popup to show all spams");
-    displayAllSpamMails(user_email);
-  }
-});
-
-async function displayAllSpamMails() {
-  try {
-    if (!pluginId) {
-      pluginId = await getExtensionid();
-    }
-    if (!user_email) {
-      console.log("Currently email is null", user_email);
-      const data = await new Promise((resolve) => {
-        chrome.storage.local.get("user_email", function (data) {
-          resolve(data);
-        });
-      });
-
-      if (data.user_email) {
-        user_email = data.user_email;
-        console.log("Retrieved email from storage:", user_email);
-      }
-    }
-
-    let sendingData = [user_email, pluginId];
-    console.log("data[1][3] , data[1][8]", sendingData);
-    console.log(JSON.stringify({ user_email, pluginId }));
-    const url = baseUrl + SPAM_MAIL;
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ emailId: user_email, pluginId }),
-    });
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
-
-    const data = await response.json();
-
-    console.log(data[1][3], data[1][10]);
-
-    // Handle the response data here
-    console.log("Server response:", data);
-    chrome.runtime.sendMessage({ action: "spamTables", content: data });
-  } catch (error) {
-    // Handle errors here
-    console.error("Error fetching data:", error.message);
-  }
-}
-
 // ----------------------------------------------------
 
 //Call the server for dipute count
@@ -632,70 +577,18 @@ async function sendEmlToServer(messageId, blob = null, client, user_email) {
   }
 }
 
-// Function to handle the response from the server
-// function handleEmailScanResponse(serverData, activeTabId, client) {
-//   const resStatus = serverData.eml_status || serverData.email_status;
-//   const messId = serverData.messageId || serverData.msg_id;
-//   let unsafeReason = serverData.unsafe_reasons || " ";
-//   console.log("unsafe reason Response:", unsafeReason);
-//   console.log("Received Message ID from Server:", messId, resStatus, unsafeReason);
-
-//   if (typeof resStatus === "undefined" || typeof messId === "undefined") {
-//     chrome.runtime.sendMessage({
-//       action: "erroRecievedFromServer",
-//       client: client,
-//     });
-//   } 
-//   else {
-//     chrome.storage.local.set({ email_status: resStatus });
-//   }
-//   chrome.storage.local.get("messages", function (result) {
-//     let messages = result.messages ? JSON.parse(result.messages) : {};
-//     messages[messId] = resStatus;
-//     chrome.storage.local.set({ messages: JSON.stringify(messages) });
-//     console.log("message iD okokokokok: ",currentMessageId);
-//     if (currentMessageId == messId) {
-//       console.log("Current Message Id matches");
-//       const statusActions = {
-//         unsafe: "blockUrls",
-//         Unsafe: "blockUrls",
-//         safe: "unblock",
-//         Safe: "unblock",
-//         pending: "pending",
-//         Pending: "pending",
-//       };
-
-//       const action = statusActions[resStatus];
-//       console.log("Action to be taken:", action);
-//       if (action) {
-//         chrome.tabs
-//           .sendMessage(activeTabId, { action, client, unsafeReason })
-//           .then((response) => {
-//             console.log(
-//               `Message sent to content script for ${action}:`,
-//               response
-//             );
-//           })
-//           .catch((error) => {
-//             console.error("Error sending message to content script:", error);
-//           });
-//       }
-//     } else {
-//       console.log("Response received for different message ID");
-//       chrome.runtime.sendMessage({
-//         action: "erroRecievedFromServer",
-//         client: client,
-//       });
-//     }
-//   });
-// }
 function handleEmailScanResponse(serverData, activeTabId, client) {
   const resStatus = serverData.eml_status || serverData.email_status;
   const messId = serverData.messageId || serverData.msg_id;
   let unsafeReason = serverData.unsafe_reasons || " ";
 
   console.log("unsafe reason Response:", unsafeReason);
-  console.log("Received Message ID from Server:", messId, resStatus, unsafeReason);
+  console.log(
+    "Received Message ID from Server:",
+    messId,
+    resStatus,
+    unsafeReason
+  );
 
   if (typeof resStatus === "undefined" || typeof messId === "undefined") {
     chrome.runtime.sendMessage({
@@ -708,20 +601,20 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
 
   chrome.storage.local.get("messages", function (result) {
     let messages = result.messages ? JSON.parse(result.messages) : {};
-    
+
     // Store both status and unsafeReason for each messageId
     messages[messId] = {
       status: resStatus,
-      unsafeReason: unsafeReason
+      unsafeReason: unsafeReason,
     };
 
     chrome.storage.local.set({ messages: JSON.stringify(messages) });
-    
+
     console.log("message iD okokokokok: ", currentMessageId);
 
     if (currentMessageId == messId) {
       console.log("Current Message Id matches");
-      
+
       const statusActions = {
         unsafe: "blockUrls",
         Unsafe: "blockUrls",
@@ -738,7 +631,10 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
         chrome.tabs
           .sendMessage(activeTabId, { action, client, unsafeReason })
           .then((response) => {
-            console.log(`Message sent to content script for ${action}:`, response);
+            console.log(
+              `Message sent to content script for ${action}:`,
+              response
+            );
           })
           .catch((error) => {
             console.error("Error sending message to content script:", error);
@@ -753,66 +649,6 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
     }
   });
 }
-
-// function handleEmailScanResponse(serverData, activeTabId, client) {
-//   const resStatus = serverData.eml_status || serverData.email_status;
-//   const messId = serverData.messageId || serverData.msg_id;
-//   console.log("Received Message ID from Server:", messId, resStatus);
-
-//   if (typeof resStatus === "undefined" || typeof messId === "undefined") {
-//     chrome.runtime.sendMessage({
-//       action: "erroRecievedFromServer",
-//       client: client,
-//     });
-//   } else {
-//     chrome.storage.local.set({ email_status: resStatus });
-//   }
-
-//   chrome.storage.local.get("messages", function (result) {
-//     let messages = result.messages ? JSON.parse(result.messages) : {};
-//     messages[messId] = resStatus;
-//     chrome.storage.local.set({ messages: JSON.stringify(messages) });
-//     console.log(
-//       "message iD cfvgbhnjkmlxrcfvygbhunjmkcfvgbhnjmk: ",
-//       currentMessageId
-//     );
-//     if (currentMessageId == messId) {
-//       console.log("Current Message Id matches");
-//       const statusActions = {
-//         unsafe: "blockUrls",
-//         Unsafe: "blockUrls",
-//         safe: "unblock",
-//         Safe: "unblock",
-//         pending: "pending",
-//         Pending: "pending",
-//       };
-
-//       const action = statusActions[resStatus];
-//       console.log("Action to be taken:", action);
-//       if (action) {
-//         chrome.tabs
-//           .sendMessage(activeTabId, { action, client })
-//           .then((response) => {
-//             console.log(
-//               `Message sent to content script for ${action}:`,
-//               response
-//             );
-//           })
-//           .catch((error) => {
-//             console.error("Error sending message to content script:", error);
-//           });
-//       }
-//     } else {
-//       console.log("Response received for different message ID");
-//       chrome.runtime.sendMessage({
-//         action: "erroRecievedFromServer",
-//         client: client,
-//       });
-//     }
-//   });
-// }
-
-
 
 async function checkDisputeStatus(messageId, email, sendResponse, client) {
   const url = `${baseUrl}${PENDING_STATUS_CHECK}`;
@@ -900,29 +736,8 @@ async function checkPendingResponseStatus(messageId, email, client) {
     const serverData = data.data;
     console.log("data is from server in CheckPending", data);
     console.log("Data.code for Pending request ", data.code);
-    // if (data.code === 404) {
-    //   console.log("Response received from the server is passed and handling response");
-    //   chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-    //     chrome.tabs.sendMessage(tabs[0].id, {
-    //       action: "EmailNotFoundInPendingRequest",
-    //       code: 404,
-    //       messageId: messageId
-    //     });
-    //   });
-    //   return;
-    // }
-    // else{
 
-    console.log(
-      "Response received from the server is passed and handling response Pending Request: ",
-      serverData
-    );
-    // console.log("eml status for Pending Request: ", serverData.eml_status);
-    // console.log("Message ID for Pending Request:", serverData.messageId);
-    // console.log("Email ID for Pending Request:", serverData.email);
-    // console.log("client for Pending Request:", client);
     handleEmailScanResponse(serverData, activeTabId, client);
-    // }
   } catch (error) {
     console.log("Error in checkPendingResponseStatus:", error);
   }
@@ -930,36 +745,18 @@ async function checkPendingResponseStatus(messageId, email, client) {
 
 // ________________________________________ GMAIL ______________________________________________
 
-// chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-//   // Check for both URL changes and complete page loads
-//   if (changeInfo.url || changeInfo.status === 'complete') {
-//     const urlToCheck = changeInfo.url || tab.url;
-//     const matchedKeyword = checkGmailUrl(urlToCheck);
-
-//     if (matchedKeyword) {
-//       console.log(`Keyword detected: ${matchedKeyword}`);
-//       chrome.tabs.sendMessage(
-//         tabId,
-//         { action: "GmailDetectedForExtraction" },
-//         (response) => {
-//           console.log("Response from content script:", response);
-//         }
-//       );
-//     }
-//   }
-// });
 let lastProcessedTime = 0;
 const DEBOUNCE_DELAY = 100; // milliseconds
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   const currentTime = Date.now();
-  
-  if (changeInfo.url || changeInfo.status === 'complete') {
+
+  if (changeInfo.url || changeInfo.status === "complete") {
     // Prevent duplicate executions within the debounce delay
     if (currentTime - lastProcessedTime < DEBOUNCE_DELAY) {
       return;
     }
-    
+
     lastProcessedTime = currentTime;
     const urlToCheck = changeInfo.url || tab.url;
     const matchedKeyword = checkGmailUrl(urlToCheck);
@@ -1036,7 +833,7 @@ async function emlExtractionGmail(emlUrl, currentMessageId, emailId) {
     console.log("Email Blob:", emlBlob);
 
     if (emlBlob) {
-      console.log("gmail emailContent ", emlBlob)
+      console.log("gmail emailContent ", emlBlob);
       await sendEmlToServer(currentMessageId, emlBlob, "gmail", emailId);
       console.log("Email Blob sent to server");
     }
@@ -1106,8 +903,6 @@ async function emlExtractionYahoo(emlUrl, currentMessageId, userEmail) {
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  // console.log('Background script received message:', message);
-  // console.log("Message received from content.js on Yahoo Mail:");
   if (message.action === "sendYahooData") {
     let userEmail = message.userEmail;
     currentMessageId = message.lastMessageId;
@@ -1208,6 +1003,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           error: error.message,
         });
       });
-    return true; // Keep the message channel open for async response
+    return true; 
   }
 });
