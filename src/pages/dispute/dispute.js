@@ -71,6 +71,7 @@ export function initializeDisputeForm(disputeData) {
       const messageId = document.getElementById("messageId").textContent;
       const receiver_email = await chrome.storage.local.get("receiver_email");
       sendDispute(reasonText, messageId, receiver_email?.receiver_email);
+      disableSubmitButton();
     } else {
       alert("Dispute limit reached. You cannot submit more disputes.");
       window.close();

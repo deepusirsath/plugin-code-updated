@@ -22,7 +22,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "GmailDetectedForExtraction") {
     console.log("Message received in content script - Gmail detected");
 
-    chrome.storage.local.set({ registration: true });
     setTimeout(()=>{
       let url = window.location.href;
       if (url.includes("?compose=")) {
