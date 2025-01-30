@@ -173,8 +173,6 @@ async function getExtensionid() {
   });
 }
 
-// getExtensionid();
-
 // fetching user Ipv4 address
 async function fetchIpAddress() {
   return fetch("https://api64.ipify.org?format=json")
@@ -307,7 +305,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 const handleMailResponse = (response, sendResponse, mailService) => {
   if (response && response.emailBodyExists) {
     const responseValue = `Opened${mailService}`;
-
     sendResponse(responseValue);
   } else {
     sendResponse(mailService);
