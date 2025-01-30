@@ -28,7 +28,7 @@ export const setCurrentSearchQuery = (value) => {
   currentSearchQuery = value;
 };
 
-const showPopup = async (msg_id, currentPage) => {
+const showPopup = async (msg_id) => {
   const viewDetailData = await getViewDetailOfDisputeMail(msg_id);
   createViewDetail(viewDetailData, () => {});
 };
@@ -128,10 +128,10 @@ const initializeSearchHandlers = () => {
   }
 };
 
-const attachViewButtonListeners = (currentPage) => {
+const attachViewButtonListeners = () => {
   document.querySelectorAll(".view-button").forEach((button) => {
     button.addEventListener("click", () => {
-      showPopup(button.dataset.msg_id, currentPage);
+      showPopup(button.dataset.msg_id);
     });
   });
 };
@@ -195,7 +195,7 @@ const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
         loadDisputeMailComponent(newPage, currentSearchQuery),
     });
 
-    attachViewButtonListeners(page);
+    attachViewButtonListeners();
   } catch (error) {
     hideLoader();
     displayError(error);
