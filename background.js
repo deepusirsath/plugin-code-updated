@@ -19,7 +19,6 @@ console.log("Background script is running.");
 
 const baseUrl = config.BASE_URL;
 
-let user_email = null;
 let currentMessageId = null; //Contains latest message Id which will send to server
 let latitude = null;
 let longitude = null;
@@ -544,16 +543,6 @@ async function sendEmlToServer(messageId, blob = null, client, user_email) {
 
     const url = baseUrl + CHECK_EMAIL;
 
-    // Start a timeout for 4 seconds to send the delayed response message
-    // const delayTimer = setTimeout(() => {
-    //   console.log("Server response is delayed by 4 seconds.");
-    //   chrome.tabs.sendMessage(activeTabId, {
-    //     action: "responseDelayStatus",
-    //     client: client,
-    //   });
-    //   console.log("Server response is delayed by 4 seconds.");
-    // }, 8000);
-
     // Make the server request
     const uploadResponse = await fetch(url, {
       method: "POST",
@@ -609,8 +598,6 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
     };
 
     chrome.storage.local.set({ messages: JSON.stringify(messages) });
-
-    console.log("message iD okokokokok: ", currentMessageId);
 
     if (currentMessageId == messId) {
       console.log("Current Message Id matches");
@@ -847,6 +834,7 @@ async function emlExtractionGmail(emlUrl, currentMessageId, emailId) {
 // Listen for messages from the content script OF OUTLOOK and store messageId and eml data
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  let user_email = null;
   if (message.action === "outlookEmlContent") {
     const emailContent = message.emailContent;
     currentMessageId = message.dataConvid;
@@ -1003,6 +991,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           error: error.message,
         });
       });
-    return true; 
+    return true;
   }
 });
