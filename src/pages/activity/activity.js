@@ -154,8 +154,8 @@ const getGraphData = async () => {
   await getEmailIds();
   const currentEmail = getCurrentEmail();
   if (currentEmail) {
+    showLoader();
     try {
-      showLoader();
       const requestData = {
         emailId: currentEmail,
       };
@@ -171,6 +171,7 @@ const getGraphData = async () => {
       hideLoader();
       displayError(error);
     }
+    hideLoader();
   }
 };
 
