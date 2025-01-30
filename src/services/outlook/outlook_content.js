@@ -110,7 +110,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     } else {
       sendResponse({
         emailBodyExists: false,
-        error: "did't grt the messasge Id",
+        error: "did't get the messasge Id",
       });
     }
   }
@@ -199,83 +199,91 @@ function showLoadingScreen() {
   const loadingScreen = document.createElement("div");
   loadingScreen.id = "loading-screen";
 
-  // Styles for the loading screen
+  // Professional Dark Glass Background
   Object.assign(loadingScreen.style, {
-    pointerEvents: "all", // Ensure this captures all mouse events
+    pointerEvents: "none",
     position: "fixed",
     top: "0",
     left: "0",
     width: "100%",
     height: "100%",
-    backgroundColor: "rgba(0, 0, 0, 0.8)",
+    background: "rgba(0, 0, 0, 0.6)", // Same opacity
+    backdropFilter: "blur(12px)", // Glass effect
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    color: "#fff",
+    color: "#ffffff",
     zIndex: "2147483647",
     fontFamily: "Segoe UI, sans-serif",
     textAlign: "center",
   });
 
-  // Prevent any mouse interaction during loading screen
-  [
-    "click",
-    "mousemove",
-    "mousedown",
-    "mouseup",
-    "mouseover",
-    "mouseenter",
-    "mouseleave",
-  ].forEach((eventType) => {
-    loadingScreen.addEventListener(eventType, (e) => {
-      e.stopPropagation(); // Stop events from propagating
-      e.preventDefault(); // Prevent default action
-    });
+  // Circular Loader (Professional)
+  const loader = document.createElement("div");
+  Object.assign(loader.style, {
+    width: "50px",
+    height: "50px",
+    border: "4px solid rgba(255, 255, 255, 0.2)", // Light outline
+    borderTop: "4px solid #0078d4", // Professional blue color
+    borderRadius: "50%",
+    animation: "spin 1s linear infinite",
   });
 
-  // Create a morphing shape animation
-  const morphingShape = document.createElement("div");
-  Object.assign(morphingShape.style, {
-    width: "70px",
-    height: "70px",
-    backgroundColor: "#3498db",
-    borderRadius: "15%",
-    animation: "morph 3s infinite ease-in-out",
-  });
-
-  // Create a fading text message
+  // Loading Text (Minimal & Elegant)
   const loadingText = document.createElement("p");
-  loadingText.innerText = "Please wait...";
+  loadingText.innerText = "Processing...";
   Object.assign(loadingText.style, {
-    marginTop: "30px",
-    fontSize: "20px",
-    fontWeight: "bold",
-    color: "#ffffff",
-    animation: "fade 3s infinite alternate ease-in-out",
+    marginTop: "15px",
+    fontSize: "16px",
+    fontWeight: "500",
+    color: "#ddd",
   });
 
-  // Append morphing shape and text to the loading screen
-  loadingScreen.appendChild(morphingShape);
-  loadingScreen.appendChild(loadingText);
+  // Subtle Progress Bar
+  const progressBar = document.createElement("div");
+  Object.assign(progressBar.style, {
+    marginTop: "20px",
+    width: "120px",
+    height: "4px",
+    borderRadius: "50px",
+    background: "rgba(255, 255, 255, 0.1)", // Light transparency
+    position: "relative",
+    overflow: "hidden",
+  });
 
+  // Animated Fill for Progress Bar
+  const progressFill = document.createElement("div");
+  Object.assign(progressFill.style, {
+    width: "40%",
+    height: "100%",
+    background: "#0078d4", // Professional blue
+    position: "absolute",
+    left: "-40%",
+    animation: "progressMove 1.5s infinite ease-in-out",
+  });
+
+  progressBar.appendChild(progressFill);
+  loadingScreen.appendChild(loader);
+  loadingScreen.appendChild(loadingText);
+  loadingScreen.appendChild(progressBar);
   document.body.appendChild(loadingScreen);
 
-  // Adding keyframes for morphing shape animation
+  // Adding keyframes for smooth animations
   const styleSheet = document.styleSheets[0];
-  const morphKeyframes = `@keyframes morph {
-      0% { border-radius: 15%; transform: rotate(0deg); }
-      33% { border-radius: 50%; transform: rotate(120deg); }
-      66% { border-radius: 0; transform: rotate(240deg); }
-      100% { border-radius: 15%; transform: rotate(360deg); }
-    }`;
-  const fadeKeyframes = `@keyframes fade {
-      0% { opacity: 1; }
-      100% { opacity: 0.5; }
+
+  const spinKeyframes = `@keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }`;
 
-  styleSheet.insertRule(morphKeyframes, styleSheet.cssRules.length);
-  styleSheet.insertRule(fadeKeyframes, styleSheet.cssRules.length);
+  const progressKeyframes = `@keyframes progressMove {
+      0% { left: -40%; }
+      100% { left: 100%; }
+    }`;
+
+  styleSheet.insertRule(spinKeyframes, styleSheet.cssRules.length);
+  styleSheet.insertRule(progressKeyframes, styleSheet.cssRules.length);
 }
 
 function hideTargetedLoadingScreen(loadingOverlay) {
@@ -291,16 +299,6 @@ function hideLoadingScreen() {
   }
 }
 
-// Function to show the loading screen for 5 seconds
-function showLoadingScreenFor5Seconds() {
-  return new Promise((resolve) => {
-    showLoadingScreen();
-    setTimeout(() => {
-      hideLoadingScreen();
-      resolve();
-    }, 5000);
-  });
-}
 
 // Function to execute email extraction code with loading screen
 
@@ -430,151 +428,7 @@ function setupClickListener(attempts = 500) {
               shouldApplyPointerEvents = false;
               blockEmailBody();
               return;
-            } 
-            // else if (dataConvid) {
-            //   console.log("data-convid found, running email extraction");
-            //   // Retrieve the "messages" object from chrome.storage.local
-            //   chrome.storage.local.get("messages", function (result) {
-            //     let messages = JSON.parse(result.messages || "{}"); // Ensure messages is an object
-            //     console.log(
-            //       "messageId already stored___________________",
-            //       messages
-            //     );
-
-            //     if (messages[dataConvid]) {
-            //       console.log(
-            //         "data-convid found in local storage yehhhhhhhhhhhhhhhhhhhhhhhhh"
-            //       );
-            //       console.log("Thread ID status:", messages[dataConvid]);
-            //       if (messages[dataConvid] === "safe") {
-            //         console.log("Local Storage status", messages[dataConvid]);
-            //         shouldApplyPointerEvents = false;
-            //         blockEmailBody();
-            //         showAlert("safe");
-            //         // alert('Safe Environment');
-            //         console.log(
-            //           `Removing blocking layer because message is ${messages[dataConvid]}`
-            //         );
-            //       } else if (messages[dataConvid] === "unsafe") {
-            //         console.log("Local Storage status", messages[dataConvid]);
-            //         console.log(
-            //           `Applying blocking layer because message is ${messages[dataConvid]}`
-            //         );
-            //         showAlert("unsafe");
-            //         // alert('Unsafe Environment');
-            //         shouldApplyPointerEvents = true;
-            //         blockEmailBody();
-            //       } else if (messages[dataConvid] === "pending") {
-            //         console.log("Pending status in Local Storage");
-            //         showAlert("pending");
-            //         chrome.storage.local.get("outlook_email", (data) => {
-            //           console.log(
-            //             "Email Id is stored in the Local",
-            //             data.outlook_email
-            //           );
-            //           console.log(
-            //             "send response to background for pending status in outlook ============================="
-            //           );
-            //           chrome.runtime.sendMessage({
-            //             action: "pendingStatusOutlook",
-            //             emailId: data.outlook_email,
-            //             messageId: dataConvid,
-            //           });
-            //           shouldApplyPointerEvents = true;
-            //           blockEmailBody();
-            //         });
-            //       } else {
-            //         console.log(
-            //           "Applying blocking layer because message is not Present in Local storage"
-            //         );
-            //         shouldApplyPointerEvents = true;
-            //         blockEmailBody();
-            //       }
-            //     } else {
-            //       shouldApplyPointerEvents = true;
-            //       blockEmailBody();
-            //       console.log(
-            //         "Sending message to background for first check for firstCheckForEmail API"
-            //       );
-            //       chrome.runtime
-            //         .sendMessage(
-            //           {
-            //             client: "outlook",
-            //             action: "firstCheckForEmail",
-            //             messageId: dataConvid,
-            //             email: userEmailId,
-            //           },
-            //           (response) => {
-            //             // console.log("Response from background for firstCheckForEmail API:", response);
-            //             let error = response.status;
-            //             if (response.IsResponseRecieved === "success") {
-            //               if (response.data.code === 200) {
-            //                 console.log(
-            //                   "Response from background for firstCheckForEmail API:",
-            //                   response
-            //                 );
-            //                 const serverData = response.data.data;
-            //                 const resStatus =
-            //                   serverData.eml_status || serverData.email_status;
-            //                 const messId =
-            //                   serverData.messageId || serverData.msg_id;
-            //                 console.log("serverData:", serverData);
-            //                 console.log("resStatus:", resStatus);
-            //                 console.log("messId:", messId);
-            //                 if (
-            //                   ["safe", "unsafe", "pending"].includes(resStatus)
-            //                 ) {
-            //                   chrome.storage.local.get(
-            //                     "messages",
-            //                     function (result) {
-            //                       let messages = JSON.parse(
-            //                         result.messages || "{}"
-            //                       );
-            //                       messages[messId] = resStatus;
-            //                       chrome.storage.local.set(
-            //                         {
-            //                           messages: JSON.stringify(messages),
-            //                         },
-            //                         () => {
-            //                           console.log(
-            //                             `Status ${resStatus} stored for message ${messId}`
-            //                           );
-            //                           shouldApplyPointerEvents =
-            //                             resStatus !== "safe";
-            //                           blockEmailBody();
-            //                           console.log(
-            //                             `Removing blocking layer because message is ${resStatus}`
-            //                           );
-            //                           showAlert(resStatus);
-            //                         }
-            //                       );
-            //                     }
-            //                   );
-            //                 }
-            //               } else {
-            //                 console.log(
-            //                   "Message not found on server, extracting content"
-            //                 );
-            //                 shouldApplyPointerEvents = true;
-            //                 blockEmailBody();
-            //                 setTimeout(() => {
-            //                   executeWithLoadingScreenAndExtraction();
-            //                 }, 100);
-            //               }
-            //             } else if (response.status === "error") {
-            //               console.log("API call failed ok:", error);
-            //               showAlert("inform");
-            //               // extractEmlContent(dataConvid);
-            //             }
-            //           }
-            //         )
-            //         .catch((error) => {
-            //           console.log("API call failed:", error);
-            //           showAlert("inform");
-            //         });
-            //     }
-            //   });
-            // } 
+            }  
             else if (dataConvid) {
               console.log("data-convid found, running email extraction");
               chrome.storage.local.get("messages", function (result) {
@@ -983,24 +837,63 @@ button.addEventListener("mouseout", () => {
         </svg>`;
         break;
    
-    case "pending":
-      message.innerText =
-        "Your request is being processed... Please hold on while we block the email currently being processed.";
-      alertContainer.style.border = "4px solid #4C9ED9"; // Softer blue border
-      alertContainer.style.backgroundColor = "#fff"; // Light background for a softer look
-      iconHtml = `
-          <svg width="80" height="30" viewBox="0 0 80 20">
-              <circle cx="20" cy="10" r="5" fill="#4C9ED9">
-                  <animate attributeName="cy" values="10;5;10" dur="0.6s" repeatCount="indefinite" begin="0s" />
-              </circle>
-              <circle cx="40" cy="10" r="5" fill="#4C9ED9">
-                  <animate attributeName="cy" values="10;5;10" dur="0.6s" repeatCount="indefinite" begin="0.2s" />
-              </circle>
-              <circle cx="60" cy="10" r="5" fill="#4C9ED9">
-                  <animate attributeName="cy" values="10;5;10" dur="0.6s" repeatCount="indefinite" begin="0.4s" />
-              </circle>
-          </svg>`;
-      break;
+        case "pending":
+          message.innerText =
+            "We're processing your request.... Please wait for the procedure to be finished.";
+    
+          alertContainer.style.background =
+            "linear-gradient(145deg, #ffffff, #f0f8ff)";
+          alertContainer.style.border = "1px solid rgba(0, 123, 255, 0.15)";
+          alertContainer.style.borderLeft = "6px solid #007bff";
+          alertContainer.style.boxShadow =
+            "0 8px 20px rgba(0, 123, 255, 0.06), 0 4px 8px rgba(0, 0, 0, 0.08)";
+          alertContainer.style.borderRadius = "12px";
+    
+          iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
+            <defs>
+                <linearGradient id="pendingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#007bff;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#0056b3;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            
+            <!-- Outer rotating circle -->
+            <circle cx="24" cy="24" r="20" 
+                    stroke="url(#pendingGradient)" 
+                    stroke-width="3" 
+                    fill="none" 
+                    stroke-dasharray="31.4 31.4">
+                <animateTransform 
+                    attributeName="transform"
+                    type="rotate"
+                    from="0 24 24"
+                    to="360 24 24"
+                    dur="2.5s"
+                    repeatCount="indefinite"
+                    calcMode="spline"
+                    keySplines="0.4 0 0.2 1"/>
+            </circle>
+            
+            <!-- Inner pulsing dots -->
+            <g fill="#007bff">
+                <circle cx="24" cy="24" r="2">
+                    <animate attributeName="opacity"
+                        values="0.3;1;0.3" dur="1.5s"
+                        repeatCount="indefinite" begin="0s"/>
+                </circle>
+                <circle cx="32" cy="24" r="2">
+                    <animate attributeName="opacity"
+                        values="0.3;1;0.3" dur="1.5s"
+                        repeatCount="indefinite" begin="0.5s"/>
+                </circle>
+                <circle cx="16" cy="24" r="2">
+                    <animate attributeName="opacity"
+                        values="0.3;1;0.3" dur="1.5s"
+                        repeatCount="indefinite" begin="1s"/>
+                </circle>
+            </g>
+        </svg>`;
+          break;
     default:
       console.log("Invalid key for showAlert");
       return;
@@ -1045,96 +938,96 @@ async function runEmailExtraction() {
   console.log("Running email extraction code");
 
   // Batch processing for DOM interactions
-  // const processNavigationButton = async () => {
-  //   // First find which container is active
-  //   const activeContainer =
-  //     document.querySelector("#ConversationReadingPaneContainer") ||
-  //     document.querySelector("#ItemReadingPaneContainer");
-
-  //   if (activeContainer) {
-  //     console.log("Active container found");
-  //     // Find all menu buttons within the active container
-  //     const navi = activeContainer.querySelectorAll(".ms-Button--hasMenu");
-
-  //     // Get the last button from the collection
-  //     const lastIndex = navi.length - 1;
-
-  //     if (navi[lastIndex] && navi[lastIndex].offsetParent !== null) {
-  //       navi[lastIndex].click();
-  //       await waitForMenu();
-  //     } else {
-  //       console.log("Navigation button not found or not visible, retrying...");
-  //       await new Promise((resolve) => setTimeout(resolve, 500));
-  //       await processNavigationButton();
-  //     }
-  //   }
-  // };
-  // First find which container is active
   const processNavigationButton = async () => {
-    let activeContainer = document.querySelector("#ConversationReadingPaneContainer");
+    // First find which container is active
+    const activeContainer =
+      document.querySelector("#ConversationReadingPaneContainer") ||
+      document.querySelector("#ItemReadingPaneContainer");
+
     if (activeContainer) {
-        console.log("Active container found (ConversationReadingPaneContainer)");
+      console.log("Active container found");
+      // Find all menu buttons within the active container
+      const navi = activeContainer.querySelectorAll(".ms-Button--hasMenu");
 
-        // Find all elements with class "aVla3" inside the active container
-        const elements = activeContainer.querySelectorAll(".aVla3");
+      // Get the last button from the collection
+      const lastIndex = navi.length - 1;
 
-        if (elements.length > 0) {
-            let lastElement = elements[elements.length - 1]; // Default last element
-
-            // Check if the last "aVla3" element contains a div with class "o4zjZ SfSRI"
-            if (lastElement.querySelector(".o4zjZ.SfSRI") && elements.length > 1) {
-                lastElement = elements[elements.length - 2]; // Use second last element
-            }
-
-            // Find the nested div with `aria-expanded`
-            const expandedDiv = lastElement.querySelector('div[aria-expanded]');
-
-            if (expandedDiv) {
-                const isExpanded = expandedDiv.getAttribute("aria-expanded") === "true";
-
-                if (!isExpanded) {
-                    // Execute first set of actions
-                    let clickElements = document.querySelectorAll('.GjFKx.WWy1F.YoK0k');
-                    if (clickElements.length > 0) {
-                        // Click the last element in the list
-                        clickElements[clickElements.length - 1].click();
-                    }
-                }
-                // Execute the navigation process
-                const navi = activeContainer.querySelectorAll(".ms-Button--hasMenu");
-                const lastIndex = navi.length - 1;
-
-                if (navi[lastIndex] && navi[lastIndex].offsetParent !== null) {
-                    navi[lastIndex].click();
-                    await waitForMenu();
-                } else {
-                    console.log("Navigation button not found or not visible, retrying...");
-                    await new Promise((resolve) => setTimeout(resolve, 500));
-                    await processNavigationButton();
-                }
-            }
-        }
-    } 
-    else {
-        // If `#ConversationReadingPaneContainer` is not found, fallback to `#ItemReadingPaneContainer`
-        activeContainer = document.querySelector("#ItemReadingPaneContainer");
-
-        if (activeContainer) {
-            console.log("Active container found (ItemReadingPaneContainer)");
-            // Execute the navigation process for ItemReadingPaneContainer (without new functionality)
-            const navi = activeContainer.querySelectorAll(".ms-Button--hasMenu");
-            const lastIndex = navi.length - 1;
-            if (navi[lastIndex] && navi[lastIndex].offsetParent !== null) {
-                navi[lastIndex].click();
-                await waitForMenu();
-            } else {
-                console.log("Navigation button not found or not visible, retrying...");
-                await new Promise((resolve) => setTimeout(resolve, 500));
-                await processNavigationButton();
-            }
-        }
+      if (navi[lastIndex] && navi[lastIndex].offsetParent !== null) {
+        navi[lastIndex].click();
+        await waitForMenu();
+      } else {
+        console.log("Navigation button not found or not visible, retrying...");
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        await processNavigationButton();
+      }
     }
   };
+  // First find which container is active
+  // const processNavigationButton = async () => {
+  //   let activeContainer = document.querySelector("#ConversationReadingPaneContainer");
+  //   if (activeContainer) {
+  //       console.log("Active container found (ConversationReadingPaneContainer)");
+
+  //       // Find all elements with class "aVla3" inside the active container
+  //       const elements = activeContainer.querySelectorAll(".aVla3");
+
+  //       if (elements.length > 0) {
+  //           let lastElement = elements[elements.length - 1]; // Default last element
+
+  //           // Check if the last "aVla3" element contains a div with class "o4zjZ SfSRI"
+  //           if (lastElement.querySelector(".o4zjZ.SfSRI") && elements.length > 1) {
+  //               lastElement = elements[elements.length - 2]; // Use second last element
+  //           }
+
+  //           // Find the nested div with `aria-expanded`
+  //           const expandedDiv = lastElement.querySelector('div[aria-expanded]');
+
+  //           if (expandedDiv) {
+  //               const isExpanded = expandedDiv.getAttribute("aria-expanded") === "true";
+
+  //               if (!isExpanded) {
+  //                   // Execute first set of actions
+  //                   let clickElements = document.querySelectorAll('.GjFKx.WWy1F.YoK0k');
+  //                   if (clickElements.length > 0) {
+  //                       // Click the last element in the list
+  //                       clickElements[clickElements.length - 1].click();
+  //                   }
+  //               }
+  //               // Execute the navigation process
+  //               const navi = activeContainer.querySelectorAll(".ms-Button--hasMenu");
+  //               const lastIndex = navi.length - 1;
+
+  //               if (navi[lastIndex] && navi[lastIndex].offsetParent !== null) {
+  //                   navi[lastIndex].click();
+  //                   await waitForMenu();
+  //               } else {
+  //                   console.log("Navigation button not found or not visible, retrying...");
+  //                   await new Promise((resolve) => setTimeout(resolve, 500));
+  //                   await processNavigationButton();
+  //               }
+  //           }
+  //       }
+  //   } 
+  //   else {
+  //       // If `#ConversationReadingPaneContainer` is not found, fallback to `#ItemReadingPaneContainer`
+  //       activeContainer = document.querySelector("#ItemReadingPaneContainer");
+
+  //       if (activeContainer) {
+  //           console.log("Active container found (ItemReadingPaneContainer)");
+  //           // Execute the navigation process for ItemReadingPaneContainer (without new functionality)
+  //           const navi = activeContainer.querySelectorAll(".ms-Button--hasMenu");
+  //           const lastIndex = navi.length - 1;
+  //           if (navi[lastIndex] && navi[lastIndex].offsetParent !== null) {
+  //               navi[lastIndex].click();
+  //               await waitForMenu();
+  //           } else {
+  //               console.log("Navigation button not found or not visible, retrying...");
+  //               await new Promise((resolve) => setTimeout(resolve, 500));
+  //               await processNavigationButton();
+  //           }
+  //       }
+  //   }
+  // };
 
   const waitForMenu = async () => {
     return new Promise((resolve) => {
@@ -1684,14 +1577,4 @@ window.addEventListener("click", (e) => {
     );
     showBlockedPopup();
   }
-  // const element = document.querySelector("#ConversationReadingPaneContainer");
-  // const junkBox = document.querySelector("#ItemReadingPaneContainer");
-
-  // if (shouldApplyPointerEvents && (element?.contains(e.target) || junkBox?.contains(e.target))) {
-  //   console.log("Clicked on the email body");
-  //   console.log("shouldApplyPointerEvents", shouldApplyPointerEvents);
-  // }
-  // else{
-  //   console.log("not clicked on the email body");
-  // }
 });
