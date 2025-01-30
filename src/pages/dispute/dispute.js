@@ -1,4 +1,8 @@
-import { DISPUTES_RAISE, PLUGIN_COUNTER } from "/src/routes/api_route.js";
+import {
+  DISPUTES_RAISE,
+  PLUGIN_COUNTER,
+  UPDATE_EMAIL_STATUS,
+} from "/src/routes/api_route.js";
 import { postData } from "/src/api/api_method.js";
 
 export function initializeDisputeForm(disputeData) {
