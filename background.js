@@ -401,7 +401,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         activeTab.id,
         { action: "fetchDisputeMessageId" },
         (response) => {
-          chrome.storage.local.set({ receiver_email: response.emailId });
+          if (!response || !response.emailId) {
+            sendResponse({ error: "Not found" });
+            return;
+          }
+          let disputeEmail = response.emailId;
+          chrome.storage.local.set({ receiver_email: disputeEmail });
           async function fetchCombinedData() {
             try {
               const { dispute_count } = await checkDisputeCount(

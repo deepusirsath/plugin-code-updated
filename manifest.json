@@ -3,6 +3,7 @@
   "name": "Phising Prevention",
   "version": "1.0",
   "description": "Personal shield against phishing attacks! We detect and block fraudulent emails, protecting your sensitive data.",
+  "incognito": "spanning",
   "permissions": [
     "activeTab",
     "tabs",

@@ -64,40 +64,30 @@ const handleRegularButton = async (componentName) => {
   }
 };
 
-/**
- * Handles the loading and verification of dispute-related components
- * @param {string} componentName - The name of the dispute component to be loaded
- * @returns {Promise<void>} A promise that resolves when all checks and loading are complete
- * @fires {CustomEvent} componentLoaded - Dispatched with component and dispute data after successful loading
- * @throws {Error} Caught and handled by displayError if any operation fails
- * @description
- * This function performs several checks in sequence:
- * 1. Verifies if a supported email service (Gmail/Outlook/Yahoo) is open
- * 2. Loads the dispute component if email is open
- * 3. Checks dispute status and dispatches event with dispute data
- * 4. Falls back to "mail not found" component if no email service is open
- * @example
- * // Load dispute component with checks
- * await handleDisputeButton('dispute');
- */
 const handleDisputeButton = async (componentName) => {
   try {
     chrome.runtime.sendMessage(
       { action: "checkEmailPage" },
       async function (response) {
-        const openedServices = ["OpenedGmail", "OpenedOutlook", "OpenedYahoo"];
-
+        const openedServices = ["OpenedGmail", "OpenedOutlook", "OpenedYahoo", "Gmail"];
+        console.log(response);
         if (openedServices.includes(response)) {
-          await loadComponent({
-            componentName,
-            basePath: BASEPATH.PAGES,
-            targetId: TARGET_ID.DATA_OUTPUT,
-          });
-
           chrome.runtime.sendMessage(
             { action: "checkDispute" },
-            function (disputeResponse) {
-              if (disputeResponse) {
+            async function (disputeResponse) {
+              console.log(disputeResponse);
+              if (disputeResponse?.error === "Not found") {
+                await loadComponent({
+                  componentName: COMPONENTS.OPENED_MAIL_NOT_FOUND,
+                  basePath: BASEPATH.COMPONENT,
+                  targetId: TARGET_ID.DATA_OUTPUT,
+                });
+              } else if (disputeResponse) {
+                await loadComponent({
+                  componentName,
+                  basePath: BASEPATH.PAGES,
+                  targetId: TARGET_ID.DATA_OUTPUT,
+                });
                 document.dispatchEvent(
                   new CustomEvent("componentLoaded", {
                     detail: { componentName, disputeData: disputeResponse },

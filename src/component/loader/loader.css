@@ -1,4 +1,5 @@
 .loader {
+  margin-left: 40px;
   width: 50px;
   --b: 8px;
   aspect-ratio: 1;
@@ -18,6 +19,7 @@
   mask-composite: intersect;
   animation: l5 1s infinite;
 }
+
 
 @keyframes l5 {
   to {

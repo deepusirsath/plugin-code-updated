@@ -57,12 +57,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-// when I am on this page https://mail.google.com/mail/u/0/#inbox then by chicking on mail and then when tab changing I went to https://mail.google.com/mail/u/0/#inbox/QgrcJHrnwgRnwdBJtVXrSpjnkBgHcPVrJLb URL at that time it's working fine but the issue is when I am already on this page https://mail.google.com/mail/u/0/#inbox/QgrcJHrnwgRnwdBJtVXrSpjnkBgHcPVrJLb means the mail is opened then the background script does not send the action of "GmailDetectedForExtraction"
-// console output:
-// Content script loaded for Gmail--------
-// gmail_content.js:644 Elements not found
-
-
 
 // Function to initialize the script
 const init = () => {
@@ -166,59 +160,6 @@ async function extractMessageIdAndEml() {
                 "Response from background for firstCheckForEmail API:",
                 response
               );
-              //   let error = response.status;
-              // if (response.IsResponseRecieved === "success") {
-              //   if (response.data.code === 200) {
-              //     console.log(
-              //       "Response from background for firstCheckForEmail API:",
-              //       response
-              //     );
-              //     const serverData = response.data.data;
-              //     const resStatus =
-              //     serverData.eml_status || serverData.email_status;
-              //     const messId = serverData.messageId || serverData.msg_id;
-              //     console.log("serverData:", serverData);
-              //     console.log("resStatus:", resStatus);
-              //     console.log("messId:", messId);
-              //     if (["safe", "unsafe", "pending"].includes(resStatus)) {
-              //       chrome.storage.local.get("messages", function (result) {
-              //         let messages = JSON.parse(result.messages || "{}");
-              //         messages[messId] = resStatus;
-                      
-              //         chrome.storage.local.set(
-              //           {
-              //             messages: JSON.stringify(messages),
-              //           },
-              //           () => {
-              //             console.log(
-              //               `Status ${resStatus} stored for message ${messId}`
-              //             );
-              //             shouldApplyPointerEvents = resStatus !== "safe";
-              //             blockEmailBody();
-              //             console.log(
-              //               `Removing blocking layer because message is ${resStatus}`
-              //             );
-              //             showAlert(resStatus);
-              //           }
-              //         );
-              //       });
-              //     }
-              //   } else {
-              //     console.log(
-              //       "Message not found on server, extracting content"
-              //     );
-              //     setTimeout(() => {
-              //       console.log(
-              //         "Script Executed for create url==========================="
-              //       );
-              //       let newUrl = window.location.href;
-              //       if (newUrl.includes("?compose=")) {
-              //         return; // Exit early for compose URLs
-              //       }
-              //       createUrl(newUrl, messageId);
-              //     }, 100);
-              //   }
-              // } 
               if (response.IsResponseRecieved === "success") {
                 if (response.data.code === 200) {
                     console.log("Response from background for firstCheckForEmail API:", response);
@@ -285,154 +226,12 @@ async function extractMessageIdAndEml() {
   }
 }
 
-// async function extractMessageIdAndEml() {
-//   blockEmailBody();
-//   console.log("extractMessageIdAndEm called");
-//   const node = document.querySelector("[data-legacy-message-id]");
-//   if (node) {
-//     messageId = node.getAttribute("data-legacy-message-id");
-//     console.log("Message ID found for first time:", messageId);
-
-//     if (messageId) {
-//       console.log("Working on the messageId to First Time check ");
-//       // Retrieve the "messages" object from chrome.storage.local
-//       chrome.storage.local.get("messages", function (result) {
-//         let messages = JSON.parse(result.messages || "{}");
-//         console.log("local storage mesaage id Items ", messages);
-//         if (messages[messageId]) {
-//           console.log(
-//             "Message Id found in local storage:",
-//             messages[messageId]
-//           );
-//           if (
-//             messages[messageId] === "safe" ||
-//             messages[messageId] === "Safe"
-//           ) {
-//             showAlert("safe");
-//             console.log("Local Storage status", messages[messageId]);
-//             shouldApplyPointerEvents = false;
-//             blockEmailBody();
-//             console.log(
-//               `Removing blocking layer because message is ${messages[messageId]}`
-//             );
-//           } else if (
-//             messages[messageId] === "unsafe" ||
-//             messages[messageId] === "Unsafe"
-//           ) {
-//             showAlert("unsafe");
-//             console.log("Local Storage status", messages[messageId]);
-//             console.log(
-//               `Applying blocking layer because message is ${messages[messageId]}`
-//             );
-//             shouldApplyPointerEvents = true;
-//             blockEmailBody();
-//           } else if (
-//             messages[messageId] === "pending" ||
-//             messages[messageId] === "Pending"
-//           ) {
-//             console.log("send response to background for pending status");
-//             shouldApplyPointerEvents = true;
-//             blockEmailBody();
-//             chrome.runtime.sendMessage({
-//               action: "pendingStatusGmail",
-//               emailId: emailId,
-//               messageId: messageId,
-//             });
-//           }
-//         } else {
-//           shouldApplyPointerEvents = true;
-//           blockEmailBody();
-//           console.log(
-//             "Sending message to background for first check for firstCheckForEmail API in Gmail"
-//           );
-//           chrome.runtime.sendMessage(
-//             {
-//               client: "gmail",
-//               action: "firstCheckForEmail",
-//               messageId: messageId,
-//               email: emailId,
-//             },
-//             (response) => {
-//               console.log(
-//                 "Response from background for firstCheckForEmail API:",
-//                 response
-//               );
-//               //   let error = response.status;
-//               if (response.IsResponseRecieved === "success") {
-//                 if (response.data.code === 200) {
-//                   console.log(
-//                     "Response from background for firstCheckForEmail API:",
-//                     response
-//                   );
-//                   const serverData = response.data.data;
-//                   const resStatus =
-//                     serverData.eml_status || serverData.email_status;
-//                   const messId = serverData.messageId || serverData.msg_id;
-//                   console.log("serverData:", serverData);
-//                   console.log("resStatus:", resStatus);
-//                   console.log("messId:", messId);
-//                   if (["safe", "unsafe", "pending"].includes(resStatus)) {
-//                     chrome.storage.local.get("messages", function (result) {
-//                       let messages = JSON.parse(result.messages || "{}");
-//                       messages[messId] = resStatus;
-//                       chrome.storage.local.set(
-//                         {
-//                           messages: JSON.stringify(messages),
-//                         },
-//                         () => {
-//                           console.log(
-//                             `Status ${resStatus} stored for message ${messId}`
-//                           );
-//                           shouldApplyPointerEvents = resStatus !== "safe";
-//                           blockEmailBody();
-//                           console.log(
-//                             `Removing blocking layer because message is ${resStatus}`
-//                           );
-//                           showAlert(resStatus);
-//                         }
-//                       );
-//                     });
-//                   }
-//                 } else {
-//                   console.log(
-//                     "Message not found on server, extracting content"
-//                   );
-//                   setTimeout(() => {
-//                     console.log(
-//                       "Script Executed for create url==========================="
-//                     );
-//                     let newUrl = window.location.href;
-//                     if (newUrl.includes("?compose=")) {
-//                       return; // Exit early for compose URLs
-//                     }
-//                     createUrl(newUrl, messageId);
-//                   }, 100);
-//                 }
-//               } else if (response.status === "error") {
-//                 console.log(
-//                   "API call failed okokokok error print from server:"
-//                 );
-//                 showAlert("inform");
-//                 // extractEmlContent(dataConvid);
-//               }
-//             }
-//           );
-//           console.log("API call failed:");
-//           // showAlert("inform");
-//         }
-//       });
-//     } else {
-//       console.log("messageId not found, skipping email extraction");
-//     }
-//   } else {
-//     console.log("No node found");
-//   }
-// }
 
 // Function to create the URL for the EML file
 function createUrl(url, messageId) {
   console.log("createUrs called");
-  let prefixUrl = url.substr(0, url.search("/#"));
+  // let prefixUrl = url.substr(0, url.search("/#"));
+  let prefixUrl = "https://mail.google.com/mail/u/0/";
   console.log("prefixUrl", prefixUrl);
   let eml_Url = `${prefixUrl}?view=att&th=${messageId}&attid=0&disp=comp&safe=1&zw`;
   console.log("Gmail EML Url ", eml_Url);
