@@ -29,47 +29,17 @@ let browserInfo = null;
 let operatingSystem = null;
 let macId = null;
 
-async function fetchDeviceDataToSend() {
-  try {
-    const response = await fetch("http://localhost:3000/deviceIdentifiers");
-    if (response.ok) {
-      const data = await response.json();
-
-      // Store the device data in Chrome local storage
-      chrome.storage.local.set({ deviceData: data }, () => {
-        console.log("Device data stored successfully in local storage");
-      });
-      chrome.storage.local.get("deviceData", (result) => {
-        // console.log('Retrieved device data from Local Storage:', result.deviceData);
-        macId = result.deviceData.macAddress;
-        console.log(
-          "Retrieved device data from Local Storage - macId macId macId -:",
-          macId
-        );
-      });
-      chrome.storage.local.get(null, function (data) {
-        console.log("Data retrieved from local storage:", data);
-      });
-      // return data;
-    }
-  } catch (error) {
-    console.error("Error fetching device data:", error);
-  }
-}
-
-// chrome.storage.local.set({ registration: true });
+chrome.storage.local.set({ registration: true });
 
 // Listener for chrome startup
 chrome.runtime.onStartup.addListener(() => {
   console.log("On startup is running");
   userDetails();
-  // fetchDeviceDataToSend();
 });
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log("On Installed is running");
   userDetails();
-  // fetchDeviceDataToSend();
 });
 
 // Reloads the current page
@@ -116,8 +86,6 @@ chrome.management.onEnabled.addListener(() => {
 async function getExtensionid() {
   return new Promise((resolve) => {
     const extensionId = chrome.runtime.id;
-    console.log("Extension ID:", extensionId);
-    // userData.push({ type: 'extensionId', value: extensionId });
     pluginId = extensionId;
     chrome.storage.local.set({ extensionId: extensionId }, () => {
       resolve();
@@ -130,8 +98,6 @@ async function fetchIpAddress() {
   return fetch("https://api64.ipify.org?format=json")
     .then((response) => response.json())
     .then((data) => {
-      console.log("User IP Address:", data.ip);
-      // userData.push({type: 'ip',value: data.ip});
       ipAddress = data.ip;
       chrome.storage.local.set({ ipAddress: data.ip }, () => {
         return data.ip;
@@ -165,8 +131,6 @@ function userBrowserInfo() {
       if ((tem = ua.match(/version\/(\d+)/i)) != null) M.splice(1, 1, tem[1]);
       return M.join(" ");
     })();
-    console.log("something here", navigator.sayswho);
-    // userData.push({type: 'userAgent', value: navigator.sayswho});
     browserInfo = navigator.sayswho;
     chrome.storage.local.set({ browserInfo: navigator.sayswho }, () => {
       resolve();
@@ -178,11 +142,7 @@ function userBrowserInfo() {
 function getPlatformInfo() {
   return new Promise((resolve) => {
     chrome.runtime.getPlatformInfo(function (platformInfo) {
-      console.log("Platform:", platformInfo.os);
-      // console.log('Architecture:', platformInfo.arch);
-      // userData.push({ type: 'platform', os: platformInfo.os});
       operatingSystem = platformInfo.os;
-      console.log("Operating System:", operatingSystem);
       chrome.storage.local.set({ operatingSystem: platformInfo.os }, () => {
         resolve();
       });
@@ -193,21 +153,12 @@ function getPlatformInfo() {
 // Received Geolocation from content script and stored in Local storage
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type == "geoLocationUpdate") {
-    console.log("coords  received");
-    const coordinates = request.coordinates; // Access the coordinates object
-    latitude = coordinates.latitude; // Extract latitude
-    longitude = coordinates.longitude; // Extract longitude
-    console.log("coords  received", latitude, "coords  received", longitude);
+    const coordinates = request.coordinates;
+    latitude = coordinates.latitude;
+    longitude = coordinates.longitude;
     chrome.storage.local.set({ coordinates: coordinates }, () => {
-      console.log("Saved coords to local storage");
-      chrome.storage.local.get("coordinates", (result) => {
-        console.log(
-          "Retrieved coords from local storage",
-          result.coordinates.latitude
-        );
-      });
+      chrome.storage.local.get("coordinates");
     });
-    console.log("Received latitude , longitude", latitude, longitude);
   }
 });
 
@@ -541,7 +492,6 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
       };
 
       const action = statusActions[resStatus];
-      console.log("Action to be taken:", action);
 
       if (action) {
         chrome.tabs
@@ -568,44 +518,23 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
 
 // Here the content script message is received by the background script for Pending Status
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  // console.log("Message received from content.js on Gmail:", message);
   if (message.action === "pendingStatusGmail") {
-    console.log(
-      "Message received from content.js on Gmailfor pending Status and the ===================:",
-      message
-    );
     const messageId = message.messageId;
     const email = message.emailId;
-    console.log("Message ID:", messageId);
-    console.log("Email ID:", email);
     checkPendingResponseStatus(messageId, email, "gmail");
   } else if (message.action === "pendingStatusYahoo") {
-    console.log(
-      "Message received from content.js on Yahoo for pending Status and the ===================:"
-    );
     const messageId = message.messageId;
     const email = message.emailId;
-    console.log("Message ID:", messageId);
-    console.log("Email ID:", email);
     checkPendingResponseStatus(messageId, email, "yahoo");
   } else if (message.action === "pendingStatusOutlook") {
-    console.log(
-      "Message received from content.js on Outlook for pending Status and the ===================:"
-    );
     const messageId = message.messageId;
     const email = message.emailId;
-    console.log("Message ID:", messageId);
-    console.log("Email ID:", email);
     checkPendingResponseStatus(messageId, email, "outlook");
   }
 });
 
 // Function to check the pending response status
 async function checkPendingResponseStatus(messageId, email, client) {
-  console.log(
-    "calling the function named checkPendingResponseStatus the client : ",
-    client
-  );
   const url = `${baseUrl}${PENDING_STATUS_CHECK}`;
 
   try {
@@ -627,8 +556,6 @@ async function checkPendingResponseStatus(messageId, email, client) {
     });
     const data = await response.json();
     const serverData = data.data;
-    console.log("data is from server in CheckPending", data);
-    console.log("Data.code for Pending request ", data.code);
 
     handleEmailScanResponse(serverData, activeTabId, client);
   } catch (error) {
@@ -683,7 +610,6 @@ function checkGmailUrl(url) {
     ];
     const regex = new RegExp(keywords.join("|"), "i");
     const match = url.match(regex);
-    console.log("Match:", match);
     return match ? match[0] : null;
   }
   return null;
@@ -691,7 +617,6 @@ function checkGmailUrl(url) {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "sendGmailData") {
-    console.log("Received message from content.js Gmail:", message);
     currentMessageId = message.messageId;
     const { messageId, emailId, eml_Url } = message;
     console.log("Received messageId:", message.messageId);
@@ -726,7 +651,6 @@ async function emlExtractionGmail(emlUrl, currentMessageId, emailId) {
     console.log("Email Blob:", emlBlob);
 
     if (emlBlob) {
-      console.log("gmail emailContent ", emlBlob);
       await sendEmlToServer(currentMessageId, emlBlob, "gmail", emailId);
       console.log("Email Blob sent to server");
     }
