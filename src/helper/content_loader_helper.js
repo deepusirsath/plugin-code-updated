@@ -90,3 +90,46 @@ export const loadComponent = async ({ componentName, basePath, targetId }) => {
   // Load CSS file
   loadCSS(`${fileName}.css`);
 };
+
+
+/**
+ * Dynamically loads HTML content and CSS file for a component
+ * 
+ * @param {Object} config - Configuration object for component loading
+ * @param {string} config.componentName - Name of the component (e.g. 'header', 'sidebar')
+ * @param {string} config.basePath - Base directory path where component files are located (e.g. 'component', 'pages')
+ * @param {string} config.targetId - ID of the HTML element where content will be inserted
+ * 
+ * @returns {Promise<void>} Resolves when HTML and CSS are loaded
+ * 
+ * @example
+ * // Load HTML and CSS for a sidebar component
+ * await loadCssAndHtmlFile({
+ *   componentName: 'sidebar',
+ *   basePath: 'component',
+ *   targetId: 'sidebar-container'
+ * });
+ * 
+ * @description
+ * This function:
+ * 1. Constructs file paths based on component name and base path
+ * 2. Loads and injects HTML content into specified target element
+ * 3. Loads associated CSS file into document head
+ * Does not load JavaScript files, unlike the loadComponent function
+ */
+export const loadCssAndHtmlFile = async ({
+  componentName,
+  basePath,
+  targetId,
+}) => {
+  const fileName = `/src/${basePath}/${componentName}/${componentName}`;
+
+  // Load HTML content
+  const htmlContent = await loadHTMLContent(`${fileName}.html`);
+  document.getElementById(targetId).innerHTML = htmlContent;
+
+  // Load CSS file
+  loadCSS(`${fileName}.css`);
+};
+
+

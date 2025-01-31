@@ -1,7 +1,11 @@
 /**
- * Handles the window close action when close button is clicked
+ * Handles the window close action when close button is clicked.
+ * This function is triggered when the user clicks the close button
+ * in the plugin window header. It uses the window.close() method
+ * to close the current window/popup.
+ * 
  * @function handleCloseWindow
- * @returns {void}
+ * @returns {void} Does not return any value
  */
 function handleCloseWindow() {
   window.close();

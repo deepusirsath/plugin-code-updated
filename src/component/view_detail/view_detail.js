@@ -49,7 +49,9 @@ export const createViewDetail = (createViewDetail, onClose) => {
         </div>
         <div class="detail-row">
           <label>Body:</label>
-          <div id="email-body">${extractBodyContent(createViewDetail.body)}</div>                        
+          <div id="email-body">${extractBodyContent(
+            createViewDetail.body
+          )}</div>                        
         </div>
         <div id="cdr-files-container"></div>
       </div>
@@ -151,9 +153,10 @@ export const createViewDetail = (createViewDetail, onClose) => {
       downloadContainer.appendChild(downloadButton);
     });
 
-    document.getElementById("cdr-files-container").appendChild(downloadContainer);
+    document
+      .getElementById("cdr-files-container")
+      .appendChild(downloadContainer);
   }
 
   return popup;
 };
-

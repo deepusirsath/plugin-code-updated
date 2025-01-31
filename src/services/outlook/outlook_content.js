@@ -1,8 +1,8 @@
 console.log("Content script loaded.");
-let messageReason =  " ";
+let messageReason = " ";
 // Listen for tab activation/focus
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') {
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
     findOutlookEmailId();
   }
 });
@@ -19,7 +19,11 @@ chrome.storage.local.get("registration", (data) => {
     const initializeOutlook = async () => {
       console.log("Registration data:", data.registration);
       // Run these operations in parallel since they're independent
-      await Promise.all([findOutlookEmailId(), setupClickListener(), handleEmailInteractions()]);
+      await Promise.all([
+        findOutlookEmailId(),
+        setupClickListener(),
+        handleEmailInteractions(),
+      ]);
     };
 
     // Execute initialization
@@ -32,22 +36,22 @@ chrome.storage.local.get("registration", (data) => {
 function handleEmailInteractions() {
   setInterval(() => {
     console.log("Checking for email interactions and double clicks...");
-      // Handle .EeHm8 elements
-      const emailElements = document.querySelectorAll(".EeHm8");
-      emailElements.forEach(element => {
-          element.addEventListener("click", () => {
-              element.style.pointerEvents = "none";
-              setTimeout(() => {
-                  element.style.pointerEvents = "auto";
-              }, 3000);
-          });
+    // Handle .EeHm8 elements
+    const emailElements = document.querySelectorAll(".EeHm8");
+    emailElements.forEach((element) => {
+      element.addEventListener("click", () => {
+        element.style.pointerEvents = "none";
+        setTimeout(() => {
+          element.style.pointerEvents = "auto";
+        }, 3000);
       });
+    });
 
-      // Handle .bvdCQ elements
-      const bvdElements = document.querySelectorAll(".bvdCQ");
-      bvdElements.forEach(element => {
-          element.style.pointerEvents = "none";
-      });
+    // Handle .bvdCQ elements
+    const bvdElements = document.querySelectorAll(".bvdCQ");
+    bvdElements.forEach((element) => {
+      element.style.pointerEvents = "none";
+    });
   }, 1000); // Checks every 1 second
 }
 
@@ -299,7 +303,6 @@ function hideLoadingScreen() {
   }
 }
 
-
 // Function to execute email extraction code with loading screen
 
 async function executeWithLoadingScreenAndExtraction() {
@@ -313,7 +316,6 @@ async function executeWithLoadingScreenAndExtraction() {
     unblockUserInteraction(); // Re-enable user interactions
   }
 }
-
 
 // Updated blockEmailBody function to toggle pointer-events
 
@@ -428,118 +430,156 @@ function setupClickListener(attempts = 500) {
               shouldApplyPointerEvents = false;
               blockEmailBody();
               return;
-            }  
-            else if (dataConvid) {
+            } else if (dataConvid) {
               console.log("data-convid found, running email extraction");
               chrome.storage.local.get("messages", function (result) {
-                  let messages = JSON.parse(result.messages || "{}");
-                  console.log("messageId already stored___________________", messages);
-          
-                  if (messages[dataConvid]) {
-                      console.log("data-convid found in local storage yehhhhhhhhhhhhhhhhhhhhhhhhh");
-                      const status = messages[dataConvid].status;
-                      const unsafeReason = messages[dataConvid].unsafeReason;
-                      console.log("Thread ID status:", status);
-          
-                      if (status === "safe") {
-                          console.log("Local Storage status", status);
-                          shouldApplyPointerEvents = false;
-                          blockEmailBody();
-                          showAlert("safe", unsafeReason);
-                          console.log(`Removing blocking layer because message is ${status}`);
-                      } else if (status === "unsafe") {
-                          console.log("Local Storage status", status);
-                          console.log(`Applying blocking layer because message is ${status}`);
-                          showAlert("unsafe", unsafeReason);
-                          shouldApplyPointerEvents = true;
-                          blockEmailBody();
-                      } else if (status === "pending") {
-                          console.log("Pending status in Local Storage");
-                          showAlert("pending", unsafeReason);
-                          chrome.storage.local.get("outlook_email", (data) => {
-                              console.log("Email Id is stored in the Local", data.outlook_email);
-                              console.log("send response to background for pending status in outlook =============================");
-                              chrome.runtime.sendMessage({
-                                  action: "pendingStatusOutlook",
-                                  emailId: data.outlook_email,
-                                  messageId: dataConvid,
-                              });
-                              shouldApplyPointerEvents = true;
-                              blockEmailBody();
-                          });
-                      } else {
-                          console.log("Applying blocking layer because message is not Present in Local storage");
-                          shouldApplyPointerEvents = true;
-                          blockEmailBody();
-                      }
-                  } else {
+                let messages = JSON.parse(result.messages || "{}");
+                console.log(
+                  "messageId already stored___________________",
+                  messages
+                );
+
+                if (messages[dataConvid]) {
+                  console.log(
+                    "data-convid found in local storage yehhhhhhhhhhhhhhhhhhhhhhhhh"
+                  );
+                  const status = messages[dataConvid].status;
+                  const unsafeReason = messages[dataConvid].unsafeReason;
+                  console.log("Thread ID status:", status);
+
+                  if (status === "safe") {
+                    console.log("Local Storage status", status);
+                    shouldApplyPointerEvents = false;
+                    blockEmailBody();
+                    showAlert("safe", unsafeReason);
+                    console.log(
+                      `Removing blocking layer because message is ${status}`
+                    );
+                  } else if (status === "unsafe") {
+                    console.log("Local Storage status", status);
+                    console.log(
+                      `Applying blocking layer because message is ${status}`
+                    );
+                    showAlert("unsafe", unsafeReason);
+                    shouldApplyPointerEvents = true;
+                    blockEmailBody();
+                  } else if (status === "pending") {
+                    console.log("Pending status in Local Storage");
+                    showAlert("pending", unsafeReason);
+                    chrome.storage.local.get("outlook_email", (data) => {
+                      console.log(
+                        "Email Id is stored in the Local",
+                        data.outlook_email
+                      );
+                      console.log(
+                        "send response to background for pending status in outlook ============================="
+                      );
+                      chrome.runtime.sendMessage({
+                        action: "pendingStatusOutlook",
+                        emailId: data.outlook_email,
+                        messageId: dataConvid,
+                      });
                       shouldApplyPointerEvents = true;
                       blockEmailBody();
-                      console.log("Sending message to background for first check for firstCheckForEmail API");
-                      chrome.runtime.sendMessage(
-                          {
-                              client: "outlook",
-                              action: "firstCheckForEmail",
-                              messageId: dataConvid,
-                              email: userEmailId,
-                          },
-                          (response) => {
-                              let error = response.status;
-                              if (response.IsResponseRecieved === "success") {
-                                  if (response.data.code === 200) {
-                                      console.log("Response from background for firstCheckForEmail API:", response);
-                                      const serverData = response.data.data;
-                                      const resStatus = serverData.eml_status || serverData.email_status;
-                                      const messId = serverData.messageId || serverData.msg_id;
-                                      const unsafeReason = serverData.unsafe_reasons || " ";
-          
-                                      console.log("serverData:", serverData);
-                                      console.log("resStatus:", resStatus);
-                                      console.log("messId:", messId);
-          
-                                      if (["safe", "unsafe", "pending"].includes(resStatus)) {
-                                          chrome.storage.local.get("messages", function (result) {
-                                              let messages = JSON.parse(result.messages || "{}");
-                                              messages[messId] = {
-                                                  status: resStatus,
-                                                  unsafeReason: unsafeReason
-                                              };
-          
-                                              chrome.storage.local.set(
-                                                  {
-                                                      messages: JSON.stringify(messages),
-                                                  },
-                                                  () => {
-                                                      console.log(`Status ${resStatus} stored for message ${messId}`);
-                                                      shouldApplyPointerEvents = resStatus !== "safe";
-                                                      blockEmailBody();
-                                                      console.log(`Removing blocking layer because message is ${resStatus}`);
-                                                      showAlert(resStatus, unsafeReason);
-                                                  }
-                                              );
-                                          });
-                                      }
-                                  } else {
-                                      console.log("Message not found on server, extracting content");
-                                      shouldApplyPointerEvents = true;
-                                      blockEmailBody();
-                                      setTimeout(() => {
-                                          executeWithLoadingScreenAndExtraction();
-                                      }, 100);
-                                  }
-                              } else if (response.status === "error") {
-                                  console.log("API call failed ok:", error);
-                                  showAlert("inform");
-                              }
-                          }
-                      ).catch((error) => {
-                          console.log("API call failed:", error);
-                          showAlert("inform");
-                      });
+                    });
+                  } else {
+                    console.log(
+                      "Applying blocking layer because message is not Present in Local storage"
+                    );
+                    shouldApplyPointerEvents = true;
+                    blockEmailBody();
                   }
+                } else {
+                  shouldApplyPointerEvents = true;
+                  blockEmailBody();
+                  console.log(
+                    "Sending message to background for first check for firstCheckForEmail API"
+                  );
+                  chrome.runtime
+                    .sendMessage(
+                      {
+                        client: "outlook",
+                        action: "firstCheckForEmail",
+                        messageId: dataConvid,
+                        email: userEmailId,
+                      },
+                      (response) => {
+                        let error = response.status;
+                        if (response.IsResponseRecieved === "success") {
+                          if (response.data.code === 200) {
+                            console.log(
+                              "Response from background for firstCheckForEmail API:",
+                              response
+                            );
+                            const serverData = response.data.data;
+                            const resStatus =
+                              serverData.eml_status || serverData.email_status;
+                            const messId =
+                              serverData.messageId || serverData.msg_id;
+                            const unsafeReason =
+                              serverData.unsafe_reasons || " ";
+
+                            console.log("serverData:", serverData);
+                            console.log("resStatus:", resStatus);
+                            console.log("messId:", messId);
+
+                            if (
+                              ["safe", "unsafe", "pending"].includes(resStatus)
+                            ) {
+                              chrome.storage.local.get(
+                                "messages",
+                                function (result) {
+                                  let messages = JSON.parse(
+                                    result.messages || "{}"
+                                  );
+                                  messages[messId] = {
+                                    status: resStatus,
+                                    unsafeReason: unsafeReason,
+                                  };
+
+                                  chrome.storage.local.set(
+                                    {
+                                      messages: JSON.stringify(messages),
+                                    },
+                                    () => {
+                                      console.log(
+                                        `Status ${resStatus} stored for message ${messId}`
+                                      );
+                                      shouldApplyPointerEvents =
+                                        resStatus !== "safe";
+                                      blockEmailBody();
+                                      console.log(
+                                        `Removing blocking layer because message is ${resStatus}`
+                                      );
+                                      showAlert(resStatus, unsafeReason);
+                                    }
+                                  );
+                                }
+                              );
+                            }
+                          } else {
+                            console.log(
+                              "Message not found on server, extracting content"
+                            );
+                            shouldApplyPointerEvents = true;
+                            blockEmailBody();
+                            setTimeout(() => {
+                              executeWithLoadingScreenAndExtraction();
+                            }, 100);
+                          }
+                        } else if (response.status === "error") {
+                          console.log("API call failed ok:", error);
+                          showAlert("inform");
+                        }
+                      }
+                    )
+                    .catch((error) => {
+                      console.log("API call failed:", error);
+                      showAlert("inform");
+                    });
+                }
               });
-          }          
-            else {
+            } else {
               console.log("data-convid not found or null, skipping extraction");
             }
           });
@@ -575,7 +615,9 @@ let currentUrl = window.location.href;
 const urlObserver = new MutationObserver(() => {
   if (currentUrl !== window.location.href) {
     currentUrl = window.location.href;
-    const alertContainer = document.querySelector('div[style*="position: fixed"][style*="top: 50%"]');
+    const alertContainer = document.querySelector(
+      'div[style*="position: fixed"][style*="top: 50%"]'
+    );
     if (alertContainer) {
       alertContainer.remove();
     }
@@ -606,51 +648,53 @@ function showAlert(key, messageReason = " ") {
   message.style.textAlign = "center";
 
   const button = document.createElement("button");
-button.innerText = "Close";
+  button.innerText = "Close";
 
-Object.assign(button.style, {
-  padding: "8px 20px",
-  border: "1px solid #4C9ED9",
-  borderRadius: "4px",
-  cursor: "pointer",
-  backgroundColor: "#4C9ED9",
-  color: "#ffffff",
-  fontSize: "14px",
-  fontWeight: "500",
-  transition: "all 0.2s ease",
-  fontFamily: "'Segoe UI', system-ui, sans-serif",
-  boxShadow: "0 1px 2px rgba(76, 158, 217, 0.15)"
-});
-
-button.addEventListener("mouseover", () => {
   Object.assign(button.style, {
-    backgroundColor: "#3989c2",
-    transform: "translateY(-1px)"
-  });
-});
-
-button.addEventListener("mouseout", () => {
-  Object.assign(button.style, {
+    padding: "8px 20px",
+    border: "1px solid #4C9ED9",
+    borderRadius: "4px",
+    cursor: "pointer",
     backgroundColor: "#4C9ED9",
-    transform: "translateY(0)"
+    color: "#ffffff",
+    fontSize: "14px",
+    fontWeight: "500",
+    transition: "all 0.2s ease",
+    fontFamily: "'Segoe UI', system-ui, sans-serif",
+    boxShadow: "0 1px 2px rgba(76, 158, 217, 0.15)",
   });
-});
+
+  button.addEventListener("mouseover", () => {
+    Object.assign(button.style, {
+      backgroundColor: "#3989c2",
+      transform: "translateY(-1px)",
+    });
+  });
+
+  button.addEventListener("mouseout", () => {
+    Object.assign(button.style, {
+      backgroundColor: "#4C9ED9",
+      transform: "translateY(0)",
+    });
+  });
 
   let iconHtml = "";
   let currentUrl = window.location.href;
   switch (key) {
     case "safe":
-    message.innerText = "Security verification complete - Safe to proceed";
-    
-    alertContainer.style.width = "360px";
-    alertContainer.style.padding = "24px";
-    alertContainer.style.background = "linear-gradient(135deg, #ffffff, #f8fff8)";
-    alertContainer.style.border = "1px solid rgba(40, 167, 69, 0.2)";
-    alertContainer.style.borderLeft = "6px solid #28a745";
-    alertContainer.style.boxShadow = "0 6px 16px rgba(40, 167, 69, 0.08), 0 3px 6px rgba(0, 0, 0, 0.12)";
-    alertContainer.style.borderRadius = "8px";
+      message.innerText = "Security verification complete - Safe to proceed";
 
-    iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
+      alertContainer.style.width = "360px";
+      alertContainer.style.padding = "24px";
+      alertContainer.style.background =
+        "linear-gradient(135deg, #ffffff, #f8fff8)";
+      alertContainer.style.border = "1px solid rgba(40, 167, 69, 0.2)";
+      alertContainer.style.borderLeft = "6px solid #28a745";
+      alertContainer.style.boxShadow =
+        "0 6px 16px rgba(40, 167, 69, 0.08), 0 3px 6px rgba(0, 0, 0, 0.12)";
+      alertContainer.style.borderRadius = "8px";
+
+      iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
         <defs>
             <filter id="shadow-success">
                 <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#28a745" flood-opacity="0.25"/>
@@ -690,7 +734,7 @@ button.addEventListener("mouseout", () => {
                      repeatCount="indefinite"/>
         </path>
     </svg>`;
-    break;
+      break;
 
     case "unsafe":
       message.innerHTML = `
@@ -701,8 +745,6 @@ button.addEventListener("mouseout", () => {
         <hr style="border: 0; height: 1px; background: #e0e0e0; margin: 8px 0;"/>
         <div style="color: #dc3545; font-size: 16px; font-weight : bold">${messageReason}</div>
     </div>`;
-
-
 
       alertContainer.style.width = "360px"; // Slightly wider for better text flow
       alertContainer.style.padding = "24px"; // Increased padding
@@ -769,17 +811,20 @@ button.addEventListener("mouseout", () => {
 
       break;
     case "inform":
-        message.innerText = "System maintenance in progress - Your security is our priority";
-        
-        alertContainer.style.width = "360px";
-        alertContainer.style.padding = "24px";
-        alertContainer.style.background = "linear-gradient(135deg, #ffffff, #fff8f0)";
-        alertContainer.style.border = "1px solid rgba(255, 153, 0, 0.2)";
-        alertContainer.style.borderLeft = "6px solid #ff9900";
-        alertContainer.style.boxShadow = "0 6px 16px rgba(255, 153, 0, 0.08), 0 3px 6px rgba(0, 0, 0, 0.12)";
-        alertContainer.style.borderRadius = "8px";
-    
-        iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
+      message.innerText =
+        "System maintenance in progress - Your security is our priority";
+
+      alertContainer.style.width = "360px";
+      alertContainer.style.padding = "24px";
+      alertContainer.style.background =
+        "linear-gradient(135deg, #ffffff, #fff8f0)";
+      alertContainer.style.border = "1px solid rgba(255, 153, 0, 0.2)";
+      alertContainer.style.borderLeft = "6px solid #ff9900";
+      alertContainer.style.boxShadow =
+        "0 6px 16px rgba(255, 153, 0, 0.08), 0 3px 6px rgba(0, 0, 0, 0.12)";
+      alertContainer.style.borderRadius = "8px";
+
+      iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
             <defs>
                 <filter id="shadow-warning">
                     <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#ff9900" flood-opacity="0.25"/>
@@ -835,21 +880,21 @@ button.addEventListener("mouseout", () => {
                     repeatCount="indefinite"/>
             </circle>
         </svg>`;
-        break;
-   
-        case "pending":
-          message.innerText =
-            "We're processing your request.... Please wait for the procedure to be finished.";
-    
-          alertContainer.style.background =
-            "linear-gradient(145deg, #ffffff, #f0f8ff)";
-          alertContainer.style.border = "1px solid rgba(0, 123, 255, 0.15)";
-          alertContainer.style.borderLeft = "6px solid #007bff";
-          alertContainer.style.boxShadow =
-            "0 8px 20px rgba(0, 123, 255, 0.06), 0 4px 8px rgba(0, 0, 0, 0.08)";
-          alertContainer.style.borderRadius = "12px";
-    
-          iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
+      break;
+
+    case "pending":
+      message.innerText =
+        "We're processing your request.... Please wait for the procedure to be finished.";
+
+      alertContainer.style.background =
+        "linear-gradient(145deg, #ffffff, #f0f8ff)";
+      alertContainer.style.border = "1px solid rgba(0, 123, 255, 0.15)";
+      alertContainer.style.borderLeft = "6px solid #007bff";
+      alertContainer.style.boxShadow =
+        "0 8px 20px rgba(0, 123, 255, 0.06), 0 4px 8px rgba(0, 0, 0, 0.08)";
+      alertContainer.style.borderRadius = "12px";
+
+      iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
             <defs>
                 <linearGradient id="pendingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" style="stop-color:#007bff;stop-opacity:1" />
@@ -893,7 +938,7 @@ button.addEventListener("mouseout", () => {
                 </circle>
             </g>
         </svg>`;
-          break;
+      break;
     default:
       console.log("Invalid key for showAlert");
       return;
@@ -1007,7 +1052,7 @@ async function runEmailExtraction() {
   //               }
   //           }
   //       }
-  //   } 
+  //   }
   //   else {
   //       // If `#ConversationReadingPaneContainer` is not found, fallback to `#ItemReadingPaneContainer`
   //       activeContainer = document.querySelector("#ItemReadingPaneContainer");
@@ -1398,132 +1443,56 @@ function checkReloadStatusOutlook() {
     chrome.storage.local.get("messages", function (result) {
       let messages = JSON.parse(result.messages || "{}");
       console.log("Message Id ", messages);
-  
+
       if (messages[dataConvid]) {
-          console.log("Message already exists in the local storage", messages[dataConvid]);
-          const status = messages[dataConvid].status;
-          const unsafeReason = messages[dataConvid].unsafeReason;
-  
-          if (status === "safe") {
-              console.log("Message is already safe");
-              shouldApplyPointerEvents = false;
-              blockEmailBody();
-              showAlert("safe", unsafeReason);
-          } else if (status === "unsafe") {
-              console.log("Message is already unsafe");
-              setTimeout(() => {
-                  shouldApplyPointerEvents = true;
-                  blockEmailBody();
-              }, 500);
-              showAlert("unsafe", unsafeReason);
-          } else if (status === "pending") {
-              console.log("Message is already pending");
-              showAlert("pending", unsafeReason);
-              console.log("send response to background for pending status in outlook on reload section");
-              
-              chrome.storage.local.get("outlook_email", (data) => {
-                  setTimeout(() => {
-                      shouldApplyPointerEvents = true;
-                      blockEmailBody();
-                  }, 1000);
-                  console.log("Email Id is stored in the Local", data.outlook_email);
-                  console.log("send response to background for pending status in outlook =============================");
-                  chrome.runtime.sendMessage({
-                      action: "pendingStatusOutlook",
-                      emailId: data.outlook_email,
-                      messageId: dataConvid,
-                  });
-              });
-          }
-      } else {
-          console.log("Message does not exist in the local storage");
-          shouldApplyPointerEvents = true;
+        console.log(
+          "Message already exists in the local storage",
+          messages[dataConvid]
+        );
+        const status = messages[dataConvid].status;
+        const unsafeReason = messages[dataConvid].unsafeReason;
+
+        if (status === "safe") {
+          console.log("Message is already safe");
+          shouldApplyPointerEvents = false;
           blockEmailBody();
+          showAlert("safe", unsafeReason);
+        } else if (status === "unsafe") {
+          console.log("Message is already unsafe");
+          setTimeout(() => {
+            shouldApplyPointerEvents = true;
+            blockEmailBody();
+          }, 500);
+          showAlert("unsafe", unsafeReason);
+        } else if (status === "pending") {
+          console.log("Message is already pending");
+          showAlert("pending", unsafeReason);
+          console.log(
+            "send response to background for pending status in outlook on reload section"
+          );
+
+          chrome.storage.local.get("outlook_email", (data) => {
+            setTimeout(() => {
+              shouldApplyPointerEvents = true;
+              blockEmailBody();
+            }, 1000);
+            console.log("Email Id is stored in the Local", data.outlook_email);
+            console.log(
+              "send response to background for pending status in outlook ============================="
+            );
+            chrome.runtime.sendMessage({
+              action: "pendingStatusOutlook",
+              emailId: data.outlook_email,
+              messageId: dataConvid,
+            });
+          });
+        }
+      } else {
+        console.log("Message does not exist in the local storage");
+        shouldApplyPointerEvents = true;
+        blockEmailBody();
       }
-  });
-  
-    // chrome.storage.local.get("messages", function (result) {
-    //   let messages = JSON.parse(result.messages || "{}");
-    //   console.log("Message Id ", messages);
-    //   if (messages[dataConvid]) {
-    //     console.log(
-    //       "Message already exists in the local storage",
-    //       messages[dataConvid]
-    //     );
-    //     if (messages[dataConvid] === "safe") {
-    //       console.log("Message is already safe");
-    //       shouldApplyPointerEvents = false;
-    //       blockEmailBody();
-    //       showAlert("safe");
-    //     } else if (messages[dataConvid] === "unsafe") {
-    //       console.log("Message is already unsafe");
-    //       // shouldApplyPointerEvents = true;
-    //       setTimeout(() => {
-    //         shouldApplyPointerEvents = true;
-    //         blockEmailBody();
-    //       }, 500);
-    //       showAlert("unsafe");
-    //     } else if (messages[dataConvid] === "pending") {
-    //       console.log("Message is already pending");
-    //       showAlert("pending");
-    //       console.log(
-    //         "send response to background for pending status in outlook on reload section"
-    //       );
-    //       chrome.storage.local.get("outlook_email", (data) => {
-    //         setTimeout(() => {
-    //           shouldApplyPointerEvents = true;
-    //           blockEmailBody();
-    //         }, 1000);
-    //         console.log(
-    //           "Email Id is stored in the Localaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    //           data.outlook_email
-    //         );
-    //         console.log(
-    //           "send response to background for pending status in outlook ============================="
-    //         );
-    //         chrome.runtime.sendMessage({
-    //           action: "pendingStatusOutlook",
-    //           emailId: data.outlook_email,
-    //           messageId: dataConvid,
-    //         });
-    //       });
-    //     }
-    //   } else {
-    //     console.log("Message does not exist in the local storage");
-    //     shouldApplyPointerEvents = true;
-    //     blockEmailBody();
-    //     // alert("There is an issue, please refresh the page and try again");
-    //     // const element = document.querySelector("#ConversationReadingPaneContainer");
-    //     // const junkBox = document.querySelector("#ItemReadingPaneContainer");
-    //     // if(element || junkBox){
-    //     //   window.location.reload();
-    //     // }
-    //     // externalCallForPendingStatus();
-    //   }
-    //   // function externalCallForPendingStatus( attempts = 10) {
-    //   //   console.log("Message does not exist in the local storage");
-    //   //   const mailBody = document.querySelector(".GjFKx.WWy1F.YoK0k");
-    //   //   if(mailBody){
-    //   //     console.log("Mail body found");
-    //   //     mailBody.click();
-    //   //     // setTimeout(()=>{
-    //   //       console.log("Mail body clicked");
-    //   //       shouldApplyPointerEvents = true;
-    //   //       blockEmailBody();
-    //   //       // executeWithLoadingScreenAndExtraction();
-    //   //     // }, 1000);
-    //   //   }
-    //   //   else if(attempts > 0){
-    //   //     setTimeout(() => externalCallForPendingStatus(attempts - 1), 500);
-    //   //   }
-    //   //   else{
-    //   //     console.log("Mail body not found, Meaning the email is not loaded yet or No mail is opened");
-    //   //     shouldApplyPointerEvents = true;
-    //   //     blockEmailBody();
-    //   //     // alert("Mail body not found");
-    //   //   }
-    //   // }
-    // });
+    });
   }
 }
 
