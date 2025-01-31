@@ -3,26 +3,26 @@ import { COMPONENTS } from "/src/constant/component.js";
 import { TARGET_ID } from "/src/constant/target_id.js";
 import { loadComponent } from "/src/helper/content_loader_helper.js";
 
-const UnauthenticatedRoute = [
+const notEmailPageRoutes = [
   {
     componentName: COMPONENTS.HEADER,
     basePath: BASEPATH.COMPONENT,
     targetId: TARGET_ID.HEADER,
   },
-  {
-    componentName: COMPONENTS.REGISTRATION,
-    basePath: BASEPATH.PAGES,
-    targetId: TARGET_ID.DATA_OUTPUT,
-  },
+
   {
     componentName: COMPONENTS.FOOTER,
     basePath: BASEPATH.COMPONENT,
     targetId: TARGET_ID.FOOTER,
   },
+
+  {
+    componentName: COMPONENTS.EMAIL_PAGE_NOT_FOUND,
+    basePath: BASEPATH.COMPONENT,
+    targetId: TARGET_ID.DATA_OUTPUT,
+  },
 ];
 
-export const loadUnauthenticatedComponents = async () => {
-  await Promise.all(
-    UnauthenticatedRoute.map((config) => loadComponent(config))
-  );
+export const loadNotEmailPageComponents = async () => {
+  await Promise.all(notEmailPageRoutes.map((config) => loadComponent(config)));
 };

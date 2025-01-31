@@ -1,6 +1,7 @@
 import { BASEPATH } from "/src/constant/basepath.js";
 import { COMPONENTS } from "/src/constant/component.js";
 import { TARGET_ID } from "/src/constant/target_id.js";
+import { loadComponent } from "/src/helper/content_loader_helper.js";
 
 export const authenticatedRoutes = [
   {
@@ -24,3 +25,7 @@ export const authenticatedRoutes = [
     targetId: TARGET_ID.DATA_OUTPUT,
   },
 ];
+
+export const loadAuthenticatedComponents = async () => {
+  await Promise.all(authenticatedRoutes.map((config) => loadComponent(config)));
+};

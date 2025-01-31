@@ -416,19 +416,19 @@ function showAlert(key, messageReason = " ") {
         </svg>`;
       break;
 
-      case "pending":
-        message.innerText =
-          "We're processing your request.... Please wait for the procedure to be finished.";
-  
-        alertContainer.style.background =
-          "linear-gradient(145deg, #ffffff, #f0f8ff)";
-        alertContainer.style.border = "1px solid rgba(0, 123, 255, 0.15)";
-        alertContainer.style.borderLeft = "6px solid #007bff";
-        alertContainer.style.boxShadow =
-          "0 8px 20px rgba(0, 123, 255, 0.06), 0 4px 8px rgba(0, 0, 0, 0.08)";
-        alertContainer.style.borderRadius = "12px";
-  
-        iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
+    case "pending":
+      message.innerText =
+        "We're processing your request.... Please wait for the procedure to be finished.";
+
+      alertContainer.style.background =
+        "linear-gradient(145deg, #ffffff, #f0f8ff)";
+      alertContainer.style.border = "1px solid rgba(0, 123, 255, 0.15)";
+      alertContainer.style.borderLeft = "6px solid #007bff";
+      alertContainer.style.boxShadow =
+        "0 8px 20px rgba(0, 123, 255, 0.06), 0 4px 8px rgba(0, 0, 0, 0.08)";
+      alertContainer.style.borderRadius = "12px";
+
+      iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
           <defs>
               <linearGradient id="pendingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" style="stop-color:#007bff;stop-opacity:1" />
@@ -472,7 +472,7 @@ function showAlert(key, messageReason = " ") {
               </circle>
           </g>
       </svg>`;
-        break;
+      break;
     default:
       console.log("Invalid key for showAlert");
       return;
@@ -646,47 +646,6 @@ function extractIdsFromNonceScripts() {
   }
 
   if (lastMessageId) {
-    console.log("Working on the messageId to First Time check ");
-    // Retrieve the "messages" object from chrome.storage.local
-    // chrome.storage.local.get("messages", function (result) {
-    //   let messages = JSON.parse(result.messages || "{}"); // Ensure messages is an object
-    //   // console.log("___________________", messages);
-    //   if (messages[lastMessageId]) {
-    //     console.log("Thread ID status:", messages[lastMessageId]);
-    //     if (
-    //       messages[lastMessageId] === "safe" ||
-    //       messages[lastMessageId] === "Safe"
-    //     ) {
-    //       showAlert("safe");
-    //       console.log("Local Storage status", messages[lastMessageId]);
-    //       shouldApplyPointerEvents = false;
-    //       blockEmailBody();
-    //       console.log(
-    //         `Removing blocking layer because message is ${messages[lastMessageId]}`
-    //       );
-    //     } else if (
-    //       messages[lastMessageId] === "unsafe" ||
-    //       messages[lastMessageId] === "Unsafe"
-    //     ) {
-    //       showAlert("unsafe");
-    //       console.log("Local Storage status", messages[lastMessageId]);
-    //       console.log(
-    //         `Applying blocking layer because message is ${messages[lastMessageId]}`
-    //       );
-    //       shouldApplyPointerEvents = true;
-    //       blockEmailBody();
-    //     } else if (
-    //       messages[lastMessageId] === "pending" ||
-    //       messages[lastMessageId] === "Pending"
-    //     ) {
-    //       console.log("send response to background for pending status");
-    //       chrome.runtime.sendMessage({
-    //         action: "pendingStatusYahoo",
-    //         emailId: sendUserEmail,
-    //         messageId: sendMessageId,
-    //       });
-    //     }
-    //   }
     chrome.storage.local.get("messages", function (result) {
       let messages = JSON.parse(result.messages || "{}");
 
@@ -733,51 +692,8 @@ function extractIdsFromNonceScripts() {
               console.error("Error sending message:", chrome.runtime.lastError);
               return;
             }
-            // console.log("Response from background for firstCheckForEmail API:", response);
             let error = response.status;
-            // if (response.IsResponseRecieved === "success") {
-            //   if (response.data.code === 200) {
-            //     console.log(
-            //       "Response from background for firstCheckForEmail API:",
-            //       response
-            //     );
-            //     const serverData = response.data.data;
-            //     const resStatus =
-            //       serverData.eml_status || serverData.email_status;
-            //     const messId = serverData.messageId || serverData.msg_id;
-            //     console.log("serverData:", serverData);
-            //     console.log("resStatus:", resStatus);
-            //     console.log("messId:", messId);
-            //     if (["safe", "unsafe", "pending"].includes(resStatus)) {
-            //       chrome.storage.local.get("messages", function (result) {
-            //         let messages = JSON.parse(result.messages || "{}");
-            //         messages[messId] = resStatus;
-            //         chrome.storage.local.set(
-            //           {
-            //             messages: JSON.stringify(messages),
-            //           },
-            //           () => {
-            //             console.log(
-            //               `Status ${resStatus} stored for message ${messId}`
-            //             );
-            //             shouldApplyPointerEvents = resStatus !== "safe";
-            //             blockEmailBody();
-            //             console.log(
-            //               `Removing blocking layer because message is ${resStatus}`
-            //             );
-            //             showAlert(resStatus);
-            //           }
-            //         );
-            //       });
-            //     }
-            //   } else {
-            //     blockEmailBody();
-            //     console.log("Message not found on server, extracting content");
-            //     setTimeout(() => {
-            //       createUrl(selectedMailboxId, lastMessageId, userEmail);
-            //     }, 100);
-            //   }
-            // }
+
             if (response.IsResponseRecieved === "success") {
               if (response.data.code === 200) {
                 console.log(

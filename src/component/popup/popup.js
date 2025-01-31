@@ -1,82 +1,95 @@
-import { authenticatedRoutes } from "/src/routes/authenticated_route.js";
-import { UnauthenticatedRoute } from "/src/routes/unauthenticated_route.js";
+import { loadNotEmailPageComponents } from "/src/routes/not_email_page_route.js";
+import { loadAuthenticatedComponents } from "/src/routes/authenticated_route.js";
+import { loadUnauthenticatedComponents } from "/src/routes/unauthenticated_route.js";
 import { displayError } from "/src/helper/display_error.js";
-import { loadComponent } from "/src/helper/content_loader_helper.js";
-import { COMPONENTS } from "/src/constant/component.js";
-import { BASEPATH } from "/src/constant/basepath.js";
-import { TARGET_ID } from "/src/constant/target_id.js";
+import { isEmailPage } from "/src/helper/is_gmail_page_helper.js";
 
-const loadAuthenticatedComponents = async () => {
-  await Promise.all(authenticatedRoutes.map((config) => loadComponent(config)));
-};
+/**
+ * Initializes the popup interface for registered users by loading authenticated components
+ * and setting up the initial UI state.
+ * 
+ * The function:
+ * 1. Loads all authenticated components in parallel
+ * 2. Finds and clicks the details button to open the details view
+ * 3. Highlights the details menu item by adding the 'active' class
+ * 
+ * Called when:
+ * - Popup initializes on an email page
+ * - User has valid registration data
+ * 
+ * @async
+ * @returns {Promise<void>}
+ */
+const handleRegisteredUser = async () => {
+  await loadAuthenticatedComponents();
+  const detailsBtn = document.getElementById("details-btn");
 
-const loadRegistrationComponent = async () => {
-  await Promise.all(
-    UnauthenticatedRoute.map((config) => loadComponent(config))
-  );
-};
-
-const EMAIL_PAGES = [
-  "Gmail",
-  "Outlook",
-  "OpenedGmail",
-  "OpenedOutlook",
-  "Yahoo",
-  "OpenedYahoo",
-];
-
-function isEmailPage(pageName) {
-  return EMAIL_PAGES.includes(pageName);
-}
-
-async function handleEmailPageResponse(response) {
-  if (isEmailPage(response)) {
-    try {
-      // Convert chrome.storage.local.get to a Promise
-      const data = await new Promise((resolve, reject) => {
-        chrome.storage.local.get("registration", (result) => {
-          if (chrome.runtime.lastError) {
-            reject(chrome.runtime.lastError);
-          } else {
-            resolve(result);
-          }
-        });
-      });
-
-      if (data.registration) {
-        await loadAuthenticatedComponents();
-        const detailsBtn = document.getElementById("details-btn");
-        if (detailsBtn) {
-          detailsBtn.click();
-          detailsBtn.closest(".menu-item").classList.add("active");
-        }
-      } else {
-        await loadRegistrationComponent();
-      }
-    } catch (error) {
-      displayError(error);
-    }
-  } else {
-    loadComponent({
-      componentName: COMPONENTS.HEADER,
-      basePath: BASEPATH.COMPONENT,
-      targetId: TARGET_ID.HEADER,
-    });
-    loadComponent({
-      componentName: COMPONENTS.FOOTER,
-      basePath: BASEPATH.COMPONENT,
-      targetId: TARGET_ID.FOOTER,
-    });
-    loadComponent({
-      componentName: COMPONENTS.EMAIL_PAGE_NOT_FOUND,
-      basePath: BASEPATH.COMPONENT,
-      targetId: TARGET_ID.DATA_OUTPUT,
-    });
+  if (detailsBtn) {
+    detailsBtn.click();
+    const menuItem = detailsBtn.closest(".menu-item");
+    if (menuItem) menuItem.classList.add("active");
   }
-}
+};
 
-document.addEventListener("DOMContentLoaded", async () => {
-  chrome.runtime.sendMessage({ action: "checkEmailPage" }, (response) => {
-    handleEmailPageResponse(response);
+/**
+ * Handles the response from email page check and loads appropriate components based on context.
+ * 
+ * The function determines which components to load based on:
+ * 1. Whether current page is an email page
+ * 2. User's registration status
+ * 
+ * Flow:
+ * - For non-email pages: loads not-email-page components
+ * - For email pages:
+ *   - Checks registration status in chrome.storage
+ *   - Loads authenticated components for registered users
+ *   - Loads unauthenticated components for unregistered users
+ * 
+ * @async
+ * @param {Object} response - Response object from email page check
+ * @returns {Promise<void>}
+ * @throws {Error} Handled by displayError if storage access fails
+ */
+const handleEmailPageResponse = async (response) => {
+  if (!isEmailPage(response)) {
+    await loadNotEmailPageComponents();
+    return;
+  }
+
+  try {
+    const { registration } = await chrome.storage.local.get("registration");
+
+    if (registration) {
+      await handleRegisteredUser();
+    } else {
+      await loadUnauthenticatedComponents();
+    }
+  } catch (error) {
+    displayError(error);
+  }
+};
+
+/**
+ * Initializes the popup interface when the extension icon is clicked.
+ * Sets up the core event listener to begin popup functionality.
+ * 
+ * The function:
+ * 1. Listens for DOMContentLoaded event
+ * 2. Sends message to check current page type
+ * 3. Handles response through handleEmailPageResponse
+ * 
+ * Called immediately on script load to ensure popup
+ * is ready as soon as user clicks extension icon.
+ * 
+ * @returns {void}
+ */
+const initializePopup = () => {
+  document.addEventListener("DOMContentLoaded", () => {
+    chrome.runtime.sendMessage(
+      { action: "checkEmailPage" },
+      handleEmailPageResponse
+    );
   });
-});
+};
+
+initializePopup();

@@ -1,7 +1,6 @@
 .form-container {
   max-width: 390px;
   margin: 0px 0px 40px 0px;
-  /* padding: 30px; */
   background-color: #ffffff;
   border-radius: 5px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
@@ -36,9 +35,7 @@
   border: 1px solid #ced4da;
   padding: 10px;
   border-radius: 5px;
-  /* background-color: #f8f9fa; */
   font-size: 16px;
-  /* color: #495057; */
 }
 
 .message-id-value {
