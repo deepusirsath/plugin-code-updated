@@ -57,67 +57,19 @@ async function fetchDeviceDataToSend() {
   }
 }
 
-chrome.storage.local.get(null, function (data) {
-  console.log("Data retrieved from local storage:", data);
-});
-
-chrome.storage.local.set({ registration: true });
-
-// Check for registration if not registered then called backend for true and false response
-function checkRegistration() {
-  chrome.storage.local.get("registration", (data) => {
-    if (chrome.runtime.lastError || !data.registration) {
-      // Registration not found, proceed to call server API
-      const extensionId = chrome.runtime.id;
-      const url = baseUrl + VERIFY_LICENSE;
-
-      fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ extensionId: extensionId }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.success) {
-            //  Server responded with true, store registration status
-            chrome.storage.local.set({ registration: true }, () => {
-              if (chrome.runtime.lastError) {
-                console.error(
-                  "Failed to save registration:",
-                  chrome.runtime.lastError
-                );
-              } else {
-                console.log("Registration successful and stored.");
-              }
-            });
-          } else {
-            console.log("Registration failed, server did not return success.");
-          }
-        })
-        .catch((error) => {
-          console.error("API call failed:", error);
-        });
-    } else {
-      console.log("Registration already exists.");
-    }
-  });
-}
+// chrome.storage.local.set({ registration: true });
 
 // Listener for chrome startup
 chrome.runtime.onStartup.addListener(() => {
   console.log("On startup is running");
   userDetails();
   // fetchDeviceDataToSend();
-  checkRegistration();
 });
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log("On Installed is running");
   userDetails();
   // fetchDeviceDataToSend();
-  checkRegistration();
 });
 
 // Reloads the current page
