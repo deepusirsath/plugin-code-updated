@@ -5,11 +5,11 @@
  * to close the current window/popup.
  * 
  * @function handleCloseWindow
- * @returns {void} Does not return any value
+ * @returns {void}
  */
-function handleCloseWindow() {
+const handleCloseWindow = () => {
   window.close();
-}
+};
 
 // Event listener for close button click
 document

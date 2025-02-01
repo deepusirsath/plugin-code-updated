@@ -7,16 +7,16 @@ import { isEmailPage } from "/src/helper/is_gmail_page_helper.js";
 /**
  * Initializes the popup interface for registered users by loading authenticated components
  * and setting up the initial UI state.
- * 
+ *
  * The function:
  * 1. Loads all authenticated components in parallel
  * 2. Finds and clicks the details button to open the details view
  * 3. Highlights the details menu item by adding the 'active' class
- * 
+ *
  * Called when:
  * - Popup initializes on an email page
  * - User has valid registration data
- * 
+ *
  * @async
  * @returns {Promise<void>}
  */
@@ -33,18 +33,18 @@ const handleRegisteredUser = async () => {
 
 /**
  * Handles the response from email page check and loads appropriate components based on context.
- * 
+ *
  * The function determines which components to load based on:
  * 1. Whether current page is an email page
  * 2. User's registration status
- * 
+ *
  * Flow:
  * - For non-email pages: loads not-email-page components
  * - For email pages:
  *   - Checks registration status in chrome.storage
  *   - Loads authenticated components for registered users
  *   - Loads unauthenticated components for unregistered users
- * 
+ *
  * @async
  * @param {Object} response - Response object from email page check
  * @returns {Promise<void>}
@@ -72,15 +72,15 @@ const handleEmailPageResponse = async (response) => {
 /**
  * Initializes the popup interface when the extension icon is clicked.
  * Sets up the core event listener to begin popup functionality.
- * 
+ *
  * The function:
  * 1. Listens for DOMContentLoaded event
  * 2. Sends message to check current page type
  * 3. Handles response through handleEmailPageResponse
- * 
+ *
  * Called immediately on script load to ensure popup
  * is ready as soon as user clicks extension icon.
- * 
+ *
  * @returns {void}
  */
 const initializePopup = () => {

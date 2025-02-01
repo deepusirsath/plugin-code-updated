@@ -3,8 +3,6 @@ import {
   IS_OUTLOOK,
   IS_YAHOO,
 } from "/src/constant/email_service.js";
-
-
 import RegexLibrary from "/src/library/regex.lib.js";
 
 /**
@@ -38,4 +36,4 @@ export const isOutlookPage = (url) => url.includes(IS_OUTLOOK);
  * @param {string} url - The URL of the page you want to check.
  * @returns {boolean} - Returns true if the URL belongs to Yahoo Mail, false otherwise.
  */
-export const isYahooPage = (url) => url.includes();
+export const isYahooPage = (url) => url.includes(IS_YAHOO);

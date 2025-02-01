@@ -32,7 +32,6 @@ export const SIDEBAR_CONFIG = {
   },
   spamMails: {
     buttonId: TARGET_ID.SPAM_MAIL,
-
     component: COMPONENTS.SPAM_MAIL,
   },
   activity: {
