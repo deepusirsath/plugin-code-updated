@@ -1,3 +1,6 @@
+// This file contains the component names which are used in the application.
+// The component names are used in the component folder to import the component in the application.
+
 export const COMPONENTS = {
   HEADER: "header",
   SIDEBAR: "sidebar",

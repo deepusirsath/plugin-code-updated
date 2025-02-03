@@ -3,6 +3,7 @@ import { loadAuthenticatedComponents } from "/src/routes/authenticated_route.js"
 import { loadUnauthenticatedComponents } from "/src/routes/unauthenticated_route.js";
 import { displayError } from "/src/helper/display_error.js";
 import { isEmailPage } from "/src/helper/is_gmail_page_helper.js";
+import { loadCommonComponents } from "/src/routes/common_route.js";
 
 /**
  * Initializes the popup interface for registered users by loading authenticated components
@@ -51,6 +52,8 @@ const handleRegisteredUser = async () => {
  * @throws {Error} Handled by displayError if storage access fails
  */
 const handleEmailPageResponse = async (response) => {
+  loadCommonComponents();
+
   if (!isEmailPage(response)) {
     await loadNotEmailPageComponents();
     return;

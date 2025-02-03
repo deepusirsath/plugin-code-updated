@@ -1,3 +1,5 @@
+//  This file contains all the API routes used in the application
+
 export const CHECK_EMAIL = "/check-email/";
 export const VERIFY_LICENSE = "/verify-license/";
 export const PLUGINS_ENABLE_DISABLE = "/plugins/enable-disable/enable/";

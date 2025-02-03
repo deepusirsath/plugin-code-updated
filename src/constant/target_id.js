@@ -1,3 +1,6 @@
+// This is a constant file for target id
+// This file is used to define the target id for the application
+
 export const TARGET_ID = {
   HEADER: "header-container",
   SIDEBAR: "sidebar-container",
