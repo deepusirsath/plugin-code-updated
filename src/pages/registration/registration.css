@@ -3,24 +3,23 @@
   top: 50.5%;
   left: 59.1%;
   transform: translate(-50%, -50%);
-  width: min(90%, 420px);
+  width: min(90%, 430px);
   height: min(85vh, 465px);
   padding: 12px;
   border-radius: 8px;
   border: 1px solid #e1e4e8;
-  background-color: #f0f0f0;
+  background-color: #f0f0f3;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   font-family: "Segoe UI", Arial, sans-serif;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
   overflow: hidden;
-  border-right: 3px solid #2f2f2f;
 }
 
 .registration h2 {
   margin: 0 0 6px;
-  font-size: 1.1em;
+  font-size: 1.5em;
   color: #2c3e50;
   text-align: center;
 }
@@ -30,12 +29,12 @@
   margin-bottom: 2px;
   font-weight: 500;
   color: #34495e;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .registration input {
-  width: 100%;
-  padding: 5px;
+  width: 97%;
+  padding: 6px;
   border: 1px solid #a9a9a9;
   border-radius: 4px;
   background-color: #f8f9fa;

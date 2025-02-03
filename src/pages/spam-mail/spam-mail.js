@@ -132,13 +132,13 @@ const filterSpamMails = async (searchQuery, page = 1) => {
 /**
  * Sets up event handlers for the spam mail search functionality
  * Initializes search, clear, and input event listeners
- * 
+ *
  * Features:
  * - Search button triggers filtered spam mail loading
  * - Clear button resets search and reloads all spam mails
  * - Maintains search input state across component updates
  * - Dynamic clear button visibility based on input state
- * 
+ *
  * @returns {void} Sets up DOM event listeners for search functionality
  */
 const initializeSearchHandlers = () => {
@@ -178,7 +178,7 @@ const initializeSearchHandlers = () => {
 /**
  * Attaches click event listeners to all view buttons in the spam mail table
  * Each button triggers a popup showing detailed message information
- * 
+ *
  * @listens {click} Listens for clicks on elements with .view-button class
  * @fires showPopup Using the message ID stored in data-msg_id attribute
  */
@@ -195,7 +195,7 @@ const attachViewButtonListeners = () => {
  * @param {number} [page=1] - The page number to load
  * @param {string} [searchQuery=""] - Search query to filter spam mails
  * @async
- * 
+ *
  * Component Flow:
  * 1. Fetches email IDs and spam mail data
  * 2. Loads table component
@@ -203,7 +203,7 @@ const attachViewButtonListeners = () => {
  * 4. Handles empty data scenarios
  * 5. Formats and displays spam mail data with status and actions
  * 6. Configures pagination
- * 
+ *
  * @returns {void} Renders the spam mail table component
  * @throws {Error} Displays error message if component loading fails
  */
@@ -237,7 +237,18 @@ const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
         basePath: BASEPATH.COMPONENT,
         targetId: "noDataFound",
       });
-      handleRefresh(() => loadSpamMailComponent(1));
+      handleRefresh(() => {
+        const searchInput = document.getElementById("search-input");
+        const clearButton = document.getElementById("clearButton");
+        if (searchInput) {
+          searchInput.value = "";
+          currentSearchQuery = "";
+        }
+        if (clearButton) {
+          clearButton.style.display = "none";
+        }
+        loadSpamMailComponent(1);
+      });
       return;
     }
 
@@ -266,7 +277,7 @@ const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
 /**
  * Event listener for component loading completion
  * Initializes the spam mail component when SPAM_MAIL component is loaded
- * 
+ *
  * @listens {Event} componentLoaded
  * @param {CustomEvent} event - Component loaded event with component details
  * @property {Object} event.detail - Contains component information

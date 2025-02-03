@@ -242,7 +242,18 @@ const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
         basePath: BASEPATH.COMPONENT,
         targetId: "noDataFound",
       });
-      handleRefresh(() => loadDisputeMailComponent(1));
+      handleRefresh(() => {
+        const searchInput = document.getElementById("search-input");
+        const clearButton = document.getElementById("clearButton");
+        if (searchInput) {
+          searchInput.value = "";
+          currentSearchQuery = "";
+        }
+        if (clearButton) {
+          clearButton.style.display = "none";
+        }
+        loadDisputeMailComponent(1);
+      });
       return;
     }
 
