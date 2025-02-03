@@ -39,7 +39,6 @@ export const createTable = () => {
   let currentPage = 1;
   let hasNext = false;
   let hasPrevious = false;
-  let onSearch = null;
   let onPageChange = null;
   const rowsPerPage = 5;
 
