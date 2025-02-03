@@ -30,7 +30,7 @@ export const setCurrentSearchQuery = (value) => {
 
 const showPopup = async (msg_id) => {
   const viewDetailData = await getViewDetailOfDisputeMail(msg_id);
-  createViewDetail(viewDetailData, () => {});
+  createViewDetail(viewDetailData);
 };
 
 const getViewDetailOfDisputeMail = async (msg_id) => {

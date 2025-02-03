@@ -29,7 +29,7 @@ export const setCurrentSearchQuery = (value) => {
 
 const showPopup = async (msg_id) => {
   const viewDetailData = await getViewDetailOfSpamMail(msg_id);
-  createViewDetail(viewDetailData, () => {});
+  createViewDetail(viewDetailData);
 };
 
 const getViewDetailOfSpamMail = async (msg_id) => {

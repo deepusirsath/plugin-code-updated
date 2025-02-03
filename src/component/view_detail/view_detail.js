@@ -23,7 +23,7 @@ function extractBodyContent(htmlString) {
   return doc.body.innerHTML;
 }
 
-export const createViewDetail = (createViewDetail, onClose) => {
+export const createViewDetail = (createViewDetail) => {
   const view_detail = `/src/${BASEPATH.COMPONENT}/${COMPONENTS.VIEW_DETAIL}/${COMPONENTS.VIEW_DETAIL}`;
   loadCSS(`${view_detail}.css`);
 
