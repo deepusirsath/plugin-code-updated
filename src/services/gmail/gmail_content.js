@@ -1,12 +1,3 @@
-// function showAlert(status, reason = "") {
-//   chrome.runtime.sendMessage({
-//     action: "showAlert",
-//     status,
-//     reason
-//   });
-// }
-
-
 console.log("Content script loaded for Gmail--------");
 setTimeout(() => {
   blockEmailBody();
