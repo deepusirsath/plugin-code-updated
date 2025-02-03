@@ -1,3 +1,15 @@
+// let showAlert = null;
+
+// (async () => {
+//   const src = chrome.runtime.getURL(
+//     "/src/component/email_status/email_status.js"
+//   );
+//   const content = await import(src);
+//   // Store the function reference without calling it
+//   showAlert = content.showAlert;
+// })();
+
+
 console.log("Content script loaded for Gmail--------");
 setTimeout(() => {
   blockEmailBody();
