@@ -24,17 +24,37 @@ import {
 let globalTable = null;
 let currentSearchQuery = "";
 
+/**
+ * Sets the current search query value for dispute mail filtering
+ * @param {string} value - The search query text to set
+ * @function setCurrentSearchQuery
+ * @returns {void}
+ */
 export const setCurrentSearchQuery = (value) => {
   currentSearchQuery = value;
 };
 
+/**
+ * Displays a popup with detailed information for a specific dispute mail
+ * @function showPopup
+ * @param {string} msg_id - The message ID of the dispute mail to show details for
+ * @returns {Promise<void>}
+ */
 const showPopup = async (msg_id) => {
   const viewDetailData = await getViewDetailOfDisputeMail(msg_id);
   createViewDetail(viewDetailData);
 };
 
+/**
+ * Fetches detailed information for a specific dispute mail
+ * @function getViewDetailOfDisputeMail
+ * @param {string} msg_id - The message ID to retrieve details for
+ * @returns {Promise<Object>} The detailed data for the dispute mail
+ * @throws {Error} Displays error if the API request fails
+ */
 const getViewDetailOfDisputeMail = async (msg_id) => {
   const currentEmail = getCurrentEmail();
+
   if (currentEmail) {
     try {
       const requestData = {
@@ -49,8 +69,15 @@ const getViewDetailOfDisputeMail = async (msg_id) => {
   }
 };
 
+/**
+ * Retrieves paginated dispute mail data for the current user
+ * @function getAllDisputeMail
+ * @param {number} [page=1] - The page number to fetch (defaults to 1)
+ * @returns {Promise<Object>} Paginated response containing dispute mail data
+ */
 const getAllDisputeMail = async (page = 1) => {
   const currentEmail = getCurrentEmail();
+
   if (currentEmail) {
     showLoader();
     try {
@@ -70,11 +97,18 @@ const getAllDisputeMail = async (page = 1) => {
     }
     hideLoader();
   }
-  
 };
 
+/**
+ * Filters dispute mails based on sender's email with pagination
+ * @function filterDisputeMails
+ * @param {number} [page=1] - The page number to fetch (defaults to 1)
+ * @param {string} searchQuery - The sender's email to filter by
+ * @returns {Promise<Object>} Filtered and paginated dispute mail data
+ */
 const filterDisputeMails = async (page = 1, searchQuery) => {
   const currentEmail = getCurrentEmail();
+
   if (currentEmail) {
     showLoader();
     try {
@@ -97,6 +131,16 @@ const filterDisputeMails = async (page = 1, searchQuery) => {
   }
 };
 
+/**
+ * Sets up event handlers for the dispute mail search functionality
+ * @function initializeSearchHandlers
+ *
+ * Initializes:
+ * - Search button click handler to filter dispute mails
+ * - Clear button to reset search
+ * - Clear button visibility management
+ * - Search input state persistence
+ */
 const initializeSearchHandlers = () => {
   const searchInput = document.getElementById("search-input");
   const searchButton = document.getElementById("searchButton");
@@ -131,6 +175,14 @@ const initializeSearchHandlers = () => {
   }
 };
 
+/**
+ * Attaches click event listeners to all view buttons in the dispute mail table
+ * @function attachViewButtonListeners
+ *
+ * Each view button, when clicked:
+ * - Retrieves the message ID from the button's data attribute
+ * - Triggers the showPopup function to display detailed mail information
+ */
 const attachViewButtonListeners = () => {
   document.querySelectorAll(".view-button").forEach((button) => {
     button.addEventListener("click", () => {
@@ -139,6 +191,23 @@ const attachViewButtonListeners = () => {
   });
 };
 
+/**
+ * Loads and renders the dispute mail component with pagination and search functionality
+ * @param {number} [page=1] - The page number to load (defaults to 1)
+ * @param {string} [searchQuery=""] - Search query for filtering dispute mails (defaults to empty string)
+ * @function loadDisputeMailComponent
+ * @async
+ *
+ * The function:
+ * 1. Fetches email IDs and dispute mail data
+ * 2. Loads and initializes the table component
+ * 3. Handles empty data states
+ * 4. Formats and displays dispute mail data with status chips
+ * 5. Sets up pagination
+ * 6. Attaches view button listeners
+ *
+ * @throws {Error} Displays error if component loading or data fetching fails
+ */
 const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
   try {
     await getEmailIds();
@@ -205,6 +274,15 @@ const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
   }
 };
 
+/**
+ * Event listener and initial load setup for dispute mail component
+ *
+ * Handles two initialization scenarios:
+ * 1. Component loaded event - Triggers when dispute mail component is dynamically loaded
+ * 2. Direct initialization - Ensures component loads on page load
+ *
+ * @listens {Event} componentLoaded - Custom event fired when components are loaded
+ */
 document.addEventListener("componentLoaded", (event) => {
   if (event.detail.componentName === COMPONENTS.DISPUTE_MAIL) {
     loadDisputeMailComponent(1);
