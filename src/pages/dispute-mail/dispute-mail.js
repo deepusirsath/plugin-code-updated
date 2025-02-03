@@ -4,17 +4,17 @@ import { TARGET_ID } from "/src/constant/target_id.js";
 import { MAIL_STATUS } from "/src/constant/mail_status.js";
 import { postData } from "/src/api/api_method.js";
 import { displayError } from "/src/helper/display_error.js";
+import { loadComponent } from "/src/helper/content_loader_helper.js";
 import { createTable } from "/src/component/table/table.js";
 import { createViewButton } from "/src/component/view_button/view_button.js";
 import { createStatusChip } from "/src/component/status_chip/status_chip.js";
+import { showLoader, hideLoader } from "/src/component/loader/loader.js";
 import { createViewDetail } from "/src/component/view_detail/view_detail.js";
-import { loadComponent } from "/src/helper/content_loader_helper.js";
+import { handleRefresh } from "/src/component/no_data_found/no_data_found.js";
 import {
   getCurrentEmail,
   getEmailIds,
 } from "/src/helper/get_email_from_local_storage.js";
-import { showLoader, hideLoader } from "/src/component/loader/loader.js";
-import { handleRefresh } from "/src/component/no_data_found/no_data_found.js";
 import {
   GET_DISPUTE_RAISE_DATA,
   GET_ACTION_VIEW_DETAIL,
