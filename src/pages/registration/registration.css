@@ -10,7 +10,7 @@
   border: 1px solid #e1e4e8;
   background-color: #f0f0f0;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  font-family: 'Segoe UI', Arial, sans-serif;
+  font-family: "Segoe UI", Arial, sans-serif;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
@@ -84,7 +84,6 @@
   color: white;
 }
 
-
 #submit:hover {
   background-color: #2980b9;
 }
@@ -115,9 +114,8 @@
   margin-top: 2px;
 }
 
-
-
-.header, .footer {
+.header,
+.footer {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -127,7 +125,8 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.header img, .footer img {
+.header img,
+.footer img {
   height: 40px;
   width: auto;
   object-fit: contain;
@@ -147,7 +146,10 @@
   bottom: 0;
   left: 0;
 }
-html, body, .registration, * {
+html,
+body,
+.registration,
+* {
   -ms-overflow-style: none !important;
   scrollbar-width: none !important;
 }
@@ -164,7 +166,6 @@ body::-webkit-scrollbar,
   overflow: hidden !important;
 }
 
-
 .left-side-overlay {
   position: fixed;
   top: 0;
@@ -178,4 +179,3 @@ body::-webkit-scrollbar,
   align-items: center;
   border-right: 5px solid #2f2f2f;
 }
-
