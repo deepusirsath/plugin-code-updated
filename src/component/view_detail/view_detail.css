@@ -51,7 +51,6 @@
 .detail-row label {
   font-size: 13px;
   font-weight: bold;
-  /* display: inline-block; */
   min-width: 60px;
   width: 60px;
   flex-shrink: 0;
@@ -75,7 +74,6 @@
   padding: 13px 18px;
   color: #d00;
   background: linear-gradient(45deg, #fff0f0, #ffe6e6);
-  /* margin-bottom: 6px; */
   margin: 5px;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
