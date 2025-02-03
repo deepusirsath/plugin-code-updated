@@ -2,14 +2,14 @@ import { BASEPATH } from "/src/constant/basepath.js";
 import { COMPONENTS } from "/src/constant/component.js";
 import { displayError } from "/src/helper/display_error.js";
 import { TARGET_ID } from "/src/constant/target_id.js";
+import { initializeDisputeForm } from "/src/pages/dispute/dispute.js";
+import { SIDEBAR_CONFIG } from "./sidebar_config.js";
+import { setCurrentSearchQuery } from "/src/pages/spam-mail/spam-mail.js";
 import {
   loadComponent,
   loadCssAndHtmlFile,
   loadScript,
 } from "/src/helper/content_loader_helper.js";
-import { initializeDisputeForm } from "/src/pages/dispute/dispute.js";
-import { SIDEBAR_CONFIG } from "./sidebar_config.js";
-import { setCurrentSearchQuery } from "/src/pages/spam-mail/spam-mail.js";
 
 /**
  * Updates the active state of menu items in the sidebar and resets search-related elements

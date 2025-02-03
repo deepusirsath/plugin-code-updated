@@ -1,9 +1,9 @@
-import { loadNotEmailPageComponents } from "/src/routes/not_email_page_route.js";
-import { loadAuthenticatedComponents } from "/src/routes/authenticated_route.js";
-import { loadUnauthenticatedComponents } from "/src/routes/unauthenticated_route.js";
 import { displayError } from "/src/helper/display_error.js";
 import { isEmailPage } from "/src/helper/is_gmail_page_helper.js";
 import { loadCommonComponents } from "/src/routes/common_route.js";
+import { loadNotEmailPageComponents } from "/src/routes/not_email_page_route.js";
+import { loadAuthenticatedComponents } from "/src/routes/authenticated_route.js";
+import { loadUnauthenticatedComponents } from "/src/routes/unauthenticated_route.js";
 
 /**
  * Initializes the popup interface for registered users by loading authenticated components
