@@ -29,7 +29,7 @@ let browserInfo = null;
 let operatingSystem = null;
 let macId = null;
 
-// chrome.storage.local.set({ registration: true });
+chrome.storage.local.set({ registration: true });
 
 // Listener for chrome startup
 chrome.runtime.onStartup.addListener(() => {
