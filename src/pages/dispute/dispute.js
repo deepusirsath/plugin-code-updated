@@ -144,11 +144,20 @@ export const initializeDisputeForm = (disputeData) => {
    * @param {boolean} response - Indicates if the dispute was successful.
    */
   const handleResponse = (response) => {
+    // Add a flag to track if alert was shown
+    if (window.disputeAlertShown) {
+      return;
+    }
+
+    window.disputeAlertShown = true;
+
     if (!response?.error) {
       alert("Dispute sent successfully. Please wait for admin action.");
       window.close();
     } else {
       alert(response?.error);
+      // Reset flag if there was an error to allow future alerts
+      window.disputeAlertShown = false;
     }
   };
 
