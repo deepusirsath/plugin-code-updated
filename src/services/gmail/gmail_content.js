@@ -1,13 +1,21 @@
-let showAlert = null;
+// Component imports
+const importComponent = async (path) => {
+  const src = chrome.runtime.getURL(path);
+  return await import(src);
+};
 
-(async () => {
-  const src = chrome.runtime.getURL(
-    "/src/component/email_status/email_status.js"
-  );
-  const content = await import(src);
-  // Store the function reference without calling it
-  showAlert = content.showAlert;
-})();
+// Initialize UI components
+let showAlert = null;
+let showBlockedPopup = null;
+
+// Load components
+Promise.all([
+  importComponent("/src/component/email_status/email_status.js"),
+  importComponent("/src/component/block_email_popup/block_email_popup.js"),
+]).then(([emailStatus, blockPopup]) => {
+  showAlert = emailStatus.showAlert;
+  showBlockedPopup = blockPopup.showBlockedPopup;
+});
 
 console.log("Content script loaded for Gmail--------");
 setTimeout(() => {
@@ -379,52 +387,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-// Function to show the blocked popup
-function showBlockedPopup() {
-  const popup = document.createElement("div");
-  popup.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background-color: rgba(0, 0, 0, 0.8);
-      color: white;
-      padding: 10px 20px;
-      border-radius: 5px;
-      font-family: Arial, sans-serif;
-      font-size: 14px;
-      z-index: 10000;
-      animation: fadeInOut 2s forwards;
-    `;
-
-  const styleSheet = document.styleSheets[0];
-  styleSheet.insertRule(
-    `
-      @keyframes fadeInOut {
-        0% { opacity: 0; }
-        15% { opacity: 1; }
-        85% { opacity: 1; }
-        100% { opacity: 0; }
-      }
-    `,
-    styleSheet.cssRules.length
-  );
-
-  popup.textContent =
-    "This email content is currently blocked for your security";
-  document.body.appendChild(popup);
-
-  setTimeout(() => {
-    popup.remove();
-  }, 2000);
-}
-
 // Add a click event listener to the window to detect the click event on the email body
 window.addEventListener("click", (e) => {
   const elements = document.getElementsByClassName("nH a98 iY");
   if (elements && elements.length > 0) {
     Array.from(elements).forEach(() => {
       if (shouldApplyPointerEvents) {
-        console.log("Clicked on element detected and showing popup");
         showBlockedPopup();
       }
     });

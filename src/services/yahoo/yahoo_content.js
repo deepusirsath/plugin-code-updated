@@ -1,13 +1,21 @@
-let showAlert = null;
+// Component imports
+const importComponent = async (path) => {
+  const src = chrome.runtime.getURL(path);
+  return await import(src);
+};
 
-(async () => {
-  const src = chrome.runtime.getURL(
-    "/src/component/email_status/email_status.js"
-  );
-  const content = await import(src);
-  // Store the function reference without calling it
-  showAlert = content.showAlert;
-})();
+// Initialize UI components
+let showAlert = null;
+let showBlockedPopup = null;
+
+// Load components
+Promise.all([
+  importComponent("/src/component/email_status/email_status.js"),
+  importComponent("/src/component/block_email_popup/block_email_popup.js"),
+]).then(([emailStatus, blockPopup]) => {
+  showAlert = emailStatus.showAlert;
+  showBlockedPopup = blockPopup.showBlockedPopup;
+});
 
 let messageReason = " ";
 document.addEventListener("visibilitychange", function () {
@@ -457,54 +465,11 @@ chrome.storage.local.get("messages", function (data) {
   console.log("Messages retrieved from local storage:", data);
 });
 
-// Add this function to create and show the popup
-function showBlockedPopup() {
-  const popup = document.createElement("div");
-  popup.style.cssText = `
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background-color: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 10px 20px;
-    border-radius: 5px;
-    font-family: Arial, sans-serif;
-    font-size: 14px;
-    z-index: 10000;
-    animation: fadeInOut 2s forwards;
-  `;
-
-  const styleSheet = document.styleSheets[0];
-  styleSheet.insertRule(
-    `
-    @keyframes fadeInOut {
-      0% { opacity: 0; }
-      15% { opacity: 1; }
-      85% { opacity: 1; }
-      100% { opacity: 0; }
-    }
-  `,
-    styleSheet.cssRules.length
-  );
-
-  popup.textContent =
-    "This email content is currently blocked for your security";
-  document.body.appendChild(popup);
-
-  setTimeout(() => {
-    popup.remove();
-  }, 2000);
-}
-
 window.addEventListener("click", (e) => {
-  console.log("Clicked on the email body");
   const element = document.querySelector(
     'div[data-test-id="message-group-view-scroller"]'
   );
   if (shouldApplyPointerEvents && element) {
-    console.log(
-      "Clicked on the email body and execute the popup if the mail is pending or unsafe"
-    );
     showBlockedPopup();
   }
 });
