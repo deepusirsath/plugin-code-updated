@@ -1,3 +1,7 @@
+// This file contains all the error messages used in the application.
+// The error messages are used in the application to display the error message to the user.
+// The error messages are used in the validation of the form fields.
+
 export const ERROR_MESSAGES = {
   NAME_EMPTY: "Name cannot be empty.",
   NAME_EXCEEDS_50_CHARACTERS: "Name cannot exceed 50 characters.",

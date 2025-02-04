@@ -2,35 +2,42 @@ import { BASEPATH } from "/src/constant/basepath.js";
 import { COMPONENTS } from "/src/constant/component.js";
 import { displayError } from "/src/helper/display_error.js";
 import { TARGET_ID } from "/src/constant/target_id.js";
-import { loadComponent } from "/src/helper/content_loader_helper.js";
 import { initializeDisputeForm } from "/src/pages/dispute/dispute.js";
 import { SIDEBAR_CONFIG } from "./sidebar_config.js";
 import { setCurrentSearchQuery } from "/src/pages/spam-mail/spam-mail.js";
+import {
+  loadComponent,
+  loadCssAndHtmlFile,
+  loadScript,
+} from "/src/helper/content_loader_helper.js";
 
 /**
- * Updates the active state of menu items in the sidebar
+ * Updates the active state of menu items in the sidebar and resets search-related elements
  * @param {HTMLElement} clickedButton - The button element that was clicked in the sidebar
- * @description This function:
+ * @description
  * - Removes 'active' class from all menu items
  * - Adds 'active' class to the clicked menu item's parent
- * - Clears any existing error messages
+ * - Clears any error messages
+ * - Resets search input value and query state
+ * - Hides the clear button
  * @example
- * // When a sidebar button is clicked
- * updateActiveMenuItem(buttonElement);
+ * const button = document.getElementById('menu-button');
+ * updateActiveMenuItem(button);
  */
 const updateActiveMenuItem = (clickedButton) => {
+  const searchInput = document.getElementById("search-input");
+  const clearButton = document.getElementById("clearButton");
   const menuItems = document.querySelectorAll(".menu-item");
+
   menuItems.forEach((item) => item.classList.remove("active"));
   clickedButton.closest(".menu-item").classList.add("active");
   document.getElementById("errorDisplay").innerHTML = "";
 
-  const searchInput = document.getElementById("search-input");
-
-  const clearButton = document.getElementById("clearButton");
   if (searchInput) {
     searchInput.value = "";
     setCurrentSearchQuery("");
   }
+
   if (clearButton) {
     clearButton.style.display = "none";
   }
@@ -64,20 +71,41 @@ const handleRegularButton = async (componentName) => {
   }
 };
 
+/**
+ * Handles the dispute button click event and manages component loading based on email service validation
+ * @param {string} componentName - The name of the component to be loaded
+ * @returns {Promise<void>} A promise that resolves when all operations are complete
+ * @fires {CustomEvent} componentLoaded - Dispatched with component details and dispute data when loading succeeds
+ * @throws {Error} Caught and handled by displayError if any operation fails
+ *
+ * @description
+ * This function performs the following operations:
+ * 1. Checks if user is on a supported email page
+ * 2. Validates against supported email services (Gmail, Outlook, Yahoo)
+ * 3. Checks for existing dispute data
+ * 4. Loads appropriate components based on validation results
+ *
+ * @example
+ * // Load dispute component
+ * await handleDisputeButton('dispute');
+ */
 const handleDisputeButton = async (componentName) => {
   try {
     chrome.runtime.sendMessage(
       { action: "checkEmailPage" },
       async function (response) {
-        const openedServices = ["OpenedGmail", "OpenedOutlook", "OpenedYahoo", "Gmail"];
-        console.log(response);
+        const openedServices = [
+          "OpenedGmail",
+          "OpenedOutlook",
+          "OpenedYahoo",
+          "Gmail",
+        ];
         if (openedServices.includes(response)) {
           chrome.runtime.sendMessage(
             { action: "checkDispute" },
             async function (disputeResponse) {
-              console.log(disputeResponse);
               if (disputeResponse?.error === "Not found") {
-                await loadComponent({
+                await loadCssAndHtmlFile({
                   componentName: COMPONENTS.OPENED_MAIL_NOT_FOUND,
                   basePath: BASEPATH.COMPONENT,
                   targetId: TARGET_ID.DATA_OUTPUT,
@@ -97,7 +125,7 @@ const handleDisputeButton = async (componentName) => {
             }
           );
         } else {
-          await loadComponent({
+          await loadCssAndHtmlFile({
             componentName: COMPONENTS.OPENED_MAIL_NOT_FOUND,
             basePath: BASEPATH.COMPONENT,
             targetId: TARGET_ID.DATA_OUTPUT,
@@ -111,16 +139,39 @@ const handleDisputeButton = async (componentName) => {
 };
 
 /**
- * Handles the click events for sidebar navigation buttons by loading corresponding components
+ * Handles click events for sidebar buttons and manages component loading based on button type
  * @param {string} componentName - The name of the component to be loaded
  * @param {HTMLElement} clickedButton - The button element that was clicked
- * @returns {Promise<void>} A promise that resolves when the component is loaded and rendered
- * @throws {Error} If component loading fails, error is caught and displayed in errorDisplay element
- * @fires {CustomEvent} componentLoaded - Dispatched when component is successfully loaded
+ * @returns {Promise<void>} A promise that resolves when component loading is complete
+ *
+ * @description
+ * This function handles three types of button clicks:
+ * 1. Dispute Button (TARGET_ID.DISPUTE_BTN):
+ *    - Loads dispute component
+ *    - Sets up componentLoaded event listener
+ *    - Initializes dispute form with provided data
+ *
+ * 2. Mail Buttons (SPAM_MAIL, DISPUTE_MAIL):
+ *    - Loads mail-specific component script
+ *    - Dispatches componentLoaded event
+ *
+ * 3. Regular Buttons:
+ *    - Loads standard component content
+ *
+ * @fires {CustomEvent} componentLoaded - Dispatched after successful component loading
+ * @example
+ * // Handle dispute button click
+ * await handleButtonClick('dispute', disputeButton);
+ *
+ * // Handle mail button click
+ * await handleButtonClick('spam-mail', spamMailButton);
+ *
+ * // Handle regular button click
+ * await handleButtonClick('details', regularButton);
  */
 const handleButtonClick = async (componentName, clickedButton) => {
   updateActiveMenuItem(clickedButton);
-  if (clickedButton.id === "dispute-btn") {
+  if (clickedButton.id === TARGET_ID.DISPUTE_BTN) {
     handleDisputeButton(componentName).then(() => {
       // Add event listener after component loads
       document.addEventListener("componentLoaded", async (event) => {
@@ -129,13 +180,40 @@ const handleButtonClick = async (componentName, clickedButton) => {
         }
       });
     });
+  } else if (
+    clickedButton.id === TARGET_ID.SPAM_MAIL ||
+    clickedButton.id === TARGET_ID.DISPUTE_MAIL
+  ) {
+    document.getElementById("data-output").innerHTML = "";
+    loadScript(`/src/pages/${componentName}/${componentName}.js`);
+    document.dispatchEvent(
+      new CustomEvent("componentLoaded", {
+        detail: { componentName },
+      })
+    );
   } else {
     await handleRegularButton(componentName);
   }
 };
 
 /**
- * Initializes sidebar navigation by attaching click handlers to buttons
+ * Initializes click event listeners for all sidebar navigation buttons
+ * @description
+ * This function:
+ * - Iterates through all entries in SIDEBAR_CONFIG
+ * - Finds each button by its buttonId
+ * - Attaches click event listeners to handle navigation
+ * - Triggers handleButtonClick with component name and button element
+ *
+ * @example
+ * // Initialize all sidebar navigation buttons
+ * initializeSidebarNavigation();
+ *
+ * // SIDEBAR_CONFIG structure example:
+ * // {
+ * //   details: { buttonId: 'details-btn', component: 'details' },
+ * //   dispute: { buttonId: 'dispute-btn', component: 'dispute' }
+ * // }
  */
 const initializeSidebarNavigation = () => {
   Object.values(SIDEBAR_CONFIG).forEach(({ buttonId, component }) => {

@@ -3,8 +3,6 @@ import {
   IS_OUTLOOK,
   IS_YAHOO,
 } from "/src/constant/email_service.js";
-
-
 import RegexLibrary from "/src/library/regex.lib.js";
 
 /**

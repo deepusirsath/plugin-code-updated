@@ -1,3 +1,5 @@
+//  This file contains all the API routes used in the application
+
 export const CHECK_EMAIL = "/check-email/";
 export const VERIFY_LICENSE = "/verify-license/";
 export const PLUGINS_ENABLE_DISABLE = "/plugins/enable-disable/enable/";
@@ -11,4 +13,4 @@ export const UPDATE_EMAIL_STATUS = "/update-email-details/";
 export const GET_DISPUTE_RAISE_DATA = "/get-disputes-raise-data/";
 export const GET_ALLOCATION_DATA = "/get-allocation-data/";
 export const GET_GRAPH_DATA = "/graph-count/";
- export const FILTER_DISPUTE_MAIL = "/get-disputes-filter-data/";
+export const FILTER_DISPUTE_MAIL = "/get-disputes-filter-data/";

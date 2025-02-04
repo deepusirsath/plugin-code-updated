@@ -1,12 +1,23 @@
-// JavaScript to navigate to email page when icons are clicked
-document.getElementById("gmail-icon").addEventListener("click", function () {
-  window.open("https://mail.google.com", "_blank");
-});
+import { EMAIL_SERVICES } from "/src/constant/email_service.js";
 
-document.getElementById("outlook-icon").addEventListener("click", function () {
-  window.open("https://outlook.live.com", "_blank");
-});
-
-document.getElementById("yahoo-icon").addEventListener("click", function () {
-  window.open("https://mail.yahoo.com", "_blank");
+/**
+ * @description Sets up click event handlers for email service icons
+ *
+ * Iterates through the EMAIL_SERVICES object and adds click handlers to each email service icon.
+ * When an icon is clicked, it opens the corresponding email service URL in a new tab.
+ *
+ * @example
+ * // EMAIL_SERVICES structure:
+ * // {
+ * //   'gmail-icon': "https://mail.google.com",
+ * //   'outlook-icon': "https://outlook.live.com"
+ * // }
+ *
+ * // The code will add click handlers to elements with IDs matching the keys
+ * // When clicked, opens the corresponding URL in a new tab
+ */
+Object.entries(EMAIL_SERVICES).forEach(([iconId, url]) => {
+  document.getElementById(iconId)?.addEventListener("click", () => {
+    window.open(url, "_blank");
+  });
 });

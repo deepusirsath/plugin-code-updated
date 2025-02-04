@@ -41,6 +41,12 @@
       "run_at": "document_start"
     }
   ],
+  "web_accessible_resources": [
+    {
+      "resources": ["/src/component/email_status/email_status.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
 
   "host_permissions": [
     "https://mail-attachment.googleusercontent.com/*",

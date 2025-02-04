@@ -23,17 +23,33 @@ import {
 let globalTable = null;
 let currentSearchQuery = "";
 
+/**
+ * Updates the current search query value used for filtering spam mails
+ * @param {string} value - The search query text to set
+ */
 export const setCurrentSearchQuery = (value) => {
   currentSearchQuery = value;
 };
 
+/**
+ * Displays a popup with detailed information about a specific spam mail message
+ * @param {string} msg_id - The unique identifier of the spam mail message
+ * @returns {void} Creates and displays the detail view popup
+ */
 const showPopup = async (msg_id) => {
   const viewDetailData = await getViewDetailOfSpamMail(msg_id);
-  createViewDetail(viewDetailData, () => {});
+  createViewDetail(viewDetailData);
 };
 
+/**
+ * Fetches detailed information for a specific spam mail message
+ * @param {string} msg_id - The unique identifier of the spam mail message
+ * @returns {Promise<Object>} The detailed data of the spam mail message
+ * @throws {Error} Displays error message if request fails
+ */
 const getViewDetailOfSpamMail = async (msg_id) => {
   const currentEmail = getCurrentEmail();
+
   if (currentEmail) {
     try {
       const requestData = {
@@ -48,8 +64,18 @@ const getViewDetailOfSpamMail = async (msg_id) => {
   }
 };
 
+/**
+ * Retrieves paginated list of all spam mails for the current user
+ * @param {number} [page=1] - The page number for pagination
+ * @returns {Promise<Object>} Response containing paginated spam mail data
+ * @property {Array} response.results - List of spam mails for current page
+ * @property {number} response.count - Total number of spam mails
+ * @property {string} response.next - URL for next page
+ * @property {string} response.previous - URL for previous page
+ */
 const getAllSpamMail = async (page = 1) => {
   const currentEmail = getCurrentEmail();
+
   if (currentEmail) {
     showLoader();
     try {
@@ -68,8 +94,19 @@ const getAllSpamMail = async (page = 1) => {
   }
 };
 
+/**
+ * Filters spam mails based on sender's email address with pagination
+ * @param {string} searchQuery - The sender's email address to filter by
+ * @param {number} [page=1] - The page number for pagination
+ * @returns {Promise<Object>} Filtered and paginated spam mail data
+ * @property {Array} response.results - List of filtered spam mails
+ * @property {number} response.count - Total count of filtered results
+ * @property {string} response.next - URL for next page
+ * @property {string} response.previous - URL for previous page
+ */
 const filterSpamMails = async (searchQuery, page = 1) => {
   const currentEmail = getCurrentEmail();
+
   if (currentEmail) {
     showLoader();
     try {
@@ -92,6 +129,18 @@ const filterSpamMails = async (searchQuery, page = 1) => {
   }
 };
 
+/**
+ * Sets up event handlers for the spam mail search functionality
+ * Initializes search, clear, and input event listeners
+ *
+ * Features:
+ * - Search button triggers filtered spam mail loading
+ * - Clear button resets search and reloads all spam mails
+ * - Maintains search input state across component updates
+ * - Dynamic clear button visibility based on input state
+ *
+ * @returns {void} Sets up DOM event listeners for search functionality
+ */
 const initializeSearchHandlers = () => {
   const searchInput = document.getElementById("search-input");
   const searchButton = document.getElementById("searchButton");
@@ -126,6 +175,13 @@ const initializeSearchHandlers = () => {
   }
 };
 
+/**
+ * Attaches click event listeners to all view buttons in the spam mail table
+ * Each button triggers a popup showing detailed message information
+ *
+ * @listens {click} Listens for clicks on elements with .view-button class
+ * @fires showPopup Using the message ID stored in data-msg_id attribute
+ */
 const attachViewButtonListeners = () => {
   document.querySelectorAll(".view-button").forEach((button) => {
     button.addEventListener("click", () => {
@@ -134,6 +190,23 @@ const attachViewButtonListeners = () => {
   });
 };
 
+/**
+ * Loads and renders the spam mail component with pagination and search functionality
+ * @param {number} [page=1] - The page number to load
+ * @param {string} [searchQuery=""] - Search query to filter spam mails
+ * @async
+ *
+ * Component Flow:
+ * 1. Fetches email IDs and spam mail data
+ * 2. Loads table component
+ * 3. Sets up table headers and search handlers
+ * 4. Handles empty data scenarios
+ * 5. Formats and displays spam mail data with status and actions
+ * 6. Configures pagination
+ *
+ * @returns {void} Renders the spam mail table component
+ * @throws {Error} Displays error message if component loading fails
+ */
 const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
   await getEmailIds();
 
@@ -144,17 +217,19 @@ const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
         ? await filterSpamMails(searchQuery, page)
         : await getAllSpamMail(page);
 
-    await loadComponent({
-      componentName: COMPONENTS.TABLE,
-      basePath: BASEPATH.COMPONENT,
-      targetId: TARGET_ID.DATA_OUTPUT,
-    });
+    if (spamMailResponse) {
+      await loadComponent({
+        componentName: COMPONENTS.TABLE,
+        basePath: BASEPATH.COMPONENT,
+        targetId: TARGET_ID.DATA_OUTPUT,
+      });
 
-    globalTable = createTable("data-output");
-    const headers = ["Sender", "Status", "Action"];
-    globalTable.setHeaders(headers);
+      globalTable = createTable("data-output");
+      const headers = ["Sender", "Status", "Action"];
+      globalTable.setHeaders(headers);
 
-    initializeSearchHandlers();
+      initializeSearchHandlers();
+    }
 
     if (!spamMailResponse.results || spamMailResponse.results.length === 0) {
       document.getElementById("data-table").innerHTML = "";
@@ -164,7 +239,18 @@ const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
         basePath: BASEPATH.COMPONENT,
         targetId: "noDataFound",
       });
-      handleRefresh(() => loadSpamMailComponent(1));
+      handleRefresh(() => {
+        const searchInput = document.getElementById("search-input");
+        const clearButton = document.getElementById("clearButton");
+        if (searchInput) {
+          searchInput.value = "";
+          currentSearchQuery = "";
+        }
+        if (clearButton) {
+          clearButton.style.display = "none";
+        }
+        loadSpamMailComponent(1);
+      });
       return;
     }
 
@@ -190,6 +276,15 @@ const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
   }
 };
 
+/**
+ * Event listener for component loading completion
+ * Initializes the spam mail component when SPAM_MAIL component is loaded
+ *
+ * @listens {Event} componentLoaded
+ * @param {CustomEvent} event - Component loaded event with component details
+ * @property {Object} event.detail - Contains component information
+ * @property {string} event.detail.componentName - Name of the loaded component
+ */
 document.addEventListener("componentLoaded", (event) => {
   if (event.detail.componentName === COMPONENTS.SPAM_MAIL) {
     loadSpamMailComponent(1);
