@@ -216,19 +216,24 @@ const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
       searchQuery.length > 0
         ? await filterDisputeMails(page, searchQuery)
         : await getAllDisputeMail(page);
+    if (
+      disputeMailResponse &&
+      disputeMailResponse.results &&
+      disputeMailResponse.results.data &&
+      disputeMailResponse.results.data.length > 0
+    ) {
+      await loadComponent({
+        componentName: COMPONENTS.TABLE,
+        basePath: BASEPATH.COMPONENT,
+        targetId: TARGET_ID.DATA_OUTPUT,
+      });
 
-    await loadComponent({
-      componentName: COMPONENTS.TABLE,
-      basePath: BASEPATH.COMPONENT,
-      targetId: TARGET_ID.DATA_OUTPUT,
-    });
+      globalTable = createTable("data-output");
+      const headers = ["Sender", "Status", "Action"];
+      globalTable.setHeaders(headers);
 
-    globalTable = createTable("data-output");
-    const headers = ["Sender", "Status", "Action"];
-    globalTable.setHeaders(headers);
-
-    initializeSearchHandlers();
-
+      initializeSearchHandlers();
+    }
     if (
       !disputeMailResponse ||
       !disputeMailResponse.results ||

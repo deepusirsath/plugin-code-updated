@@ -217,17 +217,19 @@ const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
         ? await filterSpamMails(searchQuery, page)
         : await getAllSpamMail(page);
 
-    await loadComponent({
-      componentName: COMPONENTS.TABLE,
-      basePath: BASEPATH.COMPONENT,
-      targetId: TARGET_ID.DATA_OUTPUT,
-    });
+    if (spamMailResponse) {
+      await loadComponent({
+        componentName: COMPONENTS.TABLE,
+        basePath: BASEPATH.COMPONENT,
+        targetId: TARGET_ID.DATA_OUTPUT,
+      });
 
-    globalTable = createTable("data-output");
-    const headers = ["Sender", "Status", "Action"];
-    globalTable.setHeaders(headers);
+      globalTable = createTable("data-output");
+      const headers = ["Sender", "Status", "Action"];
+      globalTable.setHeaders(headers);
 
-    initializeSearchHandlers();
+      initializeSearchHandlers();
+    }
 
     if (!spamMailResponse.results || spamMailResponse.results.length === 0) {
       document.getElementById("data-table").innerHTML = "";

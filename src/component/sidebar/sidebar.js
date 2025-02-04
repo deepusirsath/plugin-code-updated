@@ -184,6 +184,7 @@ const handleButtonClick = async (componentName, clickedButton) => {
     clickedButton.id === TARGET_ID.SPAM_MAIL ||
     clickedButton.id === TARGET_ID.DISPUTE_MAIL
   ) {
+    document.getElementById("data-output").innerHTML = "";
     loadScript(`/src/pages/${componentName}/${componentName}.js`);
     document.dispatchEvent(
       new CustomEvent("componentLoaded", {
