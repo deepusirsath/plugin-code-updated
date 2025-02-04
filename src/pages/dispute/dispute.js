@@ -72,17 +72,17 @@ export function initializeDisputeForm(disputeData) {
    * Gathers user input data and initiates the dispute process when the submit button is clicked.
    */
   submitButton.addEventListener("click", async () => {
+    disableSubmitButton();
     const disputeCount = disputeData.countRaise || 0;
     if (disputeCount < 3 && disputeCount >= 0) {
       const reasonText = reasonTextarea.value.trim();
       const messageId = document.getElementById("messageId").textContent;
       const receiver_email = await chrome.storage.local.get("receiver_email");
       sendDispute(reasonText, messageId, receiver_email?.receiver_email);
-      disableSubmitButton();
     } else {
+      disableSubmitButton();
       alert("Dispute limit reached. You cannot submit more disputes.");
       window.close();
-      disableSubmitButton();
     }
   });
 
