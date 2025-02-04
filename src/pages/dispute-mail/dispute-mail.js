@@ -237,21 +237,26 @@ const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
     ) {
       document.getElementById("data-table").innerHTML = "";
       document.getElementById("pagination").innerHTML = "";
+
       await loadComponent({
         componentName: COMPONENTS.NO_DATA_FOUND,
         basePath: BASEPATH.COMPONENT,
         targetId: "noDataFound",
       });
+
       handleRefresh(() => {
         const searchInput = document.getElementById("search-input");
         const clearButton = document.getElementById("clearButton");
+
         if (searchInput) {
           searchInput.value = "";
           currentSearchQuery = "";
         }
+
         if (clearButton) {
           clearButton.style.display = "none";
         }
+
         loadDisputeMailComponent(1);
       });
       return;

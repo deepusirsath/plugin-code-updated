@@ -5,7 +5,34 @@ import {
 } from "/src/routes/api_route.js";
 import { postData } from "/src/api/api_method.js";
 
-export function initializeDisputeForm(disputeData) {
+/**
+ * Initializes and manages a dispute form interface with validation and submission handling
+ *
+ * @param {Object} disputeData - Data object containing dispute information
+ * @param {string} disputeData.messageId - Unique identifier for the User email
+ * @param {string} disputeData.status - Current status of the mail
+ * @param {string} disputeData.senderEmail - Email address of the sender
+ * @param {number} disputeData.countRaise - Number of times dispute has been raised
+ * @param {string} disputeData.adminRemark - Administrative remarks on the dispute
+ *
+ * Features:
+ * - Sets up form fields with dispute data
+ * - Implements word count validation (minimum 5 words required)
+ * - Manages submit button state based on validation
+ * - Handles dispute submission with count limits (0-2 allowed)
+ * - Provides real-time status updates via reload functionality
+ * - Integrates with Chrome storage and messaging systems
+ *
+ * @example
+ * initializeDisputeForm({
+ *   messageId: "msg123",
+ *   status: "pending",
+ *   senderEmail: "user@example.com",
+ *   countRaise: 1,
+ *   adminRemark: "Under review"
+ * });
+ */
+export const initializeDisputeForm = (disputeData) => {
   const reasonTextarea = document.getElementById("reason");
   const submitButton = document.getElementById("submit");
   document.getElementById("messageId").innerHTML = disputeData.messageId;
@@ -20,38 +47,38 @@ export function initializeDisputeForm(disputeData) {
    * @param {string} text - The input text to count words from.
    * @returns {number} The count of words in the text.
    */
-  function getWordCount(text) {
+  const getWordCount = (text) => {
     return text
       .replace(/\s+/g, " ")
       .trim()
       .split(" ")
       .filter((word) => word.length > 0).length;
-  }
+  };
 
   /**
    * Enables the submit button by adding the "enabled" class and setting
    * the disabled property to false.
    */
-  function enableSubmitButton() {
+  const enableSubmitButton = () => {
     submitButton.classList.add("enabled");
     submitButton.disabled = false;
-  }
+  };
 
   /**
    * Disables the submit button by removing the "enabled" class and setting
    * the disabled property to true.
    */
-  function disableSubmitButton() {
+  const disableSubmitButton = () => {
     submitButton.classList.remove("enabled");
     submitButton.disabled = true;
-  }
+  };
 
   /**
    * Checks if the word count in the reason textarea meets the required count.
    * Enables or disables the submit button based on the result.
    * @param {number} count - The minimum word count required to enable the button.
    */
-  function checkWordCount(count) {
+  const checkWordCount = (count) => {
     const reasonText = reasonTextarea.value;
     const wordCount = getWordCount(reasonText);
 
@@ -60,16 +87,27 @@ export function initializeDisputeForm(disputeData) {
     } else {
       disableSubmitButton();
     }
-  }
+  };
 
-  // Event listener to validate word count in the reason textarea
+  /**
+   * Validates the word count in the reason textarea on user input
+   * - Prevents default input behavior
+   * - Checks if text meets minimum 5 word requirement
+   * - Enables/disables submit button based on word count
+   */
   reasonTextarea.addEventListener("input", (event) => {
     event.preventDefault();
     checkWordCount(5);
   });
 
   /**
-   * Gathers user input data and initiates the dispute process when the submit button is clicked.
+   * Handles the dispute form submission
+   * Validates dispute count limits and processes the submission
+   * - Disables submit button during processing
+   * - Checks if dispute count is within allowed limit (0-2)
+   * - Collects form data: reason text, message ID, and receiver email
+   * - Sends dispute if within limits
+   * - Shows alert and closes window if limit exceeded
    */
   submitButton.addEventListener("click", async () => {
     disableSubmitButton();
@@ -92,12 +130,12 @@ export function initializeDisputeForm(disputeData) {
    * @param {string} messageId - The ID of the message being disputed.
    * @param {string} emailId - The email ID associated with the message.
    */
-  function sendDispute(reason, messageId, emailId) {
+  const sendDispute = (reason, messageId, emailId) => {
     chrome.runtime.sendMessage(
       { action: "dispute", reason, messageId, emailId },
       handleResponse
     );
-  }
+  };
 
   /**
    * Handles the response from the background script after a dispute attempt.
@@ -105,14 +143,14 @@ export function initializeDisputeForm(disputeData) {
    * @param {Object} response - The response object from the background script.
    * @param {boolean} response - Indicates if the dispute was successful.
    */
-  function handleResponse(response) {
+  const handleResponse = (response) => {
     if (!response?.error) {
       alert("Dispute sent successfully. Please wait for admin action.");
       window.close();
     } else {
       alert(response?.error);
     }
-  }
+  };
 
   document.getElementById("reload").addEventListener("click", async () => {
     const messageId = document.getElementById("messageId").textContent;
@@ -130,8 +168,15 @@ export function initializeDisputeForm(disputeData) {
       }
     );
   });
-}
+};
 
+/**
+ * Retrieves admin comments for a specific message and email combination
+ * @param {string} messageId - ID of the User's mail
+ * @param {string} email - Email address associated with the message
+ * @returns {Promise<string|null>} Admin comment if found, null otherwise
+ * @throws {Error} Logs error to console and returns null if request fails
+ */
 export const checkAdminComment = async (messageId, email) => {
   try {
     const data = await postData(UPDATE_EMAIL_STATUS, {
@@ -145,6 +190,14 @@ export const checkAdminComment = async (messageId, email) => {
   }
 };
 
+/**
+ * Sends a dispute request to the server and updates local storage status
+ * @param {string} reason - User's dispute reason/comment
+ * @param {string} email - User's email address
+ * @param {string} messageId - User's email messageId
+ * @returns {Promise<Object>} Server response data
+ * @throws {Error} Logs error to console if request fails
+ */
 export const sendDisputeToServer = async (reason, email, messageId) => {
   try {
     const data = await postData(DISPUTES_RAISE, {
@@ -163,6 +216,12 @@ export const sendDisputeToServer = async (reason, email, messageId) => {
   }
 };
 
+/**
+ * Retrieves and stores the dispute count for a specific mail
+ * @param {string} messageId - The ID of the message to check disputes for
+ * @returns {Promise<Object>} Object containing the dispute_count
+ * @throws {Error} Logs error to console if request fails
+ */
 export const checkDisputeCount = async (messageId) => {
   try {
     const data = await postData(PLUGIN_COUNTER, { messageId });
