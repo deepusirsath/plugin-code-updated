@@ -22,12 +22,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "GmailDetectedForExtraction") {
     console.log("Message received in content script - Gmail detected");
 
-    setTimeout(()=>{
+    setTimeout(() => {
       let url = window.location.href;
       if (url.includes("?compose=")) {
         console.log("Compose URL detected. Skipping email extraction.");
         return; // Exit early for compose URLs
-      }      
+      }
       chrome.storage.local.get("registration", (data) => {
         if (chrome.runtime.lastError) {
           console.error(chrome.runtime.lastError);
@@ -36,8 +36,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (data.registration) {
           console.log("URL:", url);
           const lastSegment = url.split("/").pop().split("#").pop();
-          console.log("last segment ", lastSegment, "total count ", lastSegment.length)
-  
+          console.log(
+            "last segment ",
+            lastSegment,
+            "total count ",
+            lastSegment.length
+          );
+
           // Check if the last segment has exactly isValidSegmentLength characters
           if (lastSegment.length >= isValidSegmentLength) {
             console.log(
@@ -52,11 +57,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           }
         }
       });
-    },1000)
+    }, 1000);
     sendResponse({ status: "received" });
   }
 });
-
 
 // Function to initialize the script
 const init = () => {
@@ -114,12 +118,12 @@ async function extractMessageIdAndEml() {
       chrome.storage.local.get("messages", function (result) {
         let messages = JSON.parse(result.messages || "{}");
         console.log("local storage mesaage id Items ", messages);
-    
+
         if (messages[messageId]) {
             console.log("Message Id found in local storage:", messages[messageId]);
             const status = messages[messageId].status;
             const unsafeReason = messages[messageId].unsafeReason;
-    
+
             if (status === "safe" || status === "Safe") {
                 showAlert("safe", unsafeReason);
                 console.log("Local Storage status", status);
@@ -167,11 +171,11 @@ async function extractMessageIdAndEml() {
                     const resStatus = serverData.eml_status || serverData.email_status;
                     const messId = serverData.messageId || serverData.msg_id;
                     const unsafeReason = serverData.unsafe_reasons || " ";
-            
+
                     console.log("serverData:", serverData);
                     console.log("resStatus:", resStatus);
                     console.log("messId:", messId);
-            
+
                     if (["safe", "unsafe", "pending"].includes(resStatus)) {
                         chrome.storage.local.get("messages", function (result) {
                             let messages = JSON.parse(result.messages || "{}");
@@ -179,7 +183,7 @@ async function extractMessageIdAndEml() {
                                 status: resStatus,
                                 unsafeReason: unsafeReason
                             };
-            
+
                             chrome.storage.local.set(
                                 {
                                     messages: JSON.stringify(messages),
@@ -308,50 +312,52 @@ function showAlert(key, messageReason = " ") {
   message.style.textAlign = "center";
 
   const button = document.createElement("button");
-button.innerText = "Close";
+  button.innerText = "Close";
 
-Object.assign(button.style, {
-  padding: "8px 20px",
-  border: "1px solid #4C9ED9",
-  borderRadius: "4px",
-  cursor: "pointer",
-  backgroundColor: "#4C9ED9",
-  color: "#ffffff",
-  fontSize: "14px",
-  fontWeight: "500",
-  transition: "all 0.2s ease",
-  fontFamily: "'Segoe UI', system-ui, sans-serif",
-  boxShadow: "0 1px 2px rgba(76, 158, 217, 0.15)"
-});
-
-button.addEventListener("mouseover", () => {
   Object.assign(button.style, {
-    backgroundColor: "#3989c2",
-    transform: "translateY(-1px)"
-  });
-});
-
-button.addEventListener("mouseout", () => {
-  Object.assign(button.style, {
+    padding: "8px 20px",
+    border: "1px solid #4C9ED9",
+    borderRadius: "4px",
+    cursor: "pointer",
     backgroundColor: "#4C9ED9",
-    transform: "translateY(0)"
+    color: "#ffffff",
+    fontSize: "14px",
+    fontWeight: "500",
+    transition: "all 0.2s ease",
+    fontFamily: "'Segoe UI', system-ui, sans-serif",
+    boxShadow: "0 1px 2px rgba(76, 158, 217, 0.15)",
   });
-});
+
+  button.addEventListener("mouseover", () => {
+    Object.assign(button.style, {
+      backgroundColor: "#3989c2",
+      transform: "translateY(-1px)",
+    });
+  });
+
+  button.addEventListener("mouseout", () => {
+    Object.assign(button.style, {
+      backgroundColor: "#4C9ED9",
+      transform: "translateY(0)",
+    });
+  });
 
   let iconHtml = "";
   switch (key) {
     case "safe":
-    message.innerText = "Security verification complete - Safe to proceed";
-    
-    alertContainer.style.width = "360px";
-    alertContainer.style.padding = "24px";
-    alertContainer.style.background = "linear-gradient(135deg, #ffffff, #f8fff8)";
-    alertContainer.style.border = "1px solid rgba(40, 167, 69, 0.2)";
-    alertContainer.style.borderLeft = "6px solid #28a745";
-    alertContainer.style.boxShadow = "0 6px 16px rgba(40, 167, 69, 0.08), 0 3px 6px rgba(0, 0, 0, 0.12)";
-    alertContainer.style.borderRadius = "8px";
+      message.innerText = "Security verification complete - Safe to proceed";
 
-    iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
+      alertContainer.style.width = "360px";
+      alertContainer.style.padding = "24px";
+      alertContainer.style.background =
+        "linear-gradient(135deg, #ffffff, #f8fff8)";
+      alertContainer.style.border = "1px solid rgba(40, 167, 69, 0.2)";
+      alertContainer.style.borderLeft = "6px solid #28a745";
+      alertContainer.style.boxShadow =
+        "0 6px 16px rgba(40, 167, 69, 0.08), 0 3px 6px rgba(0, 0, 0, 0.12)";
+      alertContainer.style.borderRadius = "8px";
+
+      iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
         <defs>
             <filter id="shadow-success">
                 <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#28a745" flood-opacity="0.25"/>
@@ -391,7 +397,7 @@ button.addEventListener("mouseout", () => {
                      repeatCount="indefinite"/>
         </path>
     </svg>`;
-    break;
+      break;
 
     case "unsafe":
       message.innerHTML = `
@@ -402,7 +408,6 @@ button.addEventListener("mouseout", () => {
         <hr style="border: 0; height: 1px; background: #e0e0e0; margin: 8px 0;"/>
         <div style="color: #dc3545; font-size: 16px; font-weight : bold">${messageReason}</div>
     </div>`;
-
 
       alertContainer.style.width = "360px"; // Slightly wider for better text flow
       alertContainer.style.padding = "24px"; // Increased padding
@@ -469,17 +474,20 @@ button.addEventListener("mouseout", () => {
 
       break;
     case "inform":
-        message.innerText = "System maintenance in progress - Your security is our priority";
-        
-        alertContainer.style.width = "360px";
-        alertContainer.style.padding = "24px";
-        alertContainer.style.background = "linear-gradient(135deg, #ffffff, #fff8f0)";
-        alertContainer.style.border = "1px solid rgba(255, 153, 0, 0.2)";
-        alertContainer.style.borderLeft = "6px solid #ff9900";
-        alertContainer.style.boxShadow = "0 6px 16px rgba(255, 153, 0, 0.08), 0 3px 6px rgba(0, 0, 0, 0.12)";
-        alertContainer.style.borderRadius = "8px";
-    
-        iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
+      message.innerText =
+        "System maintenance in progress - Your security is our priority";
+
+      alertContainer.style.width = "360px";
+      alertContainer.style.padding = "24px";
+      alertContainer.style.background =
+        "linear-gradient(135deg, #ffffff, #fff8f0)";
+      alertContainer.style.border = "1px solid rgba(255, 153, 0, 0.2)";
+      alertContainer.style.borderLeft = "6px solid #ff9900";
+      alertContainer.style.boxShadow =
+        "0 6px 16px rgba(255, 153, 0, 0.08), 0 3px 6px rgba(0, 0, 0, 0.12)";
+      alertContainer.style.borderRadius = "8px";
+
+      iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
             <defs>
                 <filter id="shadow-warning">
                     <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#ff9900" flood-opacity="0.25"/>
@@ -535,21 +543,21 @@ button.addEventListener("mouseout", () => {
                     repeatCount="indefinite"/>
             </circle>
         </svg>`;
-        break;
-   
-        case "pending":
-          message.innerText =
-            "We're processing your request.... Please wait for the procedure to be finished.";
-    
-          alertContainer.style.background =
-            "linear-gradient(145deg, #ffffff, #f0f8ff)";
-          alertContainer.style.border = "1px solid rgba(0, 123, 255, 0.15)";
-          alertContainer.style.borderLeft = "6px solid #007bff";
-          alertContainer.style.boxShadow =
-            "0 8px 20px rgba(0, 123, 255, 0.06), 0 4px 8px rgba(0, 0, 0, 0.08)";
-          alertContainer.style.borderRadius = "12px";
-    
-          iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
+      break;
+
+    case "pending":
+      message.innerText =
+        "We're processing your request.... Please wait for the procedure to be finished.";
+
+      alertContainer.style.background =
+        "linear-gradient(145deg, #ffffff, #f0f8ff)";
+      alertContainer.style.border = "1px solid rgba(0, 123, 255, 0.15)";
+      alertContainer.style.borderLeft = "6px solid #007bff";
+      alertContainer.style.boxShadow =
+        "0 8px 20px rgba(0, 123, 255, 0.06), 0 4px 8px rgba(0, 0, 0, 0.08)";
+      alertContainer.style.borderRadius = "12px";
+
+      iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
             <defs>
                 <linearGradient id="pendingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" style="stop-color:#007bff;stop-opacity:1" />
@@ -593,7 +601,7 @@ button.addEventListener("mouseout", () => {
                 </circle>
             </g>
         </svg>`;
-          break;
+      break;
     default:
       console.log("Invalid key for showAlert");
       return;
@@ -649,7 +657,6 @@ button.addEventListener("mouseout", () => {
   document.addEventListener("click", dismissOnOutsideClick, true);
   button.addEventListener("click", removeAlert);
 }
-
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (
