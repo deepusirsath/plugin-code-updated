@@ -27,6 +27,7 @@ let messageId = null;
 let isValidSegmentLength = 30;
 let messageReason = " ";
 
+
 // Function to check if the current page is a Gmail page
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "GmailDetectedForExtraction") {
@@ -130,36 +131,33 @@ async function extractMessageIdAndEml() {
         console.log("local storage mesaage id Items ", messages);
 
         if (messages[messageId]) {
-          console.log(
-            "Message Id found in local storage:",
-            messages[messageId]
-          );
-          const status = messages[messageId].status;
-          const unsafeReason = messages[messageId].unsafeReason;
+            console.log("Message Id found in local storage:", messages[messageId]);
+            const status = messages[messageId].status;
+            const unsafeReason = messages[messageId].unsafeReason;
 
-          if (status === "safe" || status === "Safe") {
-            showAlert("safe", unsafeReason);
-            console.log("Local Storage status", status);
-            shouldApplyPointerEvents = false;
-            blockEmailBody();
-            console.log(`Removing blocking layer because message is ${status}`);
-          } else if (status === "unsafe" || status === "Unsafe") {
-            showAlert("unsafe", unsafeReason);
-            console.log("Local Storage status", status);
-            console.log(`Applying blocking layer because message is ${status}`);
-            shouldApplyPointerEvents = true;
-            blockEmailBody();
-          } else if (status === "pending" || status === "Pending") {
-            console.log("send response to background for pending status");
-            shouldApplyPointerEvents = true;
-            blockEmailBody();
-            chrome.runtime.sendMessage({
-              action: "pendingStatusGmail",
-              emailId: emailId,
-              messageId: messageId,
-            });
-          }
-        } else {
+            if (status === "safe" || status === "Safe") {
+                showAlert("safe", unsafeReason);
+                console.log("Local Storage status", status);
+                shouldApplyPointerEvents = false;
+                blockEmailBody();
+                console.log(`Removing blocking layer because message is ${status}`);
+            } else if (status === "unsafe" || status === "Unsafe") {
+                showAlert("unsafe", unsafeReason);
+                console.log("Local Storage status", status);
+                console.log(`Applying blocking layer because message is ${status}`);
+                shouldApplyPointerEvents = true;
+                blockEmailBody();
+            } else if (status === "pending" || status === "Pending") {
+                console.log("send response to background for pending status");
+                shouldApplyPointerEvents = true;
+                blockEmailBody();
+                chrome.runtime.sendMessage({
+                    action: "pendingStatusGmail",
+                    emailId: emailId,
+                    messageId: messageId,
+                });
+            }
+        }else {
           shouldApplyPointerEvents = true;
           blockEmailBody();
           console.log(
@@ -179,62 +177,50 @@ async function extractMessageIdAndEml() {
               );
               if (response.IsResponseRecieved === "success") {
                 if (response.data.code === 200) {
-                  console.log(
-                    "Response from background for firstCheckForEmail API:",
-                    response
-                  );
-                  const serverData = response.data.data;
-                  const resStatus =
-                    serverData.eml_status || serverData.email_status;
-                  const messId = serverData.messageId || serverData.msg_id;
-                  const unsafeReason = serverData.unsafe_reasons || " ";
+                    console.log("Response from background for firstCheckForEmail API:", response);
+                    const serverData = response.data.data;
+                    const resStatus = serverData.eml_status || serverData.email_status;
+                    const messId = serverData.messageId || serverData.msg_id;
+                    const unsafeReason = serverData.unsafe_reasons || " ";
 
-                  console.log("serverData:", serverData);
-                  console.log("resStatus:", resStatus);
-                  console.log("messId:", messId);
+                    console.log("serverData:", serverData);
+                    console.log("resStatus:", resStatus);
+                    console.log("messId:", messId);
 
-                  if (["safe", "unsafe", "pending"].includes(resStatus)) {
-                    chrome.storage.local.get("messages", function (result) {
-                      let messages = JSON.parse(result.messages || "{}");
-                      messages[messId] = {
-                        status: resStatus,
-                        unsafeReason: unsafeReason,
-                      };
+                    if (["safe", "unsafe", "pending"].includes(resStatus)) {
+                        chrome.storage.local.get("messages", function (result) {
+                            let messages = JSON.parse(result.messages || "{}");
+                            messages[messId] = {
+                                status: resStatus,
+                                unsafeReason: unsafeReason
+                            };
 
-                      chrome.storage.local.set(
-                        {
-                          messages: JSON.stringify(messages),
-                        },
-                        () => {
-                          console.log(
-                            `Status ${resStatus} stored for message ${messId}`
-                          );
-                          shouldApplyPointerEvents = resStatus !== "safe";
-                          blockEmailBody();
-                          console.log(
-                            `Removing blocking layer because message is ${resStatus}`
-                          );
-                          showAlert(resStatus, unsafeReason);
-                        }
-                      );
-                    });
-                  }
-                } else {
-                  console.log(
-                    "Message not found on server, extracting content"
-                  );
-                  setTimeout(() => {
-                    console.log(
-                      "Script Executed for create url==========================="
-                    );
-                    let newUrl = window.location.href;
-                    if (newUrl.includes("?compose=")) {
-                      return; // Exit early for compose URLs
+                            chrome.storage.local.set(
+                                {
+                                    messages: JSON.stringify(messages),
+                                },
+                                () => {
+                                    console.log(`Status ${resStatus} stored for message ${messId}`);
+                                    shouldApplyPointerEvents = resStatus !== "safe";
+                                    blockEmailBody();
+                                    console.log(`Removing blocking layer because message is ${resStatus}`);
+                                    showAlert(resStatus, unsafeReason);
+                                }
+                            );
+                        });
                     }
-                    createUrl(newUrl, messageId);
-                  }, 100);
+                } else {
+                    console.log("Message not found on server, extracting content");
+                    setTimeout(() => {
+                        console.log("Script Executed for create url===========================");
+                        let newUrl = window.location.href;
+                        if (newUrl.includes("?compose=")) {
+                            return; // Exit early for compose URLs
+                        }
+                        createUrl(newUrl, messageId);
+                    }, 100);
                 }
-              } else if (response.status === "error") {
+              }else if (response.status === "error") {
                 console.log(
                   "API call failed okokokok error print from server:"
                 );
@@ -254,6 +240,7 @@ async function extractMessageIdAndEml() {
     console.log("No node found");
   }
 }
+
 
 // Function to create the URL for the EML file
 function createUrl(url, messageId) {
