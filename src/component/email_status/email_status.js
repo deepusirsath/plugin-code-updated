@@ -1,74 +1,74 @@
 // Function to show the alert to the user
 export function showAlert(key, messageReason = " ") {
-    // Create the alert container
-    const alertContainer = document.createElement("div");
-    alertContainer.style.position = "fixed";
-    alertContainer.style.top = "50%";
-    alertContainer.style.left = "50%";
-    alertContainer.style.transform = "translate(-50%, -50%)";
-    alertContainer.style.zIndex = "1000";
-    alertContainer.style.width = "360px";
-    alertContainer.style.padding = "20px";
-    alertContainer.style.borderRadius = "12px";
-    alertContainer.style.boxShadow = "0 0 15px rgba(0, 0, 0, 0.3)";
-    alertContainer.style.display = "flex";
-    alertContainer.style.flexDirection = "column";
-    alertContainer.style.alignItems = "center";
-    alertContainer.style.backgroundColor = "#fff";
-  
-    // Create the message and button
-    const message = document.createElement("p");
-    message.style.margin = "10px 0 15px";
-    message.style.fontSize = "18px";
-    message.style.textAlign = "center";
-  
-    const button = document.createElement("button");
-    button.innerText = "Close";
-  
+  // Create the alert container
+  const alertContainer = document.createElement("div");
+  alertContainer.style.position = "fixed";
+  alertContainer.style.top = "50%";
+  alertContainer.style.left = "50%";
+  alertContainer.style.transform = "translate(-50%, -50%)";
+  alertContainer.style.zIndex = "1000";
+  alertContainer.style.width = "360px";
+  alertContainer.style.padding = "20px";
+  alertContainer.style.borderRadius = "12px";
+  alertContainer.style.boxShadow = "0 0 15px rgba(0, 0, 0, 0.3)";
+  alertContainer.style.display = "flex";
+  alertContainer.style.flexDirection = "column";
+  alertContainer.style.alignItems = "center";
+  alertContainer.style.backgroundColor = "#fff";
+
+  // Create the message and button
+  const message = document.createElement("p");
+  message.style.margin = "10px 0 15px";
+  message.style.fontSize = "18px";
+  message.style.textAlign = "center";
+
+  const button = document.createElement("button");
+  button.innerText = "Close";
+
+  Object.assign(button.style, {
+    padding: "8px 20px",
+    border: "1px solid #4C9ED9",
+    borderRadius: "4px",
+    cursor: "pointer",
+    backgroundColor: "#4C9ED9",
+    color: "#ffffff",
+    fontSize: "14px",
+    fontWeight: "500",
+    transition: "all 0.2s ease",
+    fontFamily: "'Segoe UI', system-ui, sans-serif",
+    boxShadow: "0 1px 2px rgba(76, 158, 217, 0.15)",
+  });
+
+  button.addEventListener("mouseover", () => {
     Object.assign(button.style, {
-      padding: "8px 20px",
-      border: "1px solid #4C9ED9",
-      borderRadius: "4px",
-      cursor: "pointer",
+      backgroundColor: "#3989c2",
+      transform: "translateY(-1px)",
+    });
+  });
+
+  button.addEventListener("mouseout", () => {
+    Object.assign(button.style, {
       backgroundColor: "#4C9ED9",
-      color: "#ffffff",
-      fontSize: "14px",
-      fontWeight: "500",
-      transition: "all 0.2s ease",
-      fontFamily: "'Segoe UI', system-ui, sans-serif",
-      boxShadow: "0 1px 2px rgba(76, 158, 217, 0.15)",
+      transform: "translateY(0)",
     });
-  
-    button.addEventListener("mouseover", () => {
-      Object.assign(button.style, {
-        backgroundColor: "#3989c2",
-        transform: "translateY(-1px)",
-      });
-    });
-  
-    button.addEventListener("mouseout", () => {
-      Object.assign(button.style, {
-        backgroundColor: "#4C9ED9",
-        transform: "translateY(0)",
-      });
-    });
-  
-    let iconHtml = "";
-    switch (key) {
-      case "safe":
-        message.innerText = "Security verification complete - Safe to proceed";
-  
-        alertContainer.style.width = "360px";
-        alertContainer.style.padding = "24px";
-        alertContainer.style.background =
-          "linear-gradient(135deg, #ffffff, #f8fff8)";
-        alertContainer.style.border = "1px solid rgba(40, 167, 69, 0.2)";
-        alertContainer.style.borderLeft = "6px solid #28a745";
-        alertContainer.style.boxShadow =
-          "0 6px 16px rgba(40, 167, 69, 0.08), 0 3px 6px rgba(0, 0, 0, 0.12)";
-        alertContainer.style.borderRadius = "8px";
-  
-        iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
+  });
+
+  let iconHtml = "";
+  switch (key) {
+    case "safe":
+      message.innerText = "Security verification complete - Safe to proceed";
+
+      alertContainer.style.width = "360px";
+      alertContainer.style.padding = "24px";
+      alertContainer.style.background =
+        "linear-gradient(135deg, #ffffff, #f8fff8)";
+      alertContainer.style.border = "1px solid rgba(40, 167, 69, 0.2)";
+      alertContainer.style.borderLeft = "6px solid #28a745";
+      alertContainer.style.boxShadow =
+        "0 6px 16px rgba(40, 167, 69, 0.08), 0 3px 6px rgba(0, 0, 0, 0.12)";
+      alertContainer.style.borderRadius = "8px";
+
+      iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
           <defs>
               <filter id="shadow-success">
                   <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#28a745" flood-opacity="0.25"/>
@@ -108,10 +108,10 @@ export function showAlert(key, messageReason = " ") {
                        repeatCount="indefinite"/>
           </path>
       </svg>`;
-        break;
-  
-      case "unsafe":
-        message.innerHTML = `
+      break;
+
+    case "unsafe":
+      message.innerHTML = `
       <div style="font-family: 'Segoe UI', sans-serif;">
           <div style="font-size: 16px; color: #333;font-weight : bolder">
               Security Notice: This email has been identified as unsafe.
@@ -119,19 +119,19 @@ export function showAlert(key, messageReason = " ") {
           <hr style="border: 0; height: 1px; background: #e0e0e0; margin: 8px 0;"/>
           <div style="color: #dc3545; font-size: 16px; font-weight : bold">${messageReason}</div>
       </div>`;
-  
-        alertContainer.style.width = "360px"; // Slightly wider for better text flow
-        alertContainer.style.padding = "24px"; // Increased padding
-        alertContainer.style.background =
-          "linear-gradient(135deg, #ffffff, #fafafa)"; // Diagonal gradient
-        alertContainer.style.border = "1px solid rgba(220, 53, 69, 0.2)"; // Subtle border all around
-        alertContainer.style.borderLeft = "6px solid #dc3545"; // Thicker left border
-        alertContainer.style.boxShadow =
-          "0 6px 16px rgba(220, 53, 69, 0.08), 0 3px 6px rgba(0, 0, 0, 0.12)"; // Multi-layered shadow
-        alertContainer.style.borderRadius = "8px"; // Increased border radius
-  
-        // Enhanced SVG with more dynamic animations
-        iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
+
+      alertContainer.style.width = "360px"; // Slightly wider for better text flow
+      alertContainer.style.padding = "24px"; // Increased padding
+      alertContainer.style.background =
+        "linear-gradient(135deg, #ffffff, #fafafa)"; // Diagonal gradient
+      alertContainer.style.border = "1px solid rgba(220, 53, 69, 0.2)"; // Subtle border all around
+      alertContainer.style.borderLeft = "6px solid #dc3545"; // Thicker left border
+      alertContainer.style.boxShadow =
+        "0 6px 16px rgba(220, 53, 69, 0.08), 0 3px 6px rgba(0, 0, 0, 0.12)"; // Multi-layered shadow
+      alertContainer.style.borderRadius = "8px"; // Increased border radius
+
+      // Enhanced SVG with more dynamic animations
+      iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
       <defs>
           <filter id="shadow">
               <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#dc3545" flood-opacity="0.25"/>
@@ -182,23 +182,23 @@ export function showAlert(key, messageReason = " ") {
           </circle>
           </g>
         </svg>`;
-  
-        break;
-      case "inform":
-        message.innerText =
-          "System maintenance in progress - Your security is our priority";
-  
-        alertContainer.style.width = "360px";
-        alertContainer.style.padding = "24px";
-        alertContainer.style.background =
-          "linear-gradient(135deg, #ffffff, #fff8f0)";
-        alertContainer.style.border = "1px solid rgba(255, 153, 0, 0.2)";
-        alertContainer.style.borderLeft = "6px solid #ff9900";
-        alertContainer.style.boxShadow =
-          "0 6px 16px rgba(255, 153, 0, 0.08), 0 3px 6px rgba(0, 0, 0, 0.12)";
-        alertContainer.style.borderRadius = "8px";
-  
-        iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
+
+      break;
+    case "inform":
+      message.innerText =
+        "System maintenance in progress - Your security is our priority";
+
+      alertContainer.style.width = "360px";
+      alertContainer.style.padding = "24px";
+      alertContainer.style.background =
+        "linear-gradient(135deg, #ffffff, #fff8f0)";
+      alertContainer.style.border = "1px solid rgba(255, 153, 0, 0.2)";
+      alertContainer.style.borderLeft = "6px solid #ff9900";
+      alertContainer.style.boxShadow =
+        "0 6px 16px rgba(255, 153, 0, 0.08), 0 3px 6px rgba(0, 0, 0, 0.12)";
+      alertContainer.style.borderRadius = "8px";
+
+      iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
               <defs>
                   <filter id="shadow-warning">
                       <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#ff9900" flood-opacity="0.25"/>
@@ -254,21 +254,21 @@ export function showAlert(key, messageReason = " ") {
                       repeatCount="indefinite"/>
               </circle>
           </svg>`;
-        break;
-  
-      case "pending":
-        message.innerText =
-          "We're processing your request.... Please wait for the procedure to be finished.";
-  
-        alertContainer.style.background =
-          "linear-gradient(145deg, #ffffff, #f0f8ff)";
-        alertContainer.style.border = "1px solid rgba(0, 123, 255, 0.15)";
-        alertContainer.style.borderLeft = "6px solid #007bff";
-        alertContainer.style.boxShadow =
-          "0 8px 20px rgba(0, 123, 255, 0.06), 0 4px 8px rgba(0, 0, 0, 0.08)";
-        alertContainer.style.borderRadius = "12px";
-  
-        iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
+      break;
+
+    case "pending":
+      message.innerText =
+        "We're processing your request.... Please wait for the procedure to be finished.";
+
+      alertContainer.style.background =
+        "linear-gradient(145deg, #ffffff, #f0f8ff)";
+      alertContainer.style.border = "1px solid rgba(0, 123, 255, 0.15)";
+      alertContainer.style.borderLeft = "6px solid #007bff";
+      alertContainer.style.boxShadow =
+        "0 8px 20px rgba(0, 123, 255, 0.06), 0 4px 8px rgba(0, 0, 0, 0.08)";
+      alertContainer.style.borderRadius = "12px";
+
+      iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
               <defs>
                   <linearGradient id="pendingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" style="stop-color:#007bff;stop-opacity:1" />
@@ -312,59 +312,59 @@ export function showAlert(key, messageReason = " ") {
                   </circle>
               </g>
           </svg>`;
-        break;
-      default:
-        console.log("Invalid key for showAlert");
-        return;
+      break;
+    default:
+      console.log("Invalid key for showAlert");
+      return;
+  }
+
+  const iconContainer = document.createElement("div");
+  iconContainer.innerHTML = iconHtml;
+  iconContainer.style.marginBottom = "15px";
+
+  alertContainer.appendChild(iconContainer);
+  alertContainer.appendChild(message);
+  alertContainer.appendChild(button);
+  document.body.appendChild(alertContainer);
+
+  const removeAlert = () => {
+    if (alertContainer && alertContainer.parentNode) {
+      document.body.removeChild(alertContainer);
+      document.removeEventListener("click", dismissOnOutsideClick);
+      window.removeEventListener("keydown", handleEnterKey);
     }
-  
-    const iconContainer = document.createElement("div");
-    iconContainer.innerHTML = iconHtml;
-    iconContainer.style.marginBottom = "15px";
-  
-    alertContainer.appendChild(iconContainer);
-    alertContainer.appendChild(message);
-    alertContainer.appendChild(button);
-    document.body.appendChild(alertContainer);
-  
-    const removeAlert = () => {
+  };
+
+  const handleEnterKey = (event) => {
+    if (event.key === "Enter") {
+      removeAlert();
+    }
+  };
+
+  window.addEventListener("keydown", handleEnterKey);
+
+  const dismissOnOutsideClick = (event) => {
+    if (!alertContainer.contains(event.target)) {
+      removeAlert();
+    }
+  };
+
+  const observer = new MutationObserver(() => {
+    const elements = document.getElementsByClassName("nH a98 iY");
+    if (!elements || elements.length === 0) {
       if (alertContainer && alertContainer.parentNode) {
         document.body.removeChild(alertContainer);
-        document.removeEventListener("click", dismissOnOutsideClick);
-        window.removeEventListener("keydown", handleEnterKey);
       }
-    };
-  
-    const handleEnterKey = (event) => {
-      if (event.key === "Enter") {
-        removeAlert();
-      }
-    };
-  
-    window.addEventListener("keydown", handleEnterKey);
-  
-    const dismissOnOutsideClick = (event) => {
-      if (!alertContainer.contains(event.target)) {
-        removeAlert();
-      }
-    };
-  
-    const observer = new MutationObserver(() => {
-      const elements = document.getElementsByClassName("nH a98 iY");
-      if (!elements || elements.length === 0) {
-        if (alertContainer && alertContainer.parentNode) {
-          document.body.removeChild(alertContainer);
-        }
-        observer.disconnect();
-      }
-    });
-  
-    // Start observing the document for DOM changes
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
-  
-    document.addEventListener("click", dismissOnOutsideClick, true);
-    button.addEventListener("click", removeAlert);
-  }
+      observer.disconnect();
+    }
+  });
+
+  // Start observing the document for DOM changes
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true,
+  });
+
+  document.addEventListener("click", dismissOnOutsideClick, true);
+  button.addEventListener("click", removeAlert);
+}

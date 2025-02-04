@@ -9,7 +9,6 @@
 //   showAlert = content.showAlert;
 // })();
 
-
 console.log("Content script loaded for Gmail--------");
 setTimeout(() => {
   blockEmailBody();
