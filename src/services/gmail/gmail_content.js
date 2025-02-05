@@ -39,35 +39,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "GmailDetectedForExtraction") {
     setTimeout(() => {
       let url = window.location.href;
+
       if (url.includes("?compose=")) {
-        return; 
+        return;
       }
       chrome.storage.local.get("registration", (data) => {
+
         if (chrome.runtime.lastError) {
           console.error(chrome.runtime.lastError);
           return;
         }
-        if (data.registration) {
-          console.log("URL:", url);
-          const lastSegment = url.split("/").pop().split("#").pop();
-          console.log(
-            "last segment ",
-            lastSegment,
-            "total count ",
-            lastSegment.length
-          );
 
-          // Check if the last segment has exactly isValidSegmentLength characters
+        if (data.registration) {
+          const lastSegment = url.split("/").pop().split("#").pop();
+
           if (lastSegment.length >= isValidSegmentLength) {
-            console.log(
-              `The last segment "${lastSegment}" has exactly isValidSegmentLength characters.`
-            );
-            // Single initialization
             init();
-          } else {
-            console.log(
-              `The last segment "${lastSegment}" does not have 32 characters.`
-            );
           }
         }
       });
@@ -118,7 +105,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 //Detect Gmail URL and extract message ID
 async function extractMessageIdAndEml() {
   blockEmailBody();
-  console.log("extractMessageIdAndEm called");
   const node = document.querySelector("[data-legacy-message-id]");
   if (node) {
     messageId = node.getAttribute("data-legacy-message-id");
