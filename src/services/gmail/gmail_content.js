@@ -242,7 +242,30 @@ async function extractMessageIdAndEml() {
 }
 
 
-// Function to create the URL for the EML file
+/**
+ * Constructs a Gmail EML download URL and sends message data to background script
+ * 
+ * @param {string} url - Current Gmail URL (unused in current implementation)
+ * @param {string} messageId - Unique identifier for the Gmail message
+ * 
+ * @description
+ * This function creates a special Gmail URL that allows downloading the email in EML format.
+ * It uses a fixed Gmail prefix and combines it with the message ID to generate the EML URL.
+ * The function then sends the constructed URL along with message details to the background script
+ * using chrome.runtime.sendMessage.
+ * 
+ * The constructed URL includes the following parameters:
+ * - view=att: Specifies attachment view
+ * - th: Thread/message ID
+ * - attid=0: Attachment ID
+ * - disp=comp: Display as complete message
+ * - safe=1: Safe mode enabled
+ * - zw: Zero-width character (Gmail-specific parameter)
+ * 
+ * @example
+ * createUrl('https://mail.google.com/mail/u/0/#inbox/12345', '12345');
+ * // Sends message with EML URL: https://mail.google.com/mail/u/0/?view=att&th=12345&attid=0&disp=comp&safe=1&zw
+ */
 function createUrl(url, messageId) {
   console.log("createUrs called");
   // let prefixUrl = url.substr(0, url.search("/#"));

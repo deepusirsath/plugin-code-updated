@@ -72,22 +72,29 @@ const handleRegularButton = async (componentName) => {
 };
 
 /**
- * Handles the dispute button click event and manages component loading based on email service validation
- * @param {string} componentName - The name of the component to be loaded
- * @returns {Promise<void>} A promise that resolves when all operations are complete
- * @fires {CustomEvent} componentLoaded - Dispatched with component details and dispute data when loading succeeds
- * @throws {Error} Caught and handled by displayError if any operation fails
- *
+ * Handles dispute button click events and manages email service verification and component loading
+ * 
+ * @param {string} componentName - Name of the component to be loaded
+ * @returns {Promise<void>}
+ * 
  * @description
  * This function performs the following operations:
- * 1. Checks if user is on a supported email page
- * 2. Validates against supported email services (Gmail, Outlook, Yahoo)
- * 3. Checks for existing dispute data
- * 4. Loads appropriate components based on validation results
- *
+ * 1. Verifies if the current page is a valid email service page
+ * 2. Checks for dispute data if email service is valid
+ * 3. Loads appropriate components based on the response:
+ *    - Loads "mail not found" component if dispute data is not found
+ *    - Loads specified component with dispute data if available
+ *    - Dispatches a custom event with component and dispute data
+ * 
+ * Supported email services:
+ * - Gmail
+ * - Outlook
+ * - Yahoo
+ * 
  * @example
- * // Load dispute component
  * await handleDisputeButton('dispute');
+ * 
+ * @throws {Error} Displays error message if any operation fails
  */
 const handleDisputeButton = async (componentName) => {
   try {
