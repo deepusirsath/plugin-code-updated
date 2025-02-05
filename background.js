@@ -584,7 +584,6 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     const matchedKeyword = checkGmailUrl(urlToCheck);
 
     if (matchedKeyword) {
-      console.log(`Keyword detected: ${matchedKeyword}`);
       chrome.tabs.sendMessage(
         tabId,
         { action: "GmailDetectedForExtraction" },

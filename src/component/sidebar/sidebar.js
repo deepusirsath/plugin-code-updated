@@ -3,13 +3,16 @@ import { COMPONENTS } from "/src/constant/component.js";
 import { displayError } from "/src/helper/display_error.js";
 import { TARGET_ID } from "/src/constant/target_id.js";
 import { initializeDisputeForm } from "/src/pages/dispute/dispute.js";
-import { SIDEBAR_CONFIG } from "./sidebar_config.js";
+import { showLoader, hideLoader } from "/src/component/loader/loader.js";
 import { setCurrentSearchQuery } from "/src/pages/spam-mail/spam-mail.js";
 import {
   loadComponent,
   loadCssAndHtmlFile,
   loadScript,
 } from "/src/helper/content_loader_helper.js";
+import { SIDEBAR_CONFIG } from "./sidebar_config.js";
+
+let currentLoadingOperation = null;
 
 /**
  * Updates the active state of menu items in the sidebar and resets search-related elements
@@ -97,12 +100,19 @@ const handleRegularButton = async (componentName) => {
  * @throws {Error} Displays error message if any operation fails
  */
 const handleDisputeButton = async (componentName) => {
+  const thisOperation = {};
+  currentLoadingOperation = thisOperation;
   document.getElementById("data-output").innerHTML = "";
-
+  showLoader();
   try {
     chrome.runtime.sendMessage(
       { action: "checkEmailPage" },
       async function (response) {
+        if (currentLoadingOperation !== thisOperation) {
+          hideLoader();
+          return;
+        }
+
         const openedServices = [
           "OpenedGmail",
           "OpenedOutlook",
@@ -119,12 +129,18 @@ const handleDisputeButton = async (componentName) => {
                   basePath: BASEPATH.COMPONENT,
                   targetId: TARGET_ID.DATA_OUTPUT,
                 });
+                hideLoader();
               } else if (disputeResponse) {
+                if (currentLoadingOperation !== thisOperation) {
+                  hideLoader();
+                  return;
+                }
                 await loadComponent({
                   componentName,
                   basePath: BASEPATH.PAGES,
                   targetId: TARGET_ID.DATA_OUTPUT,
                 });
+                hideLoader();
                 document.dispatchEvent(
                   new CustomEvent("componentLoaded", {
                     detail: { componentName, disputeData: disputeResponse },
@@ -139,6 +155,7 @@ const handleDisputeButton = async (componentName) => {
             basePath: BASEPATH.COMPONENT,
             targetId: TARGET_ID.DATA_OUTPUT,
           });
+          hideLoader();
         }
       }
     );
@@ -179,6 +196,7 @@ const handleDisputeButton = async (componentName) => {
  * await handleButtonClick('details', regularButton);
  */
 const handleButtonClick = async (componentName, clickedButton) => {
+  currentLoadingOperation = null;
   updateActiveMenuItem(clickedButton);
   if (clickedButton.id === TARGET_ID.DISPUTE_BTN) {
     handleDisputeButton(componentName).then(() => {
