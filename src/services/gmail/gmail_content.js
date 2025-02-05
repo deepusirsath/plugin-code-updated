@@ -23,7 +23,6 @@ setTimeout(() => {
 
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) {
-    console.log("Page is visible, checking for email ID...");
     findEmailId();
   }
 });
@@ -38,13 +37,10 @@ let messageReason = " ";
 // Function to check if the current page is a Gmail page
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "GmailDetectedForExtraction") {
-    console.log("Message received in content script - Gmail detected");
-
     setTimeout(() => {
       let url = window.location.href;
       if (url.includes("?compose=")) {
-        console.log("Compose URL detected. Skipping email extraction.");
-        return; // Exit early for compose URLs
+        return; 
       }
       chrome.storage.local.get("registration", (data) => {
         if (chrome.runtime.lastError) {
@@ -82,7 +78,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // Function to initialize the script
 const init = () => {
-  console.log("init called=======================");
   Promise.all([extractMessageIdAndEml(), findEmailId()])
     .then(() => console.log("Operations completed"))
     .catch((error) => console.error("Error:", error));
@@ -115,7 +110,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           error: "Failed to extract Gmail message ID or email ID",
         });
       }
-      // findMessageIdRecursive(sendResponse);
       return true;
     }
   }
@@ -170,9 +164,6 @@ async function extractMessageIdAndEml() {
         } else {
           shouldApplyPointerEvents = true;
           blockEmailBody();
-          console.log(
-            "Sending message to background for first check for firstCheckForEmail API in Gmail"
-          );
           chrome.runtime.sendMessage(
             {
               client: "gmail",
@@ -214,30 +205,18 @@ async function extractMessageIdAndEml() {
                           messages: JSON.stringify(messages),
                         },
                         () => {
-                          console.log(
-                            `Status ${resStatus} stored for message ${messId}`
-                          );
                           shouldApplyPointerEvents = resStatus !== "safe";
                           blockEmailBody();
-                          console.log(
-                            `Removing blocking layer because message is ${resStatus}`
-                          );
                           showAlert(resStatus, unsafeReason);
                         }
                       );
                     });
                   }
                 } else {
-                  console.log(
-                    "Message not found on server, extracting content"
-                  );
                   setTimeout(() => {
-                    console.log(
-                      "Script Executed for create url==========================="
-                    );
                     let newUrl = window.location.href;
                     if (newUrl.includes("?compose=")) {
-                      return; // Exit early for compose URLs
+                      return;
                     }
                     createUrl(newUrl, messageId);
                   }, 100);
@@ -247,12 +226,9 @@ async function extractMessageIdAndEml() {
                   "API call failed okokokok error print from server:"
                 );
                 showAlert("inform");
-                // extractEmlContent(dataConvid);
               }
             }
           );
-          console.log("API call failed:");
-          // showAlert("inform");
         }
       });
     } else {
@@ -265,12 +241,8 @@ async function extractMessageIdAndEml() {
 
 // Function to create the URL for the EML file
 function createUrl(url, messageId) {
-  console.log("createUrs called");
-  // let prefixUrl = url.substr(0, url.search("/#"));
   let prefixUrl = "https://mail.google.com/mail/u/0/";
-  console.log("prefixUrl", prefixUrl);
   let eml_Url = `${prefixUrl}?view=att&th=${messageId}&attid=0&disp=comp&safe=1&zw`;
-  console.log("Gmail EML Url ", eml_Url);
   try {
     chrome.runtime.sendMessage({
       action: "sendGmailData",
@@ -289,14 +261,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     request.action === "EmailNotFoundInPendingRequest" &&
     request.client === "gmail"
   ) {
-    console.log(
-      "Received message in content script EmailNotFoundInPendingRequest:",
-      request
-    );
     const { messageId } = request;
     let new2Url = window.location.href;
     if (new2Url.includes("?compose=")) {
-      return; // Exit early for compose URLs
+      return;
     }
     createUrl(new2Url, messageId);
   }
@@ -310,23 +278,16 @@ async function findEmailId() {
   emailId = emailMatches ? emailMatches[emailMatches.length - 1] : null;
   if (emailId) {
     chrome.storage.local.remove(["yahoo_email", "outlook_email"], () => {
-      console.log("Cleared yahoo_email and Outlook emails from storage");
-      chrome.storage.local.set({ gmail_email: emailId }, () => {
-        console.log("gmail email stored:", emailId);
-      });
+      chrome.storage.local.set({ gmail_email: emailId });
     });
   }
-  console.log("Gmail email ID:", emailId);
 }
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request) => {
   if (
     request.action === "erroRecievedFromServer" &&
     request.client === "gmail"
   ) {
-    console.log(
-      "Received message from server to show the erroRecievedFromServer:"
-    );
     showAlert("inform");
   }
 });
@@ -344,18 +305,13 @@ document.addEventListener("click", function removeAlertOnClick(event) {
 function blockEmailBody() {
   const elements = document.getElementsByClassName("nH a98 iY");
   if (elements && elements.length > 0) {
-    // Convert HTMLCollection to Array and apply styles to each element
     Array.from(elements).forEach((element) => {
       if (shouldApplyPointerEvents) {
-        console.log("Pointer Event None");
         element.style.pointerEvents = "none";
       } else {
-        console.log("Pointer Event All");
         element.style.pointerEvents = "all";
       }
     });
-  } else {
-    console.log("Elements not found");
   }
 }
 
@@ -363,24 +319,15 @@ function blockEmailBody() {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.client === "gmail") {
     messageReason = message.unsafeReason;
-    // Check if the message is for Outlook
-    console.log(
-      "this is the function that will be called when the content script receives a message for the Gmail client"
-    );
     if (message.action === "blockUrls") {
-      console.log("Outlook Content script received message:", message.action);
       shouldApplyPointerEvents = true;
       showAlert("unsafe", messageReason);
-      console.log("Blocking URLs for Gmail");
     } else if (message.action === "unblock") {
       shouldApplyPointerEvents = false;
-      console.log("Unblocking URLs for Gmail");
       showAlert("safe");
     } else if (message.action === "pending") {
-      console.log("Pending Status for Gmail");
       shouldApplyPointerEvents = true;
       showAlert("pending");
-      console.log("Blocking URLs for Gmail due to pending status");
     }
     blockEmailBody();
     sendResponse({ status: "success" });
