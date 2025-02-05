@@ -1,4 +1,4 @@
-export const showCustomAlert = (message, closeCallback, type = 'success') => {
+export const showCustomAlert = (message, type = "success") => {
   const alertDiv = document.createElement("div");
   alertDiv.className = "custom-alert-overlay";
 
@@ -10,9 +10,9 @@ export const showCustomAlert = (message, closeCallback, type = 'success') => {
     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
   </svg>`;
 
-  const btnColor = type === 'success' ? '#4CAF50' : '#ff4757';
-  const icon = type === 'success' ? successIconSVG : limitIconSVG;
-  const buttonText = type === 'success' ? 'close!' : 'close!';
+  const btnColor = type === "success" ? "#4CAF50" : "#ff4757";
+  const icon = type === "success" ? successIconSVG : limitIconSVG;
+  const buttonText = type === "success" ? "close" : "close";
 
   alertDiv.innerHTML = `
     <div class="custom-alert-box ${type}">
@@ -41,11 +41,10 @@ export const showCustomAlert = (message, closeCallback, type = 'success') => {
   function closeAlert() {
     alertDiv.classList.add("fade-out");
     setTimeout(() => {
-        alertDiv.remove();
-        if (closeCallback) closeCallback();
-        if (type === 'success') {
-            window.close();
-        }
+      alertDiv.remove();
+      if (type === "success") {
+        window.close();
+      }
     }, 100);
-}
+  }
 };
