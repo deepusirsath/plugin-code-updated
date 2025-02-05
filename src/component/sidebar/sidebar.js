@@ -5,6 +5,7 @@ import { TARGET_ID } from "/src/constant/target_id.js";
 import { initializeDisputeForm } from "/src/pages/dispute/dispute.js";
 import { SIDEBAR_CONFIG } from "./sidebar_config.js";
 import { setCurrentSearchQuery } from "/src/pages/spam-mail/spam-mail.js";
+import { showLoader, hideLoader } from "/src/component/loader/loader.js";
 import {
   loadComponent,
   loadCssAndHtmlFile,
@@ -91,7 +92,7 @@ const handleRegularButton = async (componentName) => {
  */
 const handleDisputeButton = async (componentName) => {
   document.getElementById("data-output").innerHTML = "";
-
+  showLoader();
   try {
     chrome.runtime.sendMessage(
       { action: "checkEmailPage" },
@@ -103,6 +104,8 @@ const handleDisputeButton = async (componentName) => {
           "Gmail",
         ];
         if (openedServices.includes(response)) {
+          console.log(response, "response");
+
           chrome.runtime.sendMessage(
             { action: "checkDispute" },
             async function (disputeResponse) {
@@ -112,12 +115,14 @@ const handleDisputeButton = async (componentName) => {
                   basePath: BASEPATH.COMPONENT,
                   targetId: TARGET_ID.DATA_OUTPUT,
                 });
+                hideLoader();
               } else if (disputeResponse) {
                 await loadComponent({
                   componentName,
                   basePath: BASEPATH.PAGES,
                   targetId: TARGET_ID.DATA_OUTPUT,
                 });
+                hideLoader();
                 document.dispatchEvent(
                   new CustomEvent("componentLoaded", {
                     detail: { componentName, disputeData: disputeResponse },
@@ -132,6 +137,7 @@ const handleDisputeButton = async (componentName) => {
             basePath: BASEPATH.COMPONENT,
             targetId: TARGET_ID.DATA_OUTPUT,
           });
+          hideLoader();
         }
       }
     );
