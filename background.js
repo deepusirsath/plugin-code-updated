@@ -325,6 +325,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               );
 
               if (dispute_count >= 0) {
+                
                 sendResponse({
                   status:
                     emailStatus === "Dispute"

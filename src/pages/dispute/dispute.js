@@ -4,7 +4,7 @@ import {
   UPDATE_EMAIL_STATUS,
 } from "/src/routes/api_route.js";
 import { postData } from "/src/api/api_method.js";
-
+import { showCustomAlert } from "/src/pages/dispute/custom_alert/custom_alert.js";
 /**
  * Initializes and manages a dispute form interface with validation and submission handling
  *
@@ -101,13 +101,22 @@ export const initializeDisputeForm = (disputeData) => {
   });
 
   /**
-   * Handles the dispute form submission
-   * Validates dispute count limits and processes the submission
-   * - Disables submit button during processing
-   * - Checks if dispute count is within allowed limit (0-2)
-   * - Collects form data: reason text, message ID, and receiver email
-   * - Sends dispute if within limits
-   * - Shows alert and closes window if limit exceeded
+   * Handles the dispute form submission process
+   *
+   * Event listener for the submit button that:
+   * - Disables the submit button during processing
+   * - Validates if dispute count is within allowed limit (0-2)
+   * - Extracts form data including:
+   *   - User's reason text
+   *   - Message ID
+   *   - Receiver's email from Chrome storage
+   * - Sends dispute if count is within limits
+   * - Shows alert and disables submission if limit exceeded
+   *
+   * @listens {click}
+   * @async
+   * @fires sendDispute - When dispute count is valid
+   * @fires showCustomAlert - When dispute limit is reached
    */
   submitButton.addEventListener("click", async () => {
     disableSubmitButton();
@@ -119,8 +128,7 @@ export const initializeDisputeForm = (disputeData) => {
       sendDispute(reasonText, messageId, receiver_email?.receiver_email);
     } else {
       disableSubmitButton();
-      alert("Dispute limit reached. You cannot submit more disputes.");
-      window.close();
+      showCustomAlert("You have reached the maximum limit for disputes. Each email can be disputed a maximum of three times.", null, "limit");
     }
   });
 
@@ -138,28 +146,37 @@ export const initializeDisputeForm = (disputeData) => {
   };
 
   /**
-   * Handles the response from the background script after a dispute attempt.
-   * Alerts the user if the dispute fails and closes the popup window.
-   * @param {Object} response - The response object from the background script.
-   * @param {boolean} response - Indicates if the dispute was successful.
+   * Handles the response from a dispute submission and manages alert display
+   *
+   * @param {Object} response - The response object from the dispute submission
+   * @param {string} [response.error] - Error message if dispute submission failed
+   *
+   * Features:
+   * - Uses a flag (window.disputeAlertShown) to prevent multiple alerts
+   * - Shows success message and closes window on successful submission
+   * - Displays error message if submission fails
+   * - Resets alert flag on error to allow retrying
+   *
+   * @example
+   * handleResponse({ error: null }); // Shows success message and closes window
+   * handleResponse({ error: "Invalid request" }); // Shows error message
    */
   const handleResponse = (response) => {
     // Add a flag to track if alert was shown
     if (window.disputeAlertShown) {
       return;
     }
-
     window.disputeAlertShown = true;
-
     if (!response?.error) {
-      alert("Dispute sent successfully. Please wait for admin action.");
-      window.close();
+      showCustomAlert("Your dispute has been successfully submitted. Please wait for the admin's response.", () => {
+        console.log("Alert closed"); // Optional callback
+      }, "success");
     } else {
-      alert(response?.error);
-      // Reset flag if there was an error to allow future alerts
+      showCustomAlert(response?.error);
       window.disputeAlertShown = false;
     }
   };
+
 
   document.getElementById("reload").addEventListener("click", async () => {
     const messageId = document.getElementById("messageId").textContent;
@@ -235,7 +252,7 @@ export const checkDisputeCount = async (messageId) => {
   try {
     const data = await postData(PLUGIN_COUNTER, { messageId });
     const dispute_count = data.counter || 0;
-
+    console.log("dispute_count fetched from the API: ", dispute_count);
     if (dispute_count) {
       chrome.storage.local.set({
         dispute_count: data.counter || 0,
@@ -247,3 +264,35 @@ export const checkDisputeCount = async (messageId) => {
     console.error(err);
   }
 };
+
+// export const checkDisputeCount = async (messageId) => {
+//   try {
+//     const data = await postData(PLUGIN_COUNTER, { messageId });
+//     let dispute_count;
+//     console.log("dispute_count fetched from the API: ", data.counter);
+
+//     switch (data.counter) {
+//       case 0:
+//         dispute_count = 3;
+//         break;
+//       case 1:
+//         dispute_count = 2;
+//         break;
+//       case 2:
+//         dispute_count = 1;
+//         break;
+//       case 3:
+//         dispute_count = 0;
+//         break;
+//       default:
+//         dispute_count = 0;
+//     }
+//     if (dispute_count !== undefined) {
+//       chrome.storage.local.set({ dispute_count });
+//     }
+//     console.log("dispute_count fetched from the API return : ", dispute_count);
+//     return { dispute_count };
+//   } catch (err) {
+//     console.error(err);
+//   }
+// };
