@@ -97,6 +97,8 @@ const handleRegularButton = async (componentName) => {
  * @throws {Error} Displays error message if any operation fails
  */
 const handleDisputeButton = async (componentName) => {
+  document.getElementById("data-output").innerHTML = "";
+
   try {
     chrome.runtime.sendMessage(
       { action: "checkEmailPage" },
