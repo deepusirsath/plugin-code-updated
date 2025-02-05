@@ -12,6 +12,8 @@ import {
 } from "/src/helper/content_loader_helper.js";
 import { SIDEBAR_CONFIG } from "./sidebar_config.js";
 
+let currentLoadingOperation = null;
+
 /**
  * Updates the active state of menu items in the sidebar and resets search-related elements
  * @param {HTMLElement} clickedButton - The button element that was clicked in the sidebar
@@ -91,12 +93,19 @@ const handleRegularButton = async (componentName) => {
  * await handleDisputeButton('dispute');
  */
 const handleDisputeButton = async (componentName) => {
+  const thisOperation = {};
+  currentLoadingOperation = thisOperation;
   document.getElementById("data-output").innerHTML = "";
   showLoader();
   try {
     chrome.runtime.sendMessage(
       { action: "checkEmailPage" },
       async function (response) {
+        if (currentLoadingOperation !== thisOperation) {
+          hideLoader();
+          return;
+        }
+
         const openedServices = [
           "OpenedGmail",
           "OpenedOutlook",
@@ -115,6 +124,10 @@ const handleDisputeButton = async (componentName) => {
                 });
                 hideLoader();
               } else if (disputeResponse) {
+                if (currentLoadingOperation !== thisOperation) {
+                  hideLoader();
+                  return;
+                }
                 await loadComponent({
                   componentName,
                   basePath: BASEPATH.PAGES,
@@ -176,6 +189,7 @@ const handleDisputeButton = async (componentName) => {
  * await handleButtonClick('details', regularButton);
  */
 const handleButtonClick = async (componentName, clickedButton) => {
+  currentLoadingOperation = null;
   updateActiveMenuItem(clickedButton);
   if (clickedButton.id === TARGET_ID.DISPUTE_BTN) {
     handleDisputeButton(componentName).then(() => {
