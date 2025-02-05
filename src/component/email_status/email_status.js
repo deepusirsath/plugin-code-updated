@@ -370,5 +370,23 @@ export function showAlert(key, messageReason = " ") {
       childList: true,
       subtree: true,
     });
+  } else if (isOutlook) {
+    let currentUrl = window.location.href;
+
+    const urlObserver = new MutationObserver(() => {
+      if (currentUrl !== window.location.href) {
+        currentUrl = window.location.href;
+        const alertContainer = document.querySelector(
+          'div[style*="position: fixed"][style*="top: 50%"]'
+        );
+        if (alertContainer) {
+          alertContainer.remove();
+        }
+      }
+    });
+    urlObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
   }
 }
