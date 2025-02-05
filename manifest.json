@@ -45,7 +45,8 @@
     {
       "resources": [
         "/src/component/email_status/email_status.js",
-        "/src/component/block_email_popup/block_email_popup.js"
+        "/src/component/block_email_popup/block_email_popup.js",
+        "/src/component/outlook_loading_screen/outlook_loading_screen.js"
       ],
       "matches": ["<all_urls>"]
     }

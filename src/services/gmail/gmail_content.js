@@ -17,10 +17,10 @@ Promise.all([
   showBlockedPopup = blockPopup.showBlockedPopup;
 });
 
-console.log("Content script loaded for Gmail--------");
 setTimeout(() => {
   blockEmailBody();
 }, 2000);
+
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) {
     console.log("Page is visible, checking for email ID...");

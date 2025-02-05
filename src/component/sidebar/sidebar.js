@@ -90,6 +90,8 @@ const handleRegularButton = async (componentName) => {
  * await handleDisputeButton('dispute');
  */
 const handleDisputeButton = async (componentName) => {
+  document.getElementById("data-output").innerHTML = "";
+
   try {
     chrome.runtime.sendMessage(
       { action: "checkEmailPage" },
