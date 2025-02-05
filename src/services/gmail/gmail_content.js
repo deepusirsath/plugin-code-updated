@@ -44,7 +44,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return;
       }
       chrome.storage.local.get("registration", (data) => {
-
         if (chrome.runtime.lastError) {
           console.error(chrome.runtime.lastError);
           return;
@@ -62,13 +61,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse({ status: "received" });
   }
 });
-
-// Function to initialize the script
-const init = () => {
-  Promise.all([extractMessageIdAndEml(), findEmailId()])
-    .then(() => console.log("Operations completed"))
-    .catch((error) => console.error("Error:", error));
-};
 
 // Function to extract message ID and EML content
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -102,127 +94,148 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
+// Listen for messages from the background script like if the pending staus is empty
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (
+    request.action === "EmailNotFoundInPendingRequest" &&
+    request.client === "gmail"
+  ) {
+    const { messageId } = request;
+    let new2Url = window.location.href;
+    if (new2Url.includes("?compose=")) {
+      return;
+    }
+    createUrl(new2Url, messageId);
+  }
+});
+
+chrome.runtime.onMessage.addListener((request) => {
+  if (
+    request.action === "erroRecievedFromServer" &&
+    request.client === "gmail"
+  ) {
+    showAlert("inform");
+  }
+});
+
+// function to handle the server response and show the alert with the appropriate message
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.client === "gmail") {
+    messageReason = message.unsafeReason;
+    if (message.action === "blockUrls") {
+      shouldApplyPointerEvents = true;
+      showAlert("unsafe", messageReason);
+    } else if (message.action === "unblock") {
+      shouldApplyPointerEvents = false;
+      showAlert("safe");
+    } else if (message.action === "pending") {
+      shouldApplyPointerEvents = true;
+      showAlert("pending");
+    }
+    blockEmailBody();
+    sendResponse({ status: "success" });
+  }
+});
+
+// Function to initialize the script
+const init = () => {
+  Promise.all([extractMessageIdAndEml(), findEmailId()])
+    .then(() => console.log("Operations completed"))
+    .catch((error) => console.error("Error:", error));
+};
+
 //Detect Gmail URL and extract message ID
 async function extractMessageIdAndEml() {
   blockEmailBody();
   const node = document.querySelector("[data-legacy-message-id]");
-  if (node) {
-    messageId = node.getAttribute("data-legacy-message-id");
-    console.log("Message ID found for first time:", messageId);
-
-    if (messageId) {
-      console.log("Working on the messageId to First Time check ");
-      // Retrieve the "messages" object from chrome.storage.local
-      chrome.storage.local.get("messages", function (result) {
-        let messages = JSON.parse(result.messages || "{}");
-        console.log("local storage mesaage id Items ", messages);
-
-        if (messages[messageId]) {
-          console.log(
-            "Message Id found in local storage:",
-            messages[messageId]
-          );
-          const status = messages[messageId].status;
-          const unsafeReason = messages[messageId].unsafeReason;
-
-          if (status === "safe" || status === "Safe") {
-            showAlert("safe", unsafeReason);
-            console.log("Local Storage status", status);
-            shouldApplyPointerEvents = false;
-            blockEmailBody();
-            console.log(`Removing blocking layer because message is ${status}`);
-          } else if (status === "unsafe" || status === "Unsafe") {
-            showAlert("unsafe", unsafeReason);
-            console.log("Local Storage status", status);
-            console.log(`Applying blocking layer because message is ${status}`);
-            shouldApplyPointerEvents = true;
-            blockEmailBody();
-          } else if (status === "pending" || status === "Pending") {
-            console.log("send response to background for pending status");
-            shouldApplyPointerEvents = true;
-            blockEmailBody();
-            chrome.runtime.sendMessage({
-              action: "pendingStatusGmail",
-              emailId: emailId,
-              messageId: messageId,
-            });
-          }
-        } else {
-          shouldApplyPointerEvents = true;
-          blockEmailBody();
-          chrome.runtime.sendMessage(
-            {
-              client: "gmail",
-              action: "firstCheckForEmail",
-              messageId: messageId,
-              email: emailId,
-            },
-            (response) => {
-              console.log(
-                "Response from background for firstCheckForEmail API:",
-                response
-              );
-              if (response.IsResponseRecieved === "success") {
-                if (response.data.code === 200) {
-                  console.log(
-                    "Response from background for firstCheckForEmail API:",
-                    response
-                  );
-                  const serverData = response.data.data;
-                  const resStatus =
-                    serverData.eml_status || serverData.email_status;
-                  const messId = serverData.messageId || serverData.msg_id;
-                  const unsafeReason = serverData.unsafe_reasons || " ";
-
-                  console.log("serverData:", serverData);
-                  console.log("resStatus:", resStatus);
-                  console.log("messId:", messId);
-
-                  if (["safe", "unsafe", "pending"].includes(resStatus)) {
-                    chrome.storage.local.get("messages", function (result) {
-                      let messages = JSON.parse(result.messages || "{}");
-                      messages[messId] = {
-                        status: resStatus,
-                        unsafeReason: unsafeReason,
-                      };
-
-                      chrome.storage.local.set(
-                        {
-                          messages: JSON.stringify(messages),
-                        },
-                        () => {
-                          shouldApplyPointerEvents = resStatus !== "safe";
-                          blockEmailBody();
-                          showAlert(resStatus, unsafeReason);
-                        }
-                      );
-                    });
-                  }
-                } else {
-                  setTimeout(() => {
-                    let newUrl = window.location.href;
-                    if (newUrl.includes("?compose=")) {
-                      return;
-                    }
-                    createUrl(newUrl, messageId);
-                  }, 100);
-                }
-              } else if (response.status === "error") {
-                console.log(
-                  "API call failed okokokok error print from server:"
-                );
-                showAlert("inform");
-              }
-            }
-          );
-        }
-      });
-    } else {
-      console.log("messageId not found, skipping email extraction");
-    }
-  } else {
-    console.log("No node found");
+  if (!node) {
+    return;
   }
+
+  messageId = node.getAttribute("data-legacy-message-id");
+
+  if (!messageId) {
+    return;
+  }
+
+  chrome.storage.local.get("messages", function (result) {
+    let messages = JSON.parse(result.messages || "{}");
+
+    if (messages[messageId]) {
+      const status = messages[messageId].status;
+      const unsafeReason = messages[messageId].unsafeReason;
+
+      if (status === "safe" || status === "Safe") {
+        showAlert("safe", unsafeReason);
+        shouldApplyPointerEvents = false;
+        blockEmailBody();
+      } else if (status === "unsafe" || status === "Unsafe") {
+        showAlert("unsafe", unsafeReason);
+        shouldApplyPointerEvents = true;
+        blockEmailBody();
+      } else if (status === "pending" || status === "Pending") {
+        shouldApplyPointerEvents = true;
+        blockEmailBody();
+        chrome.runtime.sendMessage({
+          action: "pendingStatusGmail",
+          emailId: emailId,
+          messageId: messageId,
+        });
+      }
+    } else {
+      shouldApplyPointerEvents = true;
+      blockEmailBody();
+      chrome.runtime.sendMessage(
+        {
+          client: "gmail",
+          action: "firstCheckForEmail",
+          messageId: messageId,
+          email: emailId,
+        },
+        (response) => {
+          if (response.IsResponseRecieved === "success") {
+            if (response.data.code === 200) {
+              const serverData = response.data.data;
+              const resStatus =
+                serverData.eml_status || serverData.email_status;
+              const messId = serverData.messageId || serverData.msg_id;
+              const unsafeReason = serverData.unsafe_reasons || " ";
+              if (["safe", "unsafe", "pending"].includes(resStatus)) {
+                chrome.storage.local.get("messages", function (result) {
+                  let messages = JSON.parse(result.messages || "{}");
+                  messages[messId] = {
+                    status: resStatus,
+                    unsafeReason: unsafeReason,
+                  };
+
+                  chrome.storage.local.set(
+                    {
+                      messages: JSON.stringify(messages),
+                    },
+                    () => {
+                      shouldApplyPointerEvents = resStatus !== "safe";
+                      blockEmailBody();
+                      showAlert(resStatus, unsafeReason);
+                    }
+                  );
+                });
+              }
+            } else {
+              setTimeout(() => {
+                let newUrl = window.location.href;
+                if (newUrl.includes("?compose=")) {
+                  return;
+                }
+                createUrl(newUrl, messageId);
+              }, 100);
+            }
+          } else if (response.status === "error") {
+            showAlert("inform");
+          }
+        }
+      );
+    }
+  });
 }
 
 // Function to create the URL for the EML file
@@ -241,21 +254,6 @@ function createUrl(url, messageId) {
   }
 }
 
-// Listen for messages from the background script like if the pending staus is empty
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (
-    request.action === "EmailNotFoundInPendingRequest" &&
-    request.client === "gmail"
-  ) {
-    const { messageId } = request;
-    let new2Url = window.location.href;
-    if (new2Url.includes("?compose=")) {
-      return;
-    }
-    createUrl(new2Url, messageId);
-  }
-});
-
 // Function to find the email ID
 async function findEmailId() {
   const titleContent = document.title;
@@ -268,15 +266,6 @@ async function findEmailId() {
     });
   }
 }
-
-chrome.runtime.onMessage.addListener((request) => {
-  if (
-    request.action === "erroRecievedFromServer" &&
-    request.client === "gmail"
-  ) {
-    showAlert("inform");
-  }
-});
 
 // Function to remove the alert when clicked outside of it
 document.addEventListener("click", function removeAlertOnClick(event) {
@@ -300,25 +289,6 @@ function blockEmailBody() {
     });
   }
 }
-
-// function to handle the server response and show the alert with the appropriate message
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.client === "gmail") {
-    messageReason = message.unsafeReason;
-    if (message.action === "blockUrls") {
-      shouldApplyPointerEvents = true;
-      showAlert("unsafe", messageReason);
-    } else if (message.action === "unblock") {
-      shouldApplyPointerEvents = false;
-      showAlert("safe");
-    } else if (message.action === "pending") {
-      shouldApplyPointerEvents = true;
-      showAlert("pending");
-    }
-    blockEmailBody();
-    sendResponse({ status: "success" });
-  }
-});
 
 // Add a click event listener to the window to detect the click event on the email body
 window.addEventListener("click", (e) => {
