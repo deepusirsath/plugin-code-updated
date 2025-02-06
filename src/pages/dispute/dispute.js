@@ -170,6 +170,7 @@ export const initializeDisputeForm = (disputeData) => {
       return;
     }
     window.disputeAlertShown = true;
+    
     if (!response?.error) {
       showCustomAlert(
         "Your dispute has been successfully submitted. Please wait for the admin's response.",
