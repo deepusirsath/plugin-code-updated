@@ -1,6 +1,6 @@
 // This is the base URL for the API
 
-export const config = {
+const config = {
   BASE_URL: "http://43.204.32.124:8001/plugin",
 };
 
