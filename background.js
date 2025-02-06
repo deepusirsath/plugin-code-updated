@@ -1,15 +1,7 @@
-import {
-  isGmailPage,
-  isGmailMailOpened,
-  isOutlookPage,
-  isYahooPage,
-} from "./src/helper/mail_services_helper.js";
-
 import config from "./config.js";
 import {
   CHECK_EMAIL,
   PLUGINS_ENABLE_DISABLE,
-  VERIFY_LICENSE,
   PENDING_STATUS_CHECK,
 } from "./src/routes/api_route.js";
 import {
@@ -17,6 +9,11 @@ import {
   checkAdminComment,
   checkDisputeCount,
 } from "./src/pages/dispute/dispute.js";
+import {
+  checkEmailPageStatus,
+  checkGmailUrl,
+  handleEmailCheck,
+} from "./src/helper/background_helper.js";
 
 const baseUrl = config.BASE_URL;
 
@@ -205,57 +202,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-const handleMailResponse = (response, sendResponse, mailService) => {
-  if (response && response.emailBodyExists) {
-    const responseValue = `Opened${mailService}`;
-    sendResponse(responseValue);
-  } else {
-    sendResponse(mailService);
-  }
-};
-
-const checkEmailPageStatus = (currentUrl, tabId, sendResponse) => {
-  // First check if we're on any email service page
-  if (
-    !isGmailPage(currentUrl) &&
-    !isOutlookPage(currentUrl) &&
-    !isYahooPage(currentUrl)
-  ) {
-    sendResponse("Please select email service");
-    return;
-  }
-
-  // Then handle specific email service cases
-  switch (true) {
-    case isGmailMailOpened(currentUrl):
-      chrome.tabs.sendMessage(tabId, { action: "checkGmailmail" }, (response) =>
-        handleMailResponse(response, sendResponse, "Gmail")
-      );
-      return true;
-
-    case isGmailPage(currentUrl):
-      sendResponse("Gmail");
-      return true;
-
-    case isOutlookPage(currentUrl):
-      chrome.tabs.sendMessage(
-        tabId,
-        { action: "checkOutlookmail" },
-        (response) => handleMailResponse(response, sendResponse, "Outlook")
-      );
-      return true;
-
-    case isYahooPage(currentUrl):
-      chrome.tabs.sendMessage(tabId, { action: "checkYahoomail" }, (response) =>
-        handleMailResponse(response, sendResponse, "Yahoo")
-      );
-      return true;
-
-    default:
-      sendResponse(false);
-  }
-};
-
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "checkEmailPage") {
     setTimeout(() => {
@@ -305,6 +251,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           }
           let disputeEmail = response.emailId;
           chrome.storage.local.set({ receiver_email: disputeEmail });
+
           async function fetchCombinedData() {
             try {
               const { dispute_count } = await checkDisputeCount(
@@ -325,7 +272,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               );
 
               if (dispute_count >= 0) {
-                
                 sendResponse({
                   status:
                     emailStatus === "Dispute"
@@ -566,7 +512,6 @@ async function checkPendingResponseStatus(messageId, email, client) {
 
 // ________________________________________ GMAIL ______________________________________________
 
-
 let lastProcessedTime = 0;
 const DEBOUNCE_DELAY = 100; // milliseconds
 
@@ -594,27 +539,6 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     }
   }
 });
-
-function checkGmailUrl(url) {
-  if (url && url.includes("mail.google.com")) {
-    console.log("Gmail detected for extraction.");
-    const keywords = [
-      "inbox",
-      "starred",
-      "snoozed",
-      "imp",
-      "scheduled",
-      "all",
-      "spam",
-      "trash",
-      "category",
-    ];
-    const regex = new RegExp(keywords.join("|"), "i");
-    const match = url.match(regex);
-    return match ? match[0] : null;
-  }
-  return null;
-}
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "sendGmailData") {
@@ -779,33 +703,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       "Received message from content.js first Check Email here :",
       message
     );
-    fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        messageId: messageId,
-        email: email,
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Response received from the server:", data);
-        sendResponse({
-          IsResponseRecieved: "success",
-          data: data,
-          client: client,
-        });
-      })
-      .catch((error) => {
-        console.error("Error in calling the first check API:", error);
-        sendResponse({
-          status: "error",
-          client: client,
-          error: error.message,
-        });
-      });
+    handleEmailCheck(client, messageId, email, sendResponse);
     return true;
   }
 });
