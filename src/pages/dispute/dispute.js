@@ -4,7 +4,7 @@ import {
   UPDATE_EMAIL_STATUS,
 } from "/src/routes/api_route.js";
 import { postData } from "/src/api/api_method.js";
-import { showCustomAlert } from "/src/pages/dispute/custom_alert/custom_alert.js";
+import { showCustomAlert } from "/src/component/custom_alert/custom_alert.js";
 /**
  * Initializes and manages a dispute form interface with validation and submission handling
  *
