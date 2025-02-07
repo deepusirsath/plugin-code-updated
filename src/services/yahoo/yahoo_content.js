@@ -55,6 +55,21 @@ let sendMessageId;
 let sendUserEmail;
 const url = window.location.href;
 
+/**
+ * Handles checking for Yahoo Mail emails and extracting relevant details.
+ *
+ * This function listens for messages with the actions "checkYahoomail" or
+ * "fetchDisputeMessageId". It searches for the email body within Yahoo Mail's
+ * DOM structure and attempts to extract the sender's email if marked as "unsafeEmail".
+ * Additionally, it clears stored email data in Chrome's local storage.
+ *
+ * @param {Object} message - The message object received from the extension.
+ * @param {string} message.action - The action type to determine the operation.
+ * @param {Function} sendResponse - Callback function to send a response back to the sender.
+ *
+ * @returns {void} Sends a response containing email details if found or an error message.
+ */
+
 function handleYahooMailCheck(message, sendResponse) {
   if (
     message.action == "checkYahoomail" ||
@@ -105,6 +120,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return true; // Keeps the message channel open for async sendResponse
 });
 
+/**
+ * Listens for messages sent to the extension and performs actions based on the request.
+ *
+ * This listener specifically checks if the received message has an action type of "runScript".
+ * If the condition is met, it logs a message to the console and reloads the page. The script
+ * exits early to allow the page reload to reset the script execution.
+ *
+ * @param {Object} request - The message received by the listener.
+ * @param {Object} sender - Information about the script or extension sending the message.
+ * @param {Function} sendResponse - A function to send a response back to the sender.
+ */
+
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === "runScript") {
     console.log("URL contains 'message'. Running script...");
@@ -114,7 +141,19 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   }
 });
 
-//Main function starts here-------------------
+/**
+ * Checks if the given URL belongs to Yahoo Mail and contains a message.
+ * If conditions are met and extraction has not been done, the function logs the URL
+ * and retrieves registration data from Chrome's local storage.
+ *
+ * - If an error occurs while accessing storage, it logs the error.
+ * - If registration data is found, it logs the data and executes the email extraction script.
+ *
+ * Conditions for execution:
+ * - The URL contains "in.mail.yahoo.com"
+ * - OR the URL contains "mail.yahoo.com", includes "message", and extraction is not already done.
+ */
+
 if (
   url.includes("in.mail.yahoo.com") ||
   (url.includes("mail.yahoo.com") && url.includes("message") && !extractionDone)
@@ -135,6 +174,16 @@ if (
   });
 }
 
+/**
+ * Asynchronously executes the email extraction script after a delay.
+ *
+ * This function waits for 2.5 seconds before performing the following actions:
+ * - Extracts the last message ID and user email from nonce scripts.
+ * - Calls `blockEmailBody()` to restrict email content visibility.
+ * - Stores the extracted message ID and user email in global variables.
+ * - Sets `extractionDone` to `true` to indicate completion.
+ */
+
 async function executeExtractionScript() {
   setTimeout(() => {
     const { lastMessageId, userEmail } = extractIdsFromNonceScripts();
@@ -145,6 +194,16 @@ async function executeExtractionScript() {
   }, 2500);
 }
 
+/**
+ * Executes the email extraction script with a delay.
+ * If extraction fails initially, this function attempts to retrieve the last
+ * message ID and user email from nonce scripts, blocks the email body,
+ * and sets global variables to store extracted values.
+ *
+ * The extraction process is marked as complete by setting `extractionDone` to `true`.
+ * A timeout of 100ms is used to ensure necessary elements are available.
+ */
+
 async function executeExtractionScriptIfFailed() {
   setTimeout(() => {
     const { lastMessageId, userEmail } = extractIdsFromNonceScripts();
@@ -154,6 +213,18 @@ async function executeExtractionScriptIfFailed() {
     extractionDone = true;
   }, 100);
 }
+
+/**
+ * Listens for messages from the background script and executes specific actions based on the request.
+ *
+ * This listener checks if the received message has the action "EmailNotFoundInPendingRequest"
+ * and originates from the "yahoo" client. If these conditions are met, it logs the request
+ * details and triggers the `executeExtractionScriptIfFailed()` function to retry the extraction process.
+ *
+ * @param {Object} request - The message received from the background script.
+ * @param {Object} sender - The sender of the message.
+ * @param {Function} sendResponse - A function to send a response back to the sender (not used in this case).
+ */
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (
@@ -168,7 +239,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-// let currentAlert = null; // Global variable to track the current alert
+/**
+ * fetchLocation retrieves the user's current geographical location if the script is running on Yahoo Mail.
+ *
+ * - Checks if the current URL belongs to Yahoo Mail domains.
+ * - Verifies if geolocation is supported by the browser.
+ * - Attempts to get the user's current latitude and longitude.
+ * - Logs the coordinates to the console.
+ * - Handles possible geolocation errors.
+ *
+ * Note: The function currently does not send the coordinates to the background script, but the logic is in place for future use.
+ */
 
 function fetchLocation() {
   // Ensure this only runs on Outlook's live mail domain
@@ -205,6 +286,19 @@ function fetchLocation() {
   }
 }
 
+/**
+ * Toggles the ability to interact with the email body by enabling or disabling pointer events.
+ *
+ * This function selects the email body container based on its `data-test-id` attribute.
+ * If the element is found, it applies or removes the `pointer-events: none` style depending
+ * on the `shouldApplyPointerEvents` flag.
+ *
+ * - If `shouldApplyPointerEvents` is `true`, interaction with the email body is blocked.
+ * - If `shouldApplyPointerEvents` is `false`, interaction is restored.
+ *
+ * Logs the action performed to the console.
+ */
+
 function blockEmailBody() {
   const element = document.querySelector(
     'div[data-test-id="message-group-view-scroller"]'
@@ -220,7 +314,27 @@ function blockEmailBody() {
   }
 }
 
-//New changes in the extractIdsFromNonceScripts function to hande the first check
+/**
+ * Extracts message IDs, selected mailbox ID, and user email from nonce scripts in Yahoo Mail.
+ *
+ * This function scans all nonce-bearing script tags on the page to find and extract message-related data.
+ * If the email is in the "Sent" folder, extraction is skipped.
+ *
+ * The extracted message ID and mailbox ID are used to construct a URL for further processing.
+ * The function also checks local storage for message statuses and interacts with the background script
+ * to determine whether the email is safe, unsafe, or pending.
+ *
+ * Key Features:
+ * - Extracts `messageId`, `selectedMailboxId`, and `userEmail` from scripts.
+ * - Stores the extracted email ID in `chrome.storage.local`.
+ * - If message data is missing, retries extraction after a short delay.
+ * - Checks local storage for message safety status and applies appropriate UI changes.
+ * - Sends requests to the background script to verify email safety if status is unknown.
+ * - Blocks or allows email access based on security analysis.
+ *
+ * @returns {Object} An object containing the last extracted message ID and user email.
+ */
+
 function extractIdsFromNonceScripts() {
   console.log("Extracting IDs from scripts start...");
   let messageIds = [];
@@ -399,6 +513,15 @@ function extractIdsFromNonceScripts() {
   return { lastMessageId, userEmail };
 }
 
+/**
+ * Constructs a Yahoo Mail API URL to fetch the raw plaintext content of an email
+ * and sends the extracted URL along with email details to the background script.
+ *
+ * @param {string} selectedMailboxId - The unique identifier for the selected mailbox.
+ * @param {string} lastMessageId - The unique identifier for the last email message.
+ * @param {string} userEmail - The email address of the user.
+ */
+
 function createUrl(selectedMailboxId, lastMessageId, userEmail) {
   console.log("Script Executed===========================");
   const url = `https://apis.mail.yahoo.com/ws/v3/mailboxes/@.id==${selectedMailboxId}/messages/@.id==${lastMessageId}/content/rawplaintext?appId=YMailNovation`;
@@ -414,6 +537,19 @@ function createUrl(selectedMailboxId, lastMessageId, userEmail) {
     console.error("Error sending email content to background script:", error);
   }
 }
+
+/**
+ * Listens for messages sent from the background script or other parts of the extension.
+ * Specifically, it handles error messages received from the server for Yahoo clients.
+ *
+ * If the request action is "erroRecievedFromServer" and the client is "yahoo",
+ * it logs the message to the console and triggers an alert with the type "inform".
+ *
+ * @param {Object} request - The message received, containing action and client details.
+ * @param {Object} sender - The sender of the message (not used in this case).
+ * @param {Function} sendResponse - A function to send a response back to the sender (not used in this case).
+ */
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (
     request.action === "erroRecievedFromServer" &&
@@ -426,7 +562,26 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-//code to handle the response from the background script
+/**
+ * Listens for messages sent to the content script from other parts of the Chrome extension.
+ * This listener specifically handles messages related to the Yahoo client.
+ *
+ * @param {Object} message - The message object received from the sender.
+ * @param {Object} sender - The sender of the message.
+ * @param {Function} sendResponse - A function to send a response back to the sender.
+ *
+ * Behavior:
+ * - If the message is from the Yahoo client (`message.client === "yahoo"`):
+ *   - Stores the unsafe reason from the message.
+ *   - Removes stored email data (`gmail_email` and `outlook_email`) from `chrome.storage.local`.
+ *   - Depending on the `message.action`, the script performs different tasks:
+ *     - `"blockUrls"`: Enables pointer events restriction, displays an "unsafe" alert, and logs blocking action.
+ *     - `"unblock"`: Disables pointer events restriction, displays a "safe" alert, and logs unblocking action.
+ *     - `"pending"`: Enables pointer events restriction, displays a "pending" alert, and logs the pending status.
+ *   - Calls `blockEmailBody()` to apply necessary email body restrictions.
+ *   - Sends a success response back to the sender.
+ */
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.client === "yahoo") {
     messageReason = message.unsafeReason;
@@ -464,6 +619,15 @@ chrome.storage.local.get(null, function (data) {
 chrome.storage.local.get("messages", function (data) {
   console.log("Messages retrieved from local storage:", data);
 });
+
+/**
+ * Listens for click events on the window and checks for the presence of a specific
+ * message group view element in the DOM. If the `shouldApplyPointerEvents` flag
+ * is set to true and the element exists, it triggers the `showBlockedPopup()` function.
+ *
+ * This function is used to enforce restrictions on certain UI elements by displaying
+ * a blocked popup when interactions are detected.
+ */
 
 window.addEventListener("click", (e) => {
   const element = document.querySelector(

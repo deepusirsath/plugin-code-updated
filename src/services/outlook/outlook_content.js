@@ -34,6 +34,18 @@ document.addEventListener("visibilitychange", () => {
 
 let userEmailId = null;
 
+/**
+ * Retrieves the "registration" data from Chrome's local storage.
+ * If registration data is found, it initializes the Outlook-related functionalities.
+ * The initialization process involves:
+ * - Finding the Outlook email ID
+ * - Setting up click listeners
+ * - Handling email interactions
+ * 
+ * These operations are executed in parallel using `Promise.all()`.
+ * If an error occurs during retrieval or initialization, it is logged to the console.
+ */
+
 chrome.storage.local.get("registration", (data) => {
   if (chrome.runtime.lastError) {
     console.error(chrome.runtime.lastError);
@@ -58,6 +70,17 @@ chrome.storage.local.get("registration", (data) => {
   }
 });
 
+/**
+ * Handles email interactions by adding event listeners to specific elements.
+ * 
+ * This function runs at an interval of 1 second and performs the following actions:
+ * 1. Logs a message indicating it is checking for email interactions.
+ * 2. Selects all elements with the class `.EeHm8` and adds a click event listener:
+ *    - Disables pointer events on click.
+ *    - Restores pointer events after 3 seconds.
+ * 3. Selects all elements with the class `.bvdCQ` and disables their pointer events permanently.
+ */
+
 function handleEmailInteractions() {
   setInterval(() => {
     console.log("Checking for email interactions and double clicks...");
@@ -80,9 +103,22 @@ function handleEmailInteractions() {
   }, 1000); // Checks every 1 second
 }
 
+/**
+ * Fetches the user's geolocation coordinates if the script is running on 
+ * Outlook's live mail domain. 
+ *
+ * - Ensures the function only executes on `outlook.live.com`.
+ * - Checks if geolocation is supported by the browser.
+ * - Retrieves the user's current latitude and longitude if permission is granted.
+ * - Sends the coordinates to the background script via `chrome.runtime.sendMessage`.
+ * - Handles errors if geolocation access is denied or unavailable.
+ * 
+ * If the script is not running on Outlook, Yahoo, or Gmail, it logs a message and exits.
+ */
+
 function fetchLocation() {
   // Ensure this only runs on Outlook's live mail domain
-  if (window.location.href.includes("https://outlook.live.com/")) {
+  if (window.location.href.includes("outlook.live.com")) {
     // Check if geolocation is supported
     if (!navigator.geolocation) {
       console.log("Geolocation is not supported by this chrome.");
@@ -113,6 +149,26 @@ function fetchLocation() {
     console.log("This script only runs on outlook, yahoo and Gmail");
   }
 }
+
+/**
+ * Listens for messages sent from other parts of the Chrome extension.
+ * 
+ * This listener checks for specific actions ("checkOutlookmail" or "fetchDisputeMessageId") 
+ * and attempts to locate the email body in the Outlook web interface. If found, it extracts 
+ * the sender's email and message ID, then sends this data as a response.
+ * 
+ * - If an email body is found, it retrieves:
+ *   - The sender's email (if available).
+ *   - The message ID (`dataConvid`).
+ *   - The user's email (`userEmailId`).
+ * 
+ * - If the email body is not found, it returns an error message.
+ * 
+ * @param {Object} message - The received message object.
+ * @param {Object} sender - The sender object providing details about the sender.
+ * @param {Function} sendResponse - A callback function to send a response.
+ * @returns {boolean} - Returns `true` to indicate an asynchronous response.
+ */
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (
@@ -146,7 +202,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return true;
 });
 
-// Content.js
+/**
+ * Detects clicks on specific menu items in an email client and triggers a page reload.
+ *
+ * This function listens for click events and determines whether the clicked element 
+ * or its parent is a menu item such as "Junk Email," "Archive," "Deleted Items," 
+ * "Sent Items," "Drafts," or "Inbox." If a match is found, the page reloads after 
+ * a short delay.
+ *
+ * Steps:
+ * 1. Identifies the target element from the event.
+ * 2. Traverses up the DOM tree to ensure the correct parent <div> is found.
+ * 3. Uses a helper function to check if the target matches specified menu items.
+ * 4. If a matching menu item is clicked, the script reloads the page after 200ms.
+ *
+ * @param {Event} event - The click event object.
+ */
+
 function detectMenuItems(event) {
   let target = event.target;
 
@@ -197,7 +269,6 @@ function detectMenuItems(event) {
     // twoSecondDelay();
   }
 }
-
 document.addEventListener("click", detectMenuItems, true);
 
 // Global boolean flag to control the execution of blockEmailBody
@@ -237,7 +308,24 @@ function hideLoadingScreen() {
   }
 }
 
-// Function to execute email extraction code with loading screen
+
+/**
+ * Executes the email extraction process with a loading screen.
+ *
+ * This function temporarily disables user interaction, displays a loading screen,
+ * and attempts to extract email content asynchronously. Once the extraction 
+ * process completes (whether successfully or not), it hides the loading screen 
+ * and re-enables user interaction.
+ *
+ * Steps:
+ * 1. Blocks user interactions.
+ * 2. Displays a loading screen.
+ * 3. Runs the email extraction process.
+ * 4. Hides the loading screen and restores user interactions.
+ *
+ * @async
+ * @function executeWithLoadingScreenAndExtraction
+ */
 
 async function executeWithLoadingScreenAndExtraction() {
   blockUserInteraction(); // Disable all user interactions
@@ -251,7 +339,20 @@ async function executeWithLoadingScreenAndExtraction() {
   }
 }
 
-// Updated blockEmailBody function to toggle pointer-events
+/**
+ * Toggles the pointer-events property of email body containers to either block or allow interactions.
+ *
+ * This function targets two specific elements:
+ * - `#ConversationReadingPaneContainer`: The main reading pane for emails.
+ * - `#ItemReadingPaneContainer`: The reading pane for junk emails.
+ *
+ * It checks if either element exists and applies the pointer-events style based on the global 
+ * `shouldApplyPointerEvents` flag:
+ * - If `shouldApplyPointerEvents` is `true`, it sets `pointer-events: none` to block interactions.
+ * - If `shouldApplyPointerEvents` is `false`, it sets `pointer-events: all` to allow interactions.
+ *
+ * A helper function `applyPointerEvents()` is used to apply the styles and log the changes.
+ */
 
 function blockEmailBody() {
   const element = document.querySelector("#ConversationReadingPaneContainer");
@@ -272,6 +373,33 @@ function blockEmailBody() {
     applyPointerEvents(junkBox, pointerState);
   }
 }
+
+/**
+ * Sets up a click event listener for email elements within the email list container.
+ * 
+ * This function attempts to find the email list container (`.customScrollBar.jEpCF`),
+ * and if found, it listens for clicks on email elements (`.EeHm8`). When an email is clicked,
+ * it extracts the `data-convid` attribute from the selected email and constructs a unique
+ * message ID using timestamp data. It then verifies the email status against stored data
+ * in `chrome.storage.local` and applies necessary actions based on its classification 
+ * (safe, unsafe, or pending).
+ * 
+ * Behavior:
+ * - Listens for clicks on email elements.
+ * - Extracts and processes `data-convid` from the clicked element.
+ * - Waits for time-related elements (`SentReceivedSavedTime`) to appear in the DOM.
+ * - Constructs a unique message identifier based on the email's timestamp.
+ * - Checks if the email belongs to "Sent Items" or "Drafts".
+ * - Determines whether the email should be blocked based on stored statuses.
+ * - Interacts with `chrome.storage.local` to retrieve and update email safety status.
+ * - If no stored data is found, it sends a request to the background script for verification.
+ * - If necessary, executes an email extraction process after applying safety checks.
+ * 
+ * If the email list container is not immediately found, the function retries for a specified 
+ * number of attempts before giving up.
+ * 
+ * @param {number} attempts - Number of retry attempts for finding the email list container. Defaults to 500.
+ */
 
 function setupClickListener(attempts = 500) {
   console.log("Setting up click listener for email elements");
@@ -543,6 +671,26 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
+/**
+ * Asynchronously extracts email content from Outlook's web interface.
+ *
+ * This function automates the process of navigating the Outlook email UI,
+ * opening the contextual menu, selecting "View message source," extracting
+ * the email's raw text, and sending it to the background script for further
+ * processing.
+ *
+ * Steps:
+ * 1. Identifies the active email reading pane.
+ * 2. Clicks on the last navigation button to open the contextual menu.
+ * 3. Waits for the menu to open and extracts its options.
+ * 4. Triggers a mouseover event on the "View" button.
+ * 5. Clicks "View message source" to open the raw email content.
+ * 6. Extracts and sends the email text to the background script.
+ * 7. Closes the email modal after extraction.
+ *
+ * The function includes retry logic to handle dynamic UI changes.
+ */
+
 async function runEmailExtraction() {
   console.log("Running email extraction code");
 
@@ -666,6 +814,26 @@ async function runEmailExtraction() {
   await processNavigationButton();
 }
 
+/**
+ * Listens for messages from the background script and performs actions based on the message content.
+ * This listener is specifically for handling messages related to the Outlook client.
+ *
+ * @param {Object} message - The message object received from the background script.
+ * @param {string} message.client - Identifies the client (should be "outlook").
+ * @param {string} message.action - The action to be performed ("blockUrls", "unblock", or "pending").
+ * @param {string} [message.unsafeReason] - The reason provided when blocking URLs.
+ * @param {Object} sender - The sender object providing context about the source of the message.
+ * @param {Function} sendResponse - A callback function to send a response back to the sender.
+ *
+ * Actions:
+ * - "blockUrls": Blocks URLs by setting `shouldApplyPointerEvents` to `true` and displaying an "unsafe" alert.
+ * - "unblock": Unblocks URLs by setting `shouldApplyPointerEvents` to `false` and displaying a "safe" alert.
+ * - "pending": Sets URLs to a pending state by setting `shouldApplyPointerEvents` to `true` and displaying a "pending" alert.
+ *
+ * After processing the message, it calls `blockEmailBody()` to apply the necessary UI restrictions.
+ * A success response is sent back to acknowledge message handling.
+ */
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.client === "outlook") {
     messageReason = message.unsafeReason;
@@ -694,7 +862,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-// Function to find the Outlook email ID
+/**
+ * Finds and stores the logged-in Outlook email ID from the current Outlook mail page.
+ *
+ * This function first checks if the current URL belongs to an Outlook mail page using a regex pattern.
+ * If the page is valid, it starts an interval-based search to find an anchor element with 
+ * `aria-label="Go to Outlook"`, which contains the email ID in its `href` attribute.
+ *
+ * Once found, the email ID is extracted, decoded, and stored in Chrome's local storage under 
+ * the key `outlook_email`. It also removes any previously stored Gmail and Yahoo email IDs.
+ *
+ * If the email ID is not found initially, the function continues searching every 500 milliseconds 
+ * until the email ID is located or the script is stopped.
+ *
+ * Console logs are used for debugging to track the search process and storage actions.
+ */
 function findOutlookEmailId() {
   const outlookRegex =
     /^https:\/\/(?:outlook\.office\.com|outlook\.live\.com|office\.live\.com|outlook\.office365\.com)\/mail\//;
@@ -734,6 +916,7 @@ function findOutlookEmailId() {
     }
   }, 500); // Run the search every 0.5 second (adjust interval as needed)
 }
+
 chrome.storage.local.get(null, function (data) {
   console.log("Data retrieved from local storage:", data);
 });
@@ -758,6 +941,32 @@ chrome.storage.local.get("registration", (data) => {
     });
   }
 });
+
+/**
+ * Checks and reloads the status of an email in Outlook.
+ *
+ * This function attempts to detect the scrollbar element to determine if the email body is loaded.
+ * If the scrollbar is found, it proceeds to extract the email's message ID and status.
+ * If not found, it retries multiple times before logging an error.
+ *
+ * Steps:
+ * 1. Detect the scrollbar (max 30 attempts).
+ * 2. If found, locate the selected email and extract its message ID.
+ * 3. Retrieve and format the email's timestamp.
+ * 4. Generate a unique message ID using `data-convid` and timestamp.
+ * 5. Check the email's current status from local storage.
+ * 6. If the email exists in storage:
+ *    - If "safe", allow access.
+ *    - If "unsafe", block access and show an alert.
+ *    - If "pending", send a request to the background script.
+ * 7. If the email is not found in storage, block access.
+ * 8. If key elements are missing, reload the page to attempt processing again.
+ *
+ * Functions:
+ * - findScrollBar(): Searches for the scrollbar element.
+ * - findEmailBodyClassifier(): Extracts and formats email data.
+ * - checkThecurrentStatus(): Checks and handles the email's status.
+ */
 
 function checkReloadStatusOutlook() {
   findScrollBar();

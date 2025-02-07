@@ -8,7 +8,16 @@ console.log("Content script loaded");
 let showAlert = null;
 let showBlockedPopup = null;
 
-// Load components
+
+/**
+ * Asynchronously imports two JavaScript modules using Promise.all and assigns specific functions 
+ * from the imported modules to global variables.
+ *
+ * - Imports `email_status.js` and `block_email_popup.js` components.
+ * - Extracts `showAlert` from `email_status.js` and assigns it to a global variable.
+ * - Extracts `showBlockedPopup` from `block_email_popup.js` and assigns it to a global variable.
+ * - Ensures both modules are fully loaded before executing further logic.
+ */
 Promise.all([
   importComponent("/src/component/email_status/email_status.js"),
   importComponent("/src/component/block_email_popup/block_email_popup.js"),
@@ -17,7 +26,16 @@ Promise.all([
   showBlockedPopup = blockPopup.showBlockedPopup;
 });
 
-// Replace the fixed timeout with a more reliable approach
+/**
+ * Continuously checks for the presence of elements with the class "nH a98 iY" in the DOM.
+ * The function attempts to locate these elements up to a maximum of 15 times, with a 1-second interval between attempts.
+ * 
+ * - If the elements are found within the attempts, the `blockEmailBody` function is executed, and the interval is cleared.
+ * - If the elements are not found after the maximum attempts, the interval is cleared, and a message is logged to the console.
+ * 
+ * This function replaces the previous setTimeout-based approach to ensure elements are detected dynamically.
+ */
+
 const waitForElements = () => {
   const maxAttempts = 15;
   let attempts = 0;
@@ -434,7 +452,16 @@ function createUrl(url, messageId) {
   }
 }
 
-// Function to find the email ID
+
+/**
+ * Asynchronously extracts an email ID from the document title.
+ *
+ * This function searches for an email address in the page's title using a regular expression.
+ * If an email is found, it stores the last matched email in Chrome's local storage under 
+ * the key `gmail_email`, while removing any previously stored Yahoo or Outlook email entries.
+ *
+ * @returns {Promise<void>} - A promise that resolves once the storage update is complete.
+ */
 async function findEmailId() {
   const titleContent = document.title;
   const emailPattern = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
@@ -447,7 +474,18 @@ async function findEmailId() {
   }
 }
 
-// Function to remove the alert when clicked outside of it
+/**
+ * Attaches an event listener to the document that listens for a click event.
+ * When clicked, it checks for an alert container with a `z-index` of 1000.
+ * If found, the script removes the alert container from the DOM and 
+ * unregisters the click event listener to ensure it runs only once.
+ *
+ * This prevents multiple unnecessary event listener executions after 
+ * the alert is removed.
+ *
+ * @param {Event} event - The click event triggered by the user.
+ */
+
 document.addEventListener("click", function removeAlertOnClick(event) {
   const alertContainer = document.querySelector("div[style*='z-index: 1000']");
   if (alertContainer) {
