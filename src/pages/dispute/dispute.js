@@ -4,7 +4,7 @@ import {
   UPDATE_EMAIL_STATUS,
 } from "/src/routes/api_route.js";
 import { postData } from "/src/api/api_method.js";
-import { showCustomAlert } from "/src/pages/dispute/custom_alert/custom_alert.js";
+import { showCustomAlert } from "/src/component/custom_alert/custom_alert.js";
 /**
  * Initializes and manages a dispute form interface with validation and submission handling
  *
@@ -128,7 +128,10 @@ export const initializeDisputeForm = (disputeData) => {
       sendDispute(reasonText, messageId, receiver_email?.receiver_email);
     } else {
       disableSubmitButton();
-      showCustomAlert("You have reached the maximum limit for disputes. Each email can be disputed a maximum of three times.", null, "limit");
+      showCustomAlert(
+        "You have reached the maximum limit for disputes. Each email can be disputed a maximum of three times.",
+        "limit"
+      );
     }
   });
 
@@ -167,16 +170,17 @@ export const initializeDisputeForm = (disputeData) => {
       return;
     }
     window.disputeAlertShown = true;
+    
     if (!response?.error) {
-      showCustomAlert("Your dispute has been successfully submitted. Please wait for the admin's response.", () => {
-        console.log("Alert closed"); // Optional callback
-      }, "success");
+      showCustomAlert(
+        "Your dispute has been successfully submitted. Please wait for the admin's response.",
+        "success"
+      );
     } else {
       showCustomAlert(response?.error);
       window.disputeAlertShown = false;
     }
   };
-
 
   document.getElementById("reload").addEventListener("click", async () => {
     const messageId = document.getElementById("messageId").textContent;
@@ -264,35 +268,3 @@ export const checkDisputeCount = async (messageId) => {
     console.error(err);
   }
 };
-
-// export const checkDisputeCount = async (messageId) => {
-//   try {
-//     const data = await postData(PLUGIN_COUNTER, { messageId });
-//     let dispute_count;
-//     console.log("dispute_count fetched from the API: ", data.counter);
-
-//     switch (data.counter) {
-//       case 0:
-//         dispute_count = 3;
-//         break;
-//       case 1:
-//         dispute_count = 2;
-//         break;
-//       case 2:
-//         dispute_count = 1;
-//         break;
-//       case 3:
-//         dispute_count = 0;
-//         break;
-//       default:
-//         dispute_count = 0;
-//     }
-//     if (dispute_count !== undefined) {
-//       chrome.storage.local.set({ dispute_count });
-//     }
-//     console.log("dispute_count fetched from the API return : ", dispute_count);
-//     return { dispute_count };
-//   } catch (err) {
-//     console.error(err);
-//   }
-// };

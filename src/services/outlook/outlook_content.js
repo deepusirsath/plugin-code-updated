@@ -85,7 +85,7 @@ function fetchLocation() {
   if (window.location.href.includes("https://outlook.live.com/")) {
     // Check if geolocation is supported
     if (!navigator.geolocation) {
-      console.log("Geolocation is not supported by this browser.");
+      console.log("Geolocation is not supported by this chrome.");
       return;
     }
 
