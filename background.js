@@ -12,7 +12,6 @@ import {
 import {
   checkEmailPageStatus,
   checkGmailUrl,
-  handleEmailCheck,
 } from "./src/helper/background_helper.js";
 
 const baseUrl = config.BASE_URL;
@@ -251,7 +250,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           }
           let disputeEmail = response.emailId;
           chrome.storage.local.set({ receiver_email: disputeEmail });
-
           async function fetchCombinedData() {
             try {
               const { dispute_count } = await checkDisputeCount(
@@ -703,7 +701,34 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       "Received message from content.js first Check Email here :",
       message
     );
-    handleEmailCheck(client, messageId, email, sendResponse);
+
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        messageId: messageId,
+        email: email,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Response received from the server:", data);
+        sendResponse({
+          IsResponseRecieved: "success",
+          data: data,
+          client: client,
+        });
+      })
+      .catch((error) => {
+        console.error("Error in calling the first check API:", error);
+        sendResponse({
+          status: "error",
+          client: client,
+          error: error.message,
+        });
+      });
     return true;
   }
 });
