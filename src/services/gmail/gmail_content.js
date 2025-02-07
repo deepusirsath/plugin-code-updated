@@ -3,7 +3,7 @@ const importComponent = async (path) => {
   const src = chrome.runtime.getURL(path);
   return await import(src);
 };
-
+console.log("Content script loaded");
 // Initialize UI components
 let showAlert = null;
 let showBlockedPopup = null;
@@ -17,9 +17,27 @@ Promise.all([
   showBlockedPopup = blockPopup.showBlockedPopup;
 });
 
-setTimeout(() => {
-  blockEmailBody();
-}, 2000);
+// Replace the fixed timeout with a more reliable approach
+const waitForElements = () => {
+  const maxAttempts = 15;
+  let attempts = 0;
+  
+  const checkElements = setInterval(() => {
+    const elements = document.getElementsByClassName("nH a98 iY");
+    attempts++;
+
+    if (elements && elements.length > 0) {
+      blockEmailBody();
+      clearInterval(checkElements);
+    } else if (attempts >= maxAttempts) {
+      clearInterval(checkElements);
+      console.log("Elements not found after maximum attempts");
+    }
+  }, 1000);
+};
+
+// Replace the original setTimeout with the new function
+waitForElements();
 
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) {
@@ -34,7 +52,35 @@ let messageId = null;
 let isValidSegmentLength = 30;
 let messageReason = " ";
 
-// Function to check if the current page is a Gmail page
+/**
+ * Chrome extension message listener for Gmail email detection and processing
+ * 
+ * @param {Object} message - Message object containing the action type
+ * @param {Object} sender - Sender information object
+ * @param {Function} sendResponse - Callback function to send response back
+ * 
+ * Features:
+ * - Listens for "GmailDetectedForExtraction" action
+ * - Ignores compose URLs
+ * - Validates user registration status
+ * - Checks URL segment length against isValidSegmentLength (30)
+ * - Initializes processing after validation
+ * 
+ * Flow:
+ * - Receives message
+ * - Waits 1 second for page load
+ * - Checks if URL is not compose view
+ * - Verifies registration status
+ * - Validates URL segment length
+ * - Calls init() if all checks pass
+ * - Sends confirmation response
+ * 
+ * Security:
+ * - Checks chrome.runtime.lastError
+ * - Validates registration data
+ * - Ensures minimum segment length
+ */
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "GmailDetectedForExtraction") {
     setTimeout(() => {
@@ -62,7 +108,34 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-// Function to extract message ID and EML content
+/**
+ * Chrome runtime message listener for Gmail-related actions
+ * 
+ * Listens for specific message actions to extract Gmail message details from the current page.
+ * Handles two main actions:
+ * - checkGmailmail
+ * - fetchDisputeMessageId
+ * 
+ * @param {Object} message - The message object from the sender
+ * @param {string} message.action - The action to perform ('checkGmailmail' or 'fetchDisputeMessageId')
+ * @param {Object} sender - Details about the message sender
+ * @param {Function} sendResponse - Callback function to send response back to sender
+ * 
+ * @returns {boolean} Returns true to indicate async response handling
+ * 
+ * Response payload:
+ * Success: {
+ *   emailBodyExists: true,
+ *   messageId: string,
+ *   emailId: string,
+ *   senderEmail: string
+ * }
+ * 
+ * Error: {
+ *   emailBodyExists: false,
+ *   error: string
+ * }
+ */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (
     message.action === "checkGmailmail" ||
@@ -94,7 +167,27 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-// Listen for messages from the background script like if the pending staus is empty
+/**
+ * Chrome runtime message listener for handling email-related events
+ * 
+ * @param {Object} request - The message request object
+ * @param {string} request.action - Action type, specifically "EmailNotFoundInPendingRequest"
+ * @param {string} request.client - Client type, specifically "gmail"
+ * @param {string} request.messageId - The message ID from the email
+ * @param {Object} sender - Chrome runtime sender information
+ * @param {Function} sendResponse - Callback function to send response
+ * 
+ * Features:
+ * - Listens for specific email not found events from Gmail
+ * - Checks if current URL is not a compose window
+ * - Creates new URL using message ID if conditions are met
+ * 
+ * Behavior:
+ * - Returns early if URL contains "?compose="
+ * - Calls createUrl() with current URL and messageId
+ * - Only processes Gmail client requests
+ * - Specifically handles "EmailNotFoundInPendingRequest" action
+ */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (
     request.action === "EmailNotFoundInPendingRequest" &&
@@ -109,6 +202,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
+/**
+ * Chrome runtime message listener for handling server error notifications
+ * specifically for Gmail client.
+ * 
+ * @listens chrome.runtime.onMessage
+ * @param {Object} request - The message request object
+ * @param {string} request.action - Action type, checks for "erroRecievedFromServer"
+ * @param {string} request.client - Client type, checks for "gmail"
+ * 
+ * Features:
+ * - Listens for server error messages
+ * - Validates if error is from Gmail client
+ * - Triggers showAlert with "inform" parameter when conditions match
+ * - Handles Gmail-specific error notifications
+ */
 chrome.runtime.onMessage.addListener((request) => {
   if (
     request.action === "erroRecievedFromServer" &&
@@ -118,7 +226,33 @@ chrome.runtime.onMessage.addListener((request) => {
   }
 });
 
-// function to handle the server response and show the alert with the appropriate message
+/**
+ * Chrome runtime message listener for handling Gmail security states
+ * 
+ * @param {Object} message - The message object containing:
+ *   - client: String identifying the email client ('gmail')
+ *   - action: Action to take ('blockUrls'|'unblock'|'pending') 
+ *   - unsafeReason: Reason message for unsafe URLs
+ * @param {Object} sender - Message sender details
+ * @param {Function} sendResponse - Callback to send response
+ * 
+ * Features:
+ * - Handles 3 security states for Gmail:
+ *   1. blockUrls: Blocks unsafe content and shows reason
+ *   2. unblock: Unblocks content and shows safe message
+ *   3. pending: Shows pending verification state
+ * - Controls pointer events access via shouldApplyPointerEvents
+ * - Stores unsafe reason message
+ * - Triggers appropriate alert type based on action
+ * - Applies email body blocking
+ * - Sends success response back
+ * 
+ * State Management:
+ * - Updates messageReason global variable
+ * - Updates shouldApplyPointerEvents boolean
+ * - Triggers showAlert with appropriate type
+ * - Calls blockEmailBody() to apply restrictions
+ */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.client === "gmail") {
     messageReason = message.unsafeReason;
@@ -144,7 +278,30 @@ const init = () => {
     .catch((error) => console.error("Error:", error));
 };
 
-//Detect Gmail URL and extract message ID
+/**
+ * Asynchronously extracts the message ID from the currently opened email and determines its security status.
+ *
+ * This function:
+ * - Blocks the email body initially.
+ * - Extracts the `data-legacy-message-id` attribute from the email element.
+ * - Retrieves stored messages from `chrome.storage.local` to check the email's security status.
+ * - Displays appropriate alerts based on the status (`safe`, `unsafe`, or `pending`).
+ * - Sends a request to the background script if the email's status is unknown, 
+ *   fetching security details from the server and updating local storage accordingly.
+ * - Ensures proper handling of email security enforcement by setting pointer events.
+ *
+ * The function interacts with Chrome's storage API and messaging system to process 
+ * security checks dynamically.
+ *
+ * Dependencies:
+ * - `blockEmailBody()`: Blocks or unblocks email content.
+ * - `showAlert(status, reason)`: Displays a security alert.
+ * - `chrome.runtime.sendMessage()`: Sends messages to the background script for processing.
+ * - `createUrl(newUrl, messageId)`: Handles URL-based operations for message identification.
+ *
+ * @async
+ * @function extractMessageIdAndEml
+ */
 async function extractMessageIdAndEml() {
   blockEmailBody();
   const node = document.querySelector("[data-legacy-message-id]");
@@ -238,7 +395,6 @@ async function extractMessageIdAndEml() {
   });
 }
 
-
 /**
  * Constructs a Gmail EML download URL and sends message data to background script
  * 
@@ -300,7 +456,15 @@ document.addEventListener("click", function removeAlertOnClick(event) {
   }
 });
 
-// Function to toggle pointer events means blocking the email body or unblocking it
+/**
+ * Toggles the ability to interact with email body elements.
+ * 
+ * This function selects all elements with the class name "nH a98 iY" and
+ * modifies their `pointerEvents` style property based on the global 
+ * variable `shouldApplyPointerEvents`. If `shouldApplyPointerEvents` is 
+ * true, interaction with these elements is disabled (`pointer-events: none`).
+ * Otherwise, interaction is enabled (`pointer-events: all`).
+ */
 function blockEmailBody() {
   const elements = document.getElementsByClassName("nH a98 iY");
   if (elements && elements.length > 0) {

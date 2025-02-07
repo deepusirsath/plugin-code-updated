@@ -1,3 +1,30 @@
+/**
+ * Displays a custom alert overlay with success or limit icon and message
+ * 
+ * @param {string} message - The message to display in the alert
+ * @param {Function} closeCallback - Optional callback function to execute when alert is closed
+ * @param {string} type - Alert type, either 'success' (default) or any other value for limit/error style
+ * 
+ * Features:
+ * - Creates an overlay with animated fade effects
+ * - Shows either a success (checkmark) or limit (exclamation) icon based on type
+ * - Customizable button colors (#4CAF50 for success, #ff4757 for others)
+ * - Can be closed by:
+ *   - Clicking the close button
+ *   - Pressing ESC key
+ * - Auto-focuses the close button
+ * - Executes optional closeCallback when closed
+ * - Auto-closes window if type is 'success'
+ * - Supports fade-out animation on close
+ * 
+ * CSS Classes:
+ * - custom-alert-overlay: Main overlay container
+ * - custom-alert-box: Alert box container
+ * - alert-icon: Base icon class
+ * - success-icon/limit-icon: Specific icon variants
+ * - fade-out: Animation class for closing
+ */
+
 export const showCustomAlert = (message, closeCallback, type = 'success') => {
   const alertDiv = document.createElement("div");
   alertDiv.className = "custom-alert-overlay";
