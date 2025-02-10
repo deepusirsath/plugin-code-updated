@@ -402,7 +402,7 @@ async function extractMessageIdAndEml() {
                   return;
                 }
                 createUrl(newUrl, messageId);
-              }, 100);
+              }, 300);
             }
           } else if (response.status === "error") {
             showAlert("inform");
@@ -411,6 +411,12 @@ async function extractMessageIdAndEml() {
       );
     }
   });
+}
+
+function getBaseUrl(url) {
+  const match = url.match(/^(https:\/\/mail\.google\.com\/mail\/u\/\d+)\//);
+  console.log(match);
+  return match ? match[1] : "https://mail.google.com/mail/u/0"; // Default fallback
 }
 
 /**
@@ -438,8 +444,12 @@ async function extractMessageIdAndEml() {
  * // Sends message with EML URL: https://mail.google.com/mail/u/0/?view=att&th=12345&attid=0&disp=comp&safe=1&zw
  */
 function createUrl(url, messageId) {
-  let prefixUrl = "https://mail.google.com/mail/u/0/";
-  let eml_Url = `${prefixUrl}?view=att&th=${messageId}&attid=0&disp=comp&safe=1&zw`;
+  let prefixUrl = getBaseUrl(url); // Get dynamic base URL
+  console.log("prefixUrl is ",prefixUrl);
+  let eml_Url = `${prefixUrl}/?view=att&th=${messageId}&attid=0&disp=comp&safe=1&zw`;
+  console.log("eml_Url is ",eml_Url);
+  // let prefixUrl = "https://mail.google.com/mail/u/0/";
+  // let eml_Url = `${prefixUrl}?view=att&th=${messageId}&attid=0&disp=comp&safe=1&zw`;
   try {
     chrome.runtime.sendMessage({
       action: "sendGmailData",
