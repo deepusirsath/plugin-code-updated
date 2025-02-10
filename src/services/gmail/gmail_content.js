@@ -8,9 +8,8 @@ console.log("Content script loaded");
 let showAlert = null;
 let showBlockedPopup = null;
 
-
 /**
- * Asynchronously imports two JavaScript modules using Promise.all and assigns specific functions 
+ * Asynchronously imports two JavaScript modules using Promise.all and assigns specific functions
  * from the imported modules to global variables.
  *
  * - Imports `email_status.js` and `block_email_popup.js` components.
@@ -29,17 +28,17 @@ Promise.all([
 /**
  * Continuously checks for the presence of elements with the class "nH a98 iY" in the DOM.
  * The function attempts to locate these elements up to a maximum of 15 times, with a 1-second interval between attempts.
- * 
+ *
  * - If the elements are found within the attempts, the `blockEmailBody` function is executed, and the interval is cleared.
  * - If the elements are not found after the maximum attempts, the interval is cleared, and a message is logged to the console.
- * 
+ *
  * This function replaces the previous setTimeout-based approach to ensure elements are detected dynamically.
  */
 
 const waitForElements = () => {
   const maxAttempts = 15;
   let attempts = 0;
-  
+
   const checkElements = setInterval(() => {
     const elements = document.getElementsByClassName("nH a98 iY");
     attempts++;
@@ -72,18 +71,18 @@ let messageReason = " ";
 
 /**
  * Chrome extension message listener for Gmail email detection and processing
- * 
+ *
  * @param {Object} message - Message object containing the action type
  * @param {Object} sender - Sender information object
  * @param {Function} sendResponse - Callback function to send response back
- * 
+ *
  * Features:
  * - Listens for "GmailDetectedForExtraction" action
  * - Ignores compose URLs
  * - Validates user registration status
  * - Checks URL segment length against isValidSegmentLength (30)
  * - Initializes processing after validation
- * 
+ *
  * Flow:
  * - Receives message
  * - Waits 1 second for page load
@@ -92,7 +91,7 @@ let messageReason = " ";
  * - Validates URL segment length
  * - Calls init() if all checks pass
  * - Sends confirmation response
- * 
+ *
  * Security:
  * - Checks chrome.runtime.lastError
  * - Validates registration data
@@ -128,19 +127,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 /**
  * Chrome runtime message listener for Gmail-related actions
- * 
+ *
  * Listens for specific message actions to extract Gmail message details from the current page.
  * Handles two main actions:
  * - checkGmailmail
  * - fetchDisputeMessageId
- * 
+ *
  * @param {Object} message - The message object from the sender
  * @param {string} message.action - The action to perform ('checkGmailmail' or 'fetchDisputeMessageId')
  * @param {Object} sender - Details about the message sender
  * @param {Function} sendResponse - Callback function to send response back to sender
- * 
+ *
  * @returns {boolean} Returns true to indicate async response handling
- * 
+ *
  * Response payload:
  * Success: {
  *   emailBodyExists: true,
@@ -148,7 +147,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
  *   emailId: string,
  *   senderEmail: string
  * }
- * 
+ *
  * Error: {
  *   emailBodyExists: false,
  *   error: string
@@ -187,19 +186,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 /**
  * Chrome runtime message listener for handling email-related events
- * 
+ *
  * @param {Object} request - The message request object
  * @param {string} request.action - Action type, specifically "EmailNotFoundInPendingRequest"
  * @param {string} request.client - Client type, specifically "gmail"
  * @param {string} request.messageId - The message ID from the email
  * @param {Object} sender - Chrome runtime sender information
  * @param {Function} sendResponse - Callback function to send response
- * 
+ *
  * Features:
  * - Listens for specific email not found events from Gmail
  * - Checks if current URL is not a compose window
  * - Creates new URL using message ID if conditions are met
- * 
+ *
  * Behavior:
  * - Returns early if URL contains "?compose="
  * - Calls createUrl() with current URL and messageId
@@ -223,12 +222,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 /**
  * Chrome runtime message listener for handling server error notifications
  * specifically for Gmail client.
- * 
+ *
  * @listens chrome.runtime.onMessage
  * @param {Object} request - The message request object
  * @param {string} request.action - Action type, checks for "erroRecievedFromServer"
  * @param {string} request.client - Client type, checks for "gmail"
- * 
+ *
  * Features:
  * - Listens for server error messages
  * - Validates if error is from Gmail client
@@ -246,14 +245,14 @@ chrome.runtime.onMessage.addListener((request) => {
 
 /**
  * Chrome runtime message listener for handling Gmail security states
- * 
+ *
  * @param {Object} message - The message object containing:
  *   - client: String identifying the email client ('gmail')
- *   - action: Action to take ('blockUrls'|'unblock'|'pending') 
+ *   - action: Action to take ('blockUrls'|'unblock'|'pending')
  *   - unsafeReason: Reason message for unsafe URLs
  * @param {Object} sender - Message sender details
  * @param {Function} sendResponse - Callback to send response
- * 
+ *
  * Features:
  * - Handles 3 security states for Gmail:
  *   1. blockUrls: Blocks unsafe content and shows reason
@@ -264,7 +263,7 @@ chrome.runtime.onMessage.addListener((request) => {
  * - Triggers appropriate alert type based on action
  * - Applies email body blocking
  * - Sends success response back
- * 
+ *
  * State Management:
  * - Updates messageReason global variable
  * - Updates shouldApplyPointerEvents boolean
@@ -304,11 +303,11 @@ const init = () => {
  * - Extracts the `data-legacy-message-id` attribute from the email element.
  * - Retrieves stored messages from `chrome.storage.local` to check the email's security status.
  * - Displays appropriate alerts based on the status (`safe`, `unsafe`, or `pending`).
- * - Sends a request to the background script if the email's status is unknown, 
+ * - Sends a request to the background script if the email's status is unknown,
  *   fetching security details from the server and updating local storage accordingly.
  * - Ensures proper handling of email security enforcement by setting pointer events.
  *
- * The function interacts with Chrome's storage API and messaging system to process 
+ * The function interacts with Chrome's storage API and messaging system to process
  * security checks dynamically.
  *
  * Dependencies:
@@ -421,16 +420,16 @@ function getBaseUrl(url) {
 
 /**
  * Constructs a Gmail EML download URL and sends message data to background script
- * 
+ *
  * @param {string} url - Current Gmail URL (unused in current implementation)
  * @param {string} messageId - Unique identifier for the Gmail message
- * 
+ *
  * @description
  * This function creates a special Gmail URL that allows downloading the email in EML format.
  * It uses a fixed Gmail prefix and combines it with the message ID to generate the EML URL.
  * The function then sends the constructed URL along with message details to the background script
  * using chrome.runtime.sendMessage.
- * 
+ *
  * The constructed URL includes the following parameters:
  * - view=att: Specifies attachment view
  * - th: Thread/message ID
@@ -438,18 +437,14 @@ function getBaseUrl(url) {
  * - disp=comp: Display as complete message
  * - safe=1: Safe mode enabled
  * - zw: Zero-width character (Gmail-specific parameter)
- * 
+ *
  * @example
  * createUrl('https://mail.google.com/mail/u/0/#inbox/12345', '12345');
  * // Sends message with EML URL: https://mail.google.com/mail/u/0/?view=att&th=12345&attid=0&disp=comp&safe=1&zw
  */
 function createUrl(url, messageId) {
   let prefixUrl = getBaseUrl(url); // Get dynamic base URL
-  console.log("prefixUrl is ",prefixUrl);
   let eml_Url = `${prefixUrl}/?view=att&th=${messageId}&attid=0&disp=comp&safe=1&zw`;
-  console.log("eml_Url is ",eml_Url);
-  // let prefixUrl = "https://mail.google.com/mail/u/0/";
-  // let eml_Url = `${prefixUrl}?view=att&th=${messageId}&attid=0&disp=comp&safe=1&zw`;
   try {
     chrome.runtime.sendMessage({
       action: "sendGmailData",
@@ -462,12 +457,11 @@ function createUrl(url, messageId) {
   }
 }
 
-
 /**
  * Asynchronously extracts an email ID from the document title.
  *
  * This function searches for an email address in the page's title using a regular expression.
- * If an email is found, it stores the last matched email in Chrome's local storage under 
+ * If an email is found, it stores the last matched email in Chrome's local storage under
  * the key `gmail_email`, while removing any previously stored Yahoo or Outlook email entries.
  *
  * @returns {Promise<void>} - A promise that resolves once the storage update is complete.
@@ -487,10 +481,10 @@ async function findEmailId() {
 /**
  * Attaches an event listener to the document that listens for a click event.
  * When clicked, it checks for an alert container with a `z-index` of 1000.
- * If found, the script removes the alert container from the DOM and 
+ * If found, the script removes the alert container from the DOM and
  * unregisters the click event listener to ensure it runs only once.
  *
- * This prevents multiple unnecessary event listener executions after 
+ * This prevents multiple unnecessary event listener executions after
  * the alert is removed.
  *
  * @param {Event} event - The click event triggered by the user.
@@ -506,10 +500,10 @@ document.addEventListener("click", function removeAlertOnClick(event) {
 
 /**
  * Toggles the ability to interact with email body elements.
- * 
+ *
  * This function selects all elements with the class name "nH a98 iY" and
- * modifies their `pointerEvents` style property based on the global 
- * variable `shouldApplyPointerEvents`. If `shouldApplyPointerEvents` is 
+ * modifies their `pointerEvents` style property based on the global
+ * variable `shouldApplyPointerEvents`. If `shouldApplyPointerEvents` is
  * true, interaction with these elements is disabled (`pointer-events: none`).
  * Otherwise, interaction is enabled (`pointer-events: all`).
  */
