@@ -413,6 +413,25 @@ async function extractMessageIdAndEml() {
   });
 }
 
+/**
+ * Extracts the base Gmail URL from a full Gmail URL
+ * 
+ * @param {string} url - Full Gmail URL to parse
+ * @returns {string} Base Gmail URL or default fallback URL
+ * 
+ * @description
+ * - Uses regex to match Gmail URL pattern with user number
+ * - Extracts base URL up to user number (e.g. /mail/u/0)
+ * - Returns default URL if no match found
+ * 
+ * @example
+ * // Returns "https://mail.google.com/mail/u/1"
+ * getBaseUrl("https://mail.google.com/mail/u/1/inbox")
+ * 
+ * // Returns default "https://mail.google.com/mail/u/0"
+ * getBaseUrl("invalid-url") 
+ */
+
 function getBaseUrl(url) {
   const match = url.match(/^(https:\/\/mail\.google\.com\/mail\/u\/\d+)\//);
   console.log(match);
@@ -422,27 +441,29 @@ function getBaseUrl(url) {
 /**
  * Constructs a Gmail EML download URL and sends message data to background script
  * 
- * @param {string} url - Current Gmail URL (unused in current implementation)
- * @param {string} messageId - Unique identifier for the Gmail message
+ * @param {string} url - The current Gmail URL used to extract the base URL
+ * @param {string} messageId - The unique identifier for the Gmail message
  * 
  * @description
- * This function creates a special Gmail URL that allows downloading the email in EML format.
- * It uses a fixed Gmail prefix and combines it with the message ID to generate the EML URL.
- * The function then sends the constructed URL along with message details to the background script
- * using chrome.runtime.sendMessage.
- * 
- * The constructed URL includes the following parameters:
- * - view=att: Specifies attachment view
- * - th: Thread/message ID
- * - attid=0: Attachment ID
- * - disp=comp: Display as complete message
- * - safe=1: Safe mode enabled
- * - zw: Zero-width character (Gmail-specific parameter)
+ * This function:
+ * 1. Gets the base Gmail URL using getBaseUrl()
+ * 2. Constructs an EML download URL with the following parameters:
+ *    - view=att: Specifies attachment view
+ *    - th: Thread/message ID
+ *    - attid=0: Attachment ID (default)
+ *    - disp=comp: Display as complete message
+ *    - safe=1: Safe mode enabled
+ *    - zw: Gmail-specific parameter
+ * 3. Sends the constructed URL and message details to background script
  * 
  * @example
- * createUrl('https://mail.google.com/mail/u/0/#inbox/12345', '12345');
- * // Sends message with EML URL: https://mail.google.com/mail/u/0/?view=att&th=12345&attid=0&disp=comp&safe=1&zw
+ * // For Gmail URL: https://mail.google.com/mail/u/0/#inbox/ABC123
+ * createUrl('https://mail.google.com/mail/u/0/#inbox/ABC123', 'ABC123');
+ * // Creates EML URL: https://mail.google.com/mail/u/0/?view=att&th=ABC123&attid=0&disp=comp&safe=1&zw
+ * 
+ * @throws {Error} Logs error if sending message to background script fails
  */
+
 function createUrl(url, messageId) {
   let prefixUrl = getBaseUrl(url); // Get dynamic base URL
   console.log("prefixUrl is ",prefixUrl);
@@ -461,7 +482,6 @@ function createUrl(url, messageId) {
     console.error("Error sending email content to background script:", error);
   }
 }
-
 
 /**
  * Asynchronously extracts an email ID from the document title.

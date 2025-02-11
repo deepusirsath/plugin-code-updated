@@ -395,6 +395,7 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
   const resStatus = serverData.eml_status || serverData.email_status;
   const messId = serverData.messageId || serverData.msg_id;
   let unsafeReason = serverData.unsafe_reasons || " ";
+  console.log("serverData:", serverData);
 
   console.log("unsafe reason Response:", unsafeReason);
   console.log(
