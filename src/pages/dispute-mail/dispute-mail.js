@@ -309,5 +309,3 @@ document.addEventListener("componentLoaded", (event) => {
     loadDisputeMailComponent(1);
   }
 });
-
-loadDisputeMailComponent(1);
