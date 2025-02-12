@@ -3,7 +3,7 @@ const importComponent = async (path) => {
   const src = chrome.runtime.getURL(path);
   return await import(src);
 };
-console.log("Content script loaded");
+
 // Initialize UI components
 let showAlert = null;
 let showBlockedPopup = null;
@@ -48,7 +48,6 @@ const waitForElements = () => {
       clearInterval(checkElements);
     } else if (attempts >= maxAttempts) {
       clearInterval(checkElements);
-      console.log("Elements not found after maximum attempts");
     }
   }, 1000);
 };
@@ -414,7 +413,6 @@ async function extractMessageIdAndEml() {
 
 function getBaseUrl(url) {
   const match = url.match(/^(https:\/\/mail\.google\.com\/mail\/u\/\d+)\//);
-  console.log(match);
   return match ? match[1] : "https://mail.google.com/mail/u/0"; // Default fallback
 }
 
