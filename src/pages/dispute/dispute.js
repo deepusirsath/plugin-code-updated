@@ -287,7 +287,6 @@ export const checkDisputeCount = async (messageId) => {
   try {
     const data = await postData(PLUGIN_COUNTER, { messageId });
     const dispute_count = data.counter || 0;
-    console.log("dispute_count fetched from the API: ", dispute_count);
     if (dispute_count) {
       chrome.storage.local.set({
         dispute_count: data.counter || 0,
