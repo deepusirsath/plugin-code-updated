@@ -111,17 +111,47 @@ export const initializeDisputeForm = (disputeData) => {
    *   - User's reason text
    *   - Message ID
    *   - Receiver's email from Chrome storage
-   * - Sends dispute if count is within limits
-   * - Shows alert and disables submission if limit exceeded
+   * - Sends dispute if count is within limits (0-2)
+   * - Shows alert and disables submission if:
+   *   - Previous dispute is pending
+   *   - Maximum limit (3) reached
    *
    * @listens {click}
    * @async
    * @fires sendDispute - When dispute count is valid
    * @fires showCustomAlert - When dispute limit is reached
    */
+  // submitButton.addEventListener("click", async () => {
+  //   disableSubmitButton();
+  //   const disputeCount = disputeData.countRaise || 0;
+  //   if (disputeCount < 3 && disputeCount >= 0) {
+  //     const reasonText = reasonTextarea.value.trim();
+  //     const messageId = document.getElementById("messageId").textContent;
+  //     const receiver_email = await chrome.storage.local.get("receiver_email");
+  //     sendDispute(reasonText, messageId, receiver_email?.receiver_email);
+  //   } else {
+  //     disableSubmitButton();
+  //     showCustomAlert(
+  //       "You have reached the maximum limit for disputes. Each email can be disputed a maximum of three times.",
+  //       "limit"
+  //     );
+  //   }
+  // });
   submitButton.addEventListener("click", async () => {
     disableSubmitButton();
     const disputeCount = disputeData.countRaise || 0;
+    const currentStatus = disputeData.status;
+
+    // Check if previous dispute is still pending admin response
+    if (currentStatus === "Dispute" && disputeCount < 3) {
+      showCustomAlert(
+        "Please wait for admin response before raising another dispute.",
+        "warning"
+      );
+      return;
+    }
+
+    // Check dispute count limit
     if (disputeCount < 3 && disputeCount >= 0) {
       const reasonText = reasonTextarea.value.trim();
       const messageId = document.getElementById("messageId").textContent;
@@ -171,7 +201,7 @@ export const initializeDisputeForm = (disputeData) => {
       return;
     }
     window.disputeAlertShown = true;
-    
+
     if (!response?.error) {
       showCustomAlert(
         "Your dispute has been successfully submitted. Please wait for the admin's response.",
