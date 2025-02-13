@@ -36,12 +36,21 @@ import { showCustomAlert } from "/src/component/custom_alert/custom_alert.js";
 export const initializeDisputeForm = (disputeData) => {
   const reasonTextarea = document.getElementById("reason");
   const submitButton = document.getElementById("submit");
+  const reloadIcon = document.getElementById("reload");
+
   document.getElementById("messageId").innerHTML = disputeData.messageId;
   document.querySelector(".status").textContent = disputeData.status;
   document.getElementById("emailId").textContent = disputeData.senderEmail;
   document.getElementById("countRaise").textContent = disputeData.countRaise;
   document.getElementById("adminRemark").textContent =
     disputeData.adminRemark || " - ";
+
+  const updateReloadIconVisibility = (status) => {
+    reloadIcon.style.display = status === "Dispute" ? "inline-block" : "none";
+  };
+
+  // Initial visibility setup
+  updateReloadIconVisibility(disputeData.status);
 
   /**
    * Calculates the word count of a given text.
@@ -222,10 +231,11 @@ export const initializeDisputeForm = (disputeData) => {
     chrome.runtime.sendMessage(
       { action: "reload", messageId, emailId, client: client },
       (response) => {
-        document.querySelector(".status").textContent =
-          response.disputeStatus.status;
+        const newStatus = response.disputeStatus.status;
+        document.querySelector(".status").textContent = newStatus;
         document.getElementById("adminRemark").textContent =
           response.adminComment.adminRemark;
+        updateReloadIconVisibility(newStatus);
       }
     );
   });
