@@ -396,14 +396,6 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
   const messId = serverData.messageId || serverData.msg_id;
   let unsafeReason = serverData.unsafe_reasons || " ";
 
-  console.log("unsafe reason Response:", unsafeReason);
-  console.log(
-    "Received Message ID from Server:",
-    messId,
-    resStatus,
-    unsafeReason
-  );
-
   if (typeof resStatus === "undefined" || typeof messId === "undefined") {
     chrome.runtime.sendMessage({
       action: "erroRecievedFromServer",
@@ -425,8 +417,6 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
     chrome.storage.local.set({ messages: JSON.stringify(messages) });
 
     if (currentMessageId == messId) {
-      console.log("Current Message Id matches");
-
       const statusActions = {
         unsafe: "blockUrls",
         Unsafe: "blockUrls",
