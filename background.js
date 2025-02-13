@@ -269,14 +269,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 response.emailId
               );
 
-              if (dispute_count >= 0) {
+              if (dispute_count > 0) {
                 sendResponse({
                   status:
-                    emailStatus === "Dispute"
+                    emailStatus === "Dispute" && !adminRemark
                       ? "Dispute"
                       : emailStatusData
                       ? emailStatusData
                       : "-",
+                  messageId: response.messageId,
+                  countRaise: dispute_count,
+                  emailId: response.emailId,
+                  senderEmail: response.senderEmail,
+                  adminRemark: adminRemark,
+                });
+              } else {
+                sendResponse({
+                  status: emailStatusData ? emailStatusData : "-",
                   messageId: response.messageId,
                   countRaise: dispute_count,
                   emailId: response.emailId,
@@ -313,8 +322,7 @@ async function checkDisputeStatus(messageId, email, sendResponse, client) {
     const serverData = data.data;
 
     if (data?.data?.eml_status) {
-      chrome.storage.local.set({ email_status: data?.data?.eml_status });
-      handleEmailScanResponse(serverData, activeTabId, client);
+       handleEmailScanResponse(serverData, activeTabId, client);
       return data?.data?.eml_status || null;
     }
   } catch (err) {
@@ -401,8 +409,6 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
       action: "erroRecievedFromServer",
       client: client,
     });
-  } else {
-    chrome.storage.local.set({ email_status: resStatus });
   }
 
   chrome.storage.local.get("messages", function (result) {
