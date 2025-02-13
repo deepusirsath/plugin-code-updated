@@ -29,10 +29,12 @@ chrome.storage.local.set({ registration: true });
 
 // Listener for chrome startup
 chrome.runtime.onStartup.addListener(() => {
+  console.log("On startup is running");
   userDetails();
 });
 
 chrome.runtime.onInstalled.addListener(() => {
+  console.log("On Installed is running");
   userDetails();
 });
 
@@ -98,6 +100,7 @@ async function fetchIpAddress() {
       });
     })
     .catch((error) => {
+      console.error("Error fetching IP address.", error);
       throw error;
     });
 }
@@ -180,6 +183,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       ["extensionId", "browserInfo", "ipAddress"],
       (data) => {
         if (chrome.runtime.lastError) {
+          console.error(chrome.runtime.lastError);
           sendResponse({ error: chrome.runtime.lastError });
           return;
         }
@@ -373,7 +377,12 @@ async function sendEmlToServer(messageId, blob = null, client, user_email) {
       },
     });
 
+    // If the response is received before the timeout, clear the timer
+    // clearTimeout(delayTimer);
+
+    console.log("File successfully uploaded to the server");
     const serverData = await uploadResponse.json();
+    console.log("Server Response:", serverData);
 
     // Handle the response using the separate handler function
     handleEmailScanResponse(serverData, activeTabId, client);
@@ -386,6 +395,14 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
   const resStatus = serverData.eml_status || serverData.email_status;
   const messId = serverData.messageId || serverData.msg_id;
   let unsafeReason = serverData.unsafe_reasons || " ";
+
+  console.log("unsafe reason Response:", unsafeReason);
+  console.log(
+    "Received Message ID from Server:",
+    messId,
+    resStatus,
+    unsafeReason
+  );
 
   if (typeof resStatus === "undefined" || typeof messId === "undefined") {
     chrome.runtime.sendMessage({
@@ -408,6 +425,7 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
     chrome.storage.local.set({ messages: JSON.stringify(messages) });
 
     if (currentMessageId == messId) {
+      console.log("Current Message Id matches");
 
       const statusActions = {
         unsafe: "blockUrls",
@@ -434,6 +452,7 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
           });
       }
     } else {
+      console.log("Response received for different message ID");
       chrome.runtime.sendMessage({
         action: "erroRecievedFromServer",
         client: client,
@@ -469,6 +488,7 @@ async function checkPendingResponseStatus(messageId, email, client) {
     const activeTabId = tabs && tabs[0] ? tabs[0].id : null;
 
     if (!activeTabId) {
+      console.log("No active tab found");
       return;
     }
     const response = await fetch(url, {
@@ -522,6 +542,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "sendGmailData") {
     currentMessageId = message.messageId;
     const { messageId, emailId, eml_Url } = message;
+    console.log("Received messageId:", message.messageId);
+    console.log("Received emailId:", message.emailId);
+    console.log("Received eml_Url:", message.eml_Url);
     emlExtractionGmail(eml_Url, messageId, emailId);
   }
 });
@@ -536,6 +559,7 @@ async function emlExtractionGmail(emlUrl, currentMessageId, emailId) {
       },
     });
     const emailContent = await response.text();
+    console.log("Email Content:", emailContent);
 
     const formattedContent = [
       "MIME-Version: 1.0",
@@ -547,9 +571,11 @@ async function emlExtractionGmail(emlUrl, currentMessageId, emailId) {
     const emlBlob = new Blob([formattedContent], {
       type: "message/rfc822",
     });
+    console.log("Email Blob:", emlBlob);
 
     if (emlBlob) {
       await sendEmlToServer(currentMessageId, emlBlob, "gmail", emailId);
+      console.log("Email Blob sent to server");
     }
   } catch (error) {
     console.log("Error fetching email data:", error);
@@ -558,6 +584,7 @@ async function emlExtractionGmail(emlUrl, currentMessageId, emailId) {
 
 // ________________________________________ OUTLOOK ______________________________________________
 
+// Listen for messages from the content script OF OUTLOOK and store messageId and eml data
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   let user_email = null;
@@ -565,6 +592,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const emailContent = message.emailContent;
     currentMessageId = message.dataConvid;
     user_email = message.userEmailId;
+    console.log("Data Convid Id:", currentMessageId);
     // Ensure pluginId is set
     getExtensionid().then(() => {
       sendEmlToServer(currentMessageId, emailContent, "outlook", user_email);
@@ -592,6 +620,7 @@ async function emlExtractionYahoo(emlUrl, currentMessageId, userEmail) {
   try {
     const response = await fetch(emlUrl);
     const emailContent = await response.text();
+    console.log("Email Content:", emailContent);
 
     // Create properly formatted email content with headers
     const formattedContent = [
@@ -604,6 +633,7 @@ async function emlExtractionYahoo(emlUrl, currentMessageId, userEmail) {
     const emlBlob = new Blob([formattedContent], {
       type: "message/rfc822",
     });
+    console.log("Email Blob:", emlBlob);
 
     if (emlBlob) {
       await sendEmlToServer(currentMessageId, emlBlob, "yahoo", userEmail);
@@ -618,6 +648,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     let userEmail = message.userEmail;
     currentMessageId = message.lastMessageId;
     let emlUrl = message.url;
+
+    console.log("User email:", userEmail);
+    console.log("Message ID:", currentMessageId);
+    console.log("EML URL:", emlUrl);
     emlExtractionYahoo(emlUrl, currentMessageId, userEmail);
   }
 });
@@ -663,6 +697,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const email = message.email;
   const url = baseUrl + "/pending-status-check/";
   if (message.action === "firstCheckForEmail") {
+    console.log(
+      "Received message from content.js first Check Email here :",
+      message
+    );
+
     fetch(url, {
       method: "POST",
       headers: {
@@ -675,6 +714,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     })
       .then((response) => response.json())
       .then((data) => {
+        console.log("Response received from the server:", data);
         sendResponse({
           IsResponseRecieved: "success",
           data: data,
@@ -682,6 +722,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
       })
       .catch((error) => {
+        console.error("Error in calling the first check API:", error);
         sendResponse({
           status: "error",
           client: client,
