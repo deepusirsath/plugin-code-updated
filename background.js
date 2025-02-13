@@ -322,7 +322,7 @@ async function checkDisputeStatus(messageId, email, sendResponse, client) {
     const serverData = data.data;
 
     if (data?.data?.eml_status) {
-       handleEmailScanResponse(serverData, activeTabId, client);
+      handleEmailScanResponse(serverData, activeTabId, client);
       return data?.data?.eml_status || null;
     }
   } catch (err) {
