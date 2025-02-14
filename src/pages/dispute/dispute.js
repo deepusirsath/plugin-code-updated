@@ -5,6 +5,7 @@ import {
 } from "/src/routes/api_route.js";
 import { postData } from "/src/api/api_method.js";
 import { showCustomAlert } from "/src/component/custom_alert/custom_alert.js";
+import { showLoader, hideLoader } from "/src/component/loader/loader.js";
 
 /**
  * Initializes and manages a dispute form interface with validation and submission handling
@@ -223,6 +224,8 @@ export const initializeDisputeForm = (disputeData) => {
   };
 
   document.getElementById("reload").addEventListener("click", async () => {
+    reloadIcon.innerHTML = "";
+    showLoader();
     const messageId = document.getElementById("messageId").textContent;
     const email = await chrome.storage.local.get("receiver_email");
     const emailId = email.receiver_email;
@@ -231,11 +234,18 @@ export const initializeDisputeForm = (disputeData) => {
     chrome.runtime.sendMessage(
       { action: "reload", messageId, emailId, client: client },
       (response) => {
-        const newStatus = response.disputeStatus.status;
-        document.querySelector(".status").textContent = newStatus;
-        document.getElementById("adminRemark").textContent =
-          response.adminComment.adminRemark;
-        updateReloadIconVisibility(newStatus);
+        hideLoader();
+        reloadIcon.innerHTML =
+          '<img src="/src/icons/reload.png" alt="reload icon">';
+        if (response.adminComment !== null) {
+          const newStatus = response.disputeStatus;
+          document.querySelector(".status").textContent = newStatus;
+          document.getElementById("adminRemark").textContent =
+            response.adminComment;
+          updateReloadIconVisibility(newStatus);
+        } else {
+          document.querySelector(".status").textContent = "Dispute";
+        }
       }
     );
   });
