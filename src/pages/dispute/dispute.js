@@ -152,12 +152,16 @@ export const initializeDisputeForm = (disputeData) => {
     const disputeCount = disputeData.countRaise || 0;
     const currentStatus = disputeData.status;
 
+    const existingAlerts = document.querySelectorAll(".custom-alert-overlay");
+    existingAlerts.forEach((alert) => alert.remove());
+
     // Check if previous dispute is still pending admin response
     if (currentStatus === "Dispute" && disputeCount < 3) {
       showCustomAlert(
         "Please wait for admin response before raising another dispute.",
         "warning"
       );
+      enableSubmitButton();
       return;
     }
 
