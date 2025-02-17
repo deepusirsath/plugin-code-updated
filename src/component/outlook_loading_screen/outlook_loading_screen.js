@@ -8,7 +8,8 @@ export function showLoadingScreen() {
     left: 0,
     width: "100%",
     height: "100%",
-    background: "linear-gradient(120deg, rgba(22, 22, 28, 0.9), rgba(12, 12, 18, 0.9))",
+    background:
+      "linear-gradient(120deg, rgba(22, 22, 28, 0.9), rgba(12, 12, 18, 0.9))",
     backdropFilter: "blur(6px)",
     display: "flex",
     alignItems: "center",
@@ -27,7 +28,7 @@ export function showLoadingScreen() {
     alignItems: "center",
     maxWidth: "400px",
     width: "100%",
-    gap: "40px"
+    gap: "40px",
   });
 
   // Wave animation container
@@ -161,84 +162,83 @@ export function showLoadingScreen() {
 }
 
 export const hideLoadingScreen = () => {
-  const loadingScreen = document.getElementById('loading-screen');
-  if (loadingScreen && loadingScreen.parentNode) {
-    // Get the main container
-    const mainContainer = loadingScreen.querySelector('[style*="background: rgba(255, 255, 255, 0.03)"]');
-    const waveContainer = loadingScreen.querySelector('[style*="overflow: hidden"]');
-    const loadingText = document.getElementById('loading-text');
-    
-    // Fade out waves and text
-    waveContainer.style.transition = 'opacity 0.3s ease-out';
-    waveContainer.style.opacity = '0';
-    loadingText.style.opacity = '0';
-    
-    // Create success checkmark animation
-    const successMark = document.createElement('div');
-    Object.assign(successMark.style, {
-      width: '60px',
-      height: '60px',
-      border: '3px solid #4CAF50',
-      borderRadius: '50%',
-      position: 'relative',
-      animation: 'successScale 0.3s ease-in-out forwards'
-    });
+  const loadingScreen = document.getElementById("loading-screen");
 
-    // Add checkmark inside circle
-    const check = document.createElement('div');
-    Object.assign(check.style, {
-      position: 'absolute',
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-      fontSize: '30px',
-      color: '#4CAF50'
-    });
-    check.textContent = '✓';
+  if (!loadingScreen) return; // If loading screen is already removed, do nothing
 
-    // Add "Done!" text
-    const doneText = document.createElement('div');
-    Object.assign(doneText.style, {
-      color: '#fff',
-      fontFamily: 'system-ui, sans-serif',
-      fontSize: '18px',
-      fontWeight: '500',
-      marginTop: '15px',
-      opacity: '0',
-      animation: 'fadeIn 0.3s ease-out 0.2s forwards'
-    });
-    doneText.textContent = 'Done!';
+  try {
+    const mainContainer = loadingScreen.querySelector(
+      '[style*="background: rgba(255, 255, 255, 0.03)"]'
+    );
+    const waveContainer = loadingScreen.querySelector(
+      '[style*="overflow: hidden"]'
+    );
+    const loadingText = document.getElementById("loading-text");
 
-    // Add keyframes
-    const styleSheet = document.styleSheets[0];
-    styleSheet.insertRule(`
-      @keyframes successScale {
-        0% { transform: scale(0); }
-        50% { transform: scale(1.2); }
-        100% { transform: scale(1); }
-      }
-    `, styleSheet.cssRules.length);
-    
-    styleSheet.insertRule(`
-      @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
-    `, styleSheet.cssRules.length);
+    if (waveContainer) {
+      waveContainer.style.transition = "opacity 0.3s ease-out";
+      waveContainer.style.opacity = "0";
+    }
 
-    // Replace content
-    setTimeout(() => {
-      mainContainer.innerHTML = '';
-      successMark.appendChild(check);
+    if (loadingText) {
+      loadingText.style.transition = "opacity 0.3s ease-out";
+      loadingText.style.opacity = "0";
+    }
+
+    if (mainContainer) {
+      mainContainer.innerHTML = ""; // Clear previous content
+
+      // ✅ Create success checkmark
+      const successMark = document.createElement("div");
+      Object.assign(successMark.style, {
+        width: "60px",
+        height: "60px",
+        border: "3px solid #4CAF50",
+        borderRadius: "50%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: "30px",
+        color: "#4CAF50",
+        animation: "successScale 0.3s ease-in-out forwards",
+      });
+      successMark.textContent = "✓";
+
+      // ✅ Add "Done!" text with opacity fix
+      const doneText = document.createElement("div");
+      Object.assign(doneText.style, {
+        color: "#fff",
+        fontFamily: "system-ui, sans-serif",
+        fontSize: "18px",
+        fontWeight: "500",
+        marginTop: "15px",
+        opacity: "0", // Initially hidden
+        transition: "opacity 0.3s ease-in-out",
+      });
+      doneText.textContent = "Done!";
+
       mainContainer.appendChild(successMark);
       mainContainer.appendChild(doneText);
-      
-      // Final fade out and remove
+
+      // ✅ Ensure "Done!" text becomes visible
       setTimeout(() => {
-        loadingScreen.style.transition = 'opacity 0.5s ease-out';
-        loadingScreen.style.opacity = '0';
-        setTimeout(() => loadingScreen.remove(), 500);
-      }, 1000);
-    }, 300);
+        doneText.style.opacity = "1";
+      }, 300);
+    }
+
+    // ✅ Fade out and remove loading screen
+    setTimeout(() => {
+      loadingScreen.style.transition = "opacity 0.5s ease-out";
+      loadingScreen.style.opacity = "0";
+
+      setTimeout(() => {
+        if (loadingScreen.parentNode) {
+          loadingScreen.remove();
+        }
+      }, 500);
+    }, 1500);
+  } catch (error) {
+    console.error("Error in hideLoadingScreen:", error);
+    loadingScreen.remove();
   }
 };
