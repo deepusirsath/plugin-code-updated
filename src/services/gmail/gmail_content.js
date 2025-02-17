@@ -3,11 +3,14 @@ const importComponent = async (path) => {
   const src = chrome.runtime.getURL(path);
   return await import(src);
 };
+
 console.log("Content script loaded");
+// Initialize UI components
 // Initialize UI components
 let showAlert = null;
 let showBlockedPopup = null;
-
+let showLoadingScreen = null;
+let hideLoadingScreen = null;
 
 /**
  * Asynchronously imports two JavaScript modules using Promise.all and assigns specific functions 
@@ -18,13 +21,24 @@ let showBlockedPopup = null;
  * - Extracts `showBlockedPopup` from `block_email_popup.js` and assigns it to a global variable.
  * - Ensures both modules are fully loaded before executing further logic.
  */
+
 Promise.all([
   importComponent("/src/component/email_status/email_status.js"),
   importComponent("/src/component/block_email_popup/block_email_popup.js"),
-]).then(([emailStatus, blockPopup]) => {
+  importComponent("/src/component/outlook_loading_screen/outlook_loading_screen.js")
+]).then(([emailStatus, blockPopup, loadingScreen]) => {
   showAlert = emailStatus.showAlert;
   showBlockedPopup = blockPopup.showBlockedPopup;
+  showLoadingScreen = loadingScreen.showLoadingScreen;
+  hideLoadingScreen = loadingScreen.hideLoadingScreen;
 });
+// Promise.all([
+//   importComponent("/src/component/email_status/email_status.js"),
+//   importComponent("/src/component/block_email_popup/block_email_popup.js"),
+// ]).then(([emailStatus, blockPopup]) => {
+//   showAlert = emailStatus.showAlert;
+//   showBlockedPopup = blockPopup.showBlockedPopup;
+// });
 
 /**
  * Continuously checks for the presence of elements with the class "nH a98 iY" in the DOM.
@@ -45,6 +59,7 @@ const waitForElements = () => {
     attempts++;
 
     if (elements && elements.length > 0) {
+      // showLoadingScreen();
       blockEmailBody();
       clearInterval(checkElements);
     } else if (attempts >= maxAttempts) {
@@ -115,8 +130,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
         if (data.registration) {
           const lastSegment = url.split("/").pop().split("#").pop();
-
           if (lastSegment.length >= isValidSegmentLength) {
+            console.log("isValidSegmentLength is pass")
+            showLoadingScreen();
             init();
           }
         }
@@ -125,6 +141,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse({ status: "received" });
   }
 });
+
+
+
 
 /**
  * Chrome runtime message listener for Gmail-related actions
@@ -273,14 +292,22 @@ chrome.runtime.onMessage.addListener((request) => {
  */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.client === "gmail") {
+    console.log("Message received:", message);
     messageReason = message.unsafeReason;
+    console.log("Message reason:", messageReason);
     if (message.action === "blockUrls") {
+      console.log("blocking content hideLoadingScreen");
+      hideLoadingScreen();
       shouldApplyPointerEvents = true;
       showAlert("unsafe", messageReason);
     } else if (message.action === "unblock") {
+      console.log("Unblocking content hideLoadingScreen");
+      hideLoadingScreen();
       shouldApplyPointerEvents = false;
       showAlert("safe");
     } else if (message.action === "pending") {
+      console.log("Pending verification hideLoadingScreen");
+      hideLoadingScreen();
       shouldApplyPointerEvents = true;
       showAlert("pending");
     }
@@ -321,6 +348,7 @@ const init = () => {
  * @function extractMessageIdAndEml
  */
 async function extractMessageIdAndEml() {
+  console.log("extractMessageIdAndEml started");
   blockEmailBody();
   const node = document.querySelector("[data-legacy-message-id]");
   if (!node) {
@@ -332,19 +360,26 @@ async function extractMessageIdAndEml() {
   if (!messageId) {
     return;
   }
-
+  console.log("Message ID:", messageId);
   chrome.storage.local.get("messages", function (result) {
     let messages = JSON.parse(result.messages || "{}");
-
+    console.log("Messages:", messages);
     if (messages[messageId]) {
+      console.log("Message found in local storage");
       const status = messages[messageId].status;
       const unsafeReason = messages[messageId].unsafeReason;
+      console.log("Status:", status);
+      console.log("Unsafe Reason:", unsafeReason);
 
       if (status === "safe" || status === "Safe") {
+        console.log("Safe content detected hideLoadingScreen");
+        hideLoadingScreen();
         showAlert("safe", unsafeReason);
         shouldApplyPointerEvents = false;
         blockEmailBody();
       } else if (status === "unsafe" || status === "Unsafe") {
+        console.log("Unsafe content detected hideLoadingScreen");
+        hideLoadingScreen();
         showAlert("unsafe", unsafeReason);
         shouldApplyPointerEvents = true;
         blockEmailBody();
@@ -390,6 +425,8 @@ async function extractMessageIdAndEml() {
                     () => {
                       shouldApplyPointerEvents = resStatus !== "safe";
                       blockEmailBody();
+                      console.log("VAlidate Safe content detected hideLoadingScreen");
+                      hideLoadingScreen();
                       showAlert(resStatus, unsafeReason);
                     }
                   );
@@ -405,6 +442,7 @@ async function extractMessageIdAndEml() {
               }, 300);
             }
           } else if (response.status === "error") {
+            hideLoadingScreen();
             showAlert("inform");
           }
         }
@@ -412,6 +450,16 @@ async function extractMessageIdAndEml() {
     }
   });
 }
+
+let lastUrl = location.href;
+new MutationObserver(() => {
+  const currentUrl = location.href;
+  if (currentUrl !== lastUrl) {
+    lastUrl = currentUrl;
+    hideLoadingScreen();
+  }
+}).observe(document, {subtree: true, childList: true});
+
 
 /**
  * Extracts the base Gmail URL from a full Gmail URL

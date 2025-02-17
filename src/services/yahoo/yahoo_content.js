@@ -5,17 +5,33 @@ const importComponent = async (path) => {
 };
 
 // Initialize UI components
+// Initialize UI components
 let showAlert = null;
 let showBlockedPopup = null;
+let showLoadingScreen = null;
+let hideLoadingScreen = null;
 
-// Load components
 Promise.all([
   importComponent("/src/component/email_status/email_status.js"),
   importComponent("/src/component/block_email_popup/block_email_popup.js"),
-]).then(([emailStatus, blockPopup]) => {
+  importComponent("/src/component/outlook_loading_screen/outlook_loading_screen.js")
+]).then(([emailStatus, blockPopup, loadingScreen]) => {
   showAlert = emailStatus.showAlert;
   showBlockedPopup = blockPopup.showBlockedPopup;
+  showLoadingScreen = loadingScreen.showLoadingScreen;
+  hideLoadingScreen = loadingScreen.hideLoadingScreen;
 });
+// let showAlert = null;
+// let showBlockedPopup = null;
+
+// // Load components
+// Promise.all([
+//   importComponent("/src/component/email_status/email_status.js"),
+//   importComponent("/src/component/block_email_popup/block_email_popup.js"),
+// ]).then(([emailStatus, blockPopup]) => {
+//   showAlert = emailStatus.showAlert;
+//   showBlockedPopup = blockPopup.showBlockedPopup;
+// });
 
 let messageReason = " ";
 document.addEventListener("visibilitychange", function () {
@@ -153,11 +169,8 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
  * - The URL contains "in.mail.yahoo.com"
  * - OR the URL contains "mail.yahoo.com", includes "message", and extraction is not already done.
  */
-
-if (
-  url.includes("in.mail.yahoo.com") ||
-  (url.includes("mail.yahoo.com") && url.includes("message") && !extractionDone)
-) {
+const yahooMailRegex = /^https:\/\/(in\.)?mail\.yahoo\.com.*message/;
+if (yahooMailRegex.test(url) && !extractionDone) {
   console.log("Extracted URL:");
   chrome.storage.local.get("registration", (data) => {
     if (chrome.runtime.lastError) {
@@ -165,10 +178,9 @@ if (
       return;
     }
     if (data.registration) {
-      console.log(
-        "Registration data found now execute the extractIdsFromNonceScripts(): ",
-        data.registration
-      );
+      setTimeout(() => {
+        showLoadingScreen();
+      }, 500); // Move this inside executeExtractionScript
       executeExtractionScript();
     }
   });
@@ -193,6 +205,17 @@ async function executeExtractionScript() {
     extractionDone = true;
   }, 2500);
 }
+
+
+let lastUrl = location.href;
+new MutationObserver(() => {
+  const currentUrl = location.href;
+  if (currentUrl !== lastUrl) {
+    lastUrl = currentUrl;
+    hideLoadingScreen();
+  }
+}).observe(document, { subtree: true, childList: true });
+
 
 /**
  * Executes the email extraction script with a delay.
@@ -346,6 +369,8 @@ function extractIdsFromNonceScripts() {
   ).some((div) => div.textContent.trim() === "Sent");
 
   if (isSentFound) {
+    shouldApplyPointerEvents = false;
+    hideLoadingScreen();
     console.log("Sent folder found. Skipping extraction.");
     return;
   }
@@ -408,18 +433,22 @@ function extractIdsFromNonceScripts() {
         const unsafeReason = messages[lastMessageId].unsafeReason;
 
         if (status === "safe" || status === "Safe") {
+          hideLoadingScreen();
           showAlert("safe", unsafeReason);
           console.log("Local Storage status", status);
           shouldApplyPointerEvents = false;
           blockEmailBody();
           console.log(`Removing blocking layer because message is ${status}`);
         } else if (status === "unsafe" || status === "Unsafe") {
+          hideLoadingScreen();
           showAlert("unsafe", unsafeReason);
           console.log("Local Storage status", status);
           console.log(`Applying blocking layer because message is ${status}`);
           shouldApplyPointerEvents = true;
           blockEmailBody();
         } else if (status === "pending" || status === "Pending") {
+          hideLoadingScreen();
+          showAlert("pending", unsafeReason);
           console.log("send response to background for pending status");
           chrome.runtime.sendMessage({
             action: "pendingStatusYahoo",
@@ -484,6 +513,7 @@ function extractIdsFromNonceScripts() {
                         console.log(
                           `Removing blocking layer because message is ${resStatus}`
                         );
+                        hideLoadingScreen();
                         showAlert(resStatus, unsafeReason);
                       }
                     );
@@ -595,15 +625,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "blockUrls") {
       console.log("Outlook Content script received message:", message.action);
       shouldApplyPointerEvents = true;
+      hideLoadingScreen();
       showAlert("unsafe", messageReason);
       console.log("Blocking URLs for Yahoo");
     } else if (message.action === "unblock") {
       shouldApplyPointerEvents = false;
       console.log("Unblocking URLs for Yahoo");
+      hideLoadingScreen();
       showAlert("safe");
     } else if (message.action === "pending") {
       console.log("Pending Status for Yahoo");
       shouldApplyPointerEvents = true;
+      hideLoadingScreen();
       showAlert("pending");
       console.log("Blocking URLs for Yahoo due to pending status");
     }

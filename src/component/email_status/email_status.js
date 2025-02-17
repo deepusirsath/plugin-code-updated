@@ -1,5 +1,15 @@
 export function showAlert(key, messageReason = " ") {
   // Detect the email platform
+  const GmailElements = document.getElementsByClassName("nH a98 iY");
+  const OutlookElement = document.querySelector("#ConversationReadingPaneContainer");
+  const OutlookjunkBox = document.querySelector("#ItemReadingPaneContainer");
+  const Yahooelement = document.querySelector(
+    'div[data-test-id="message-group-view-scroller"]'
+  );
+  if (!(GmailElements.length || OutlookElement || OutlookjunkBox || Yahooelement)) {
+    return;
+  }
+
   const isOutlook = window.location.href.includes("outlook");
   const isYahoo = window.location.href.includes("yahoo");
   const isGmail = window.location.href.includes("mail.google");

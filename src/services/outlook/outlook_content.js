@@ -5,21 +5,21 @@ const importComponent = async (path) => {
 };
 
 // Initialize UI components
+// Initialize UI components
 let showAlert = null;
 let showBlockedPopup = null;
 let showLoadingScreen = null;
+let hideLoadingScreen = null;
 
-// Load components
 Promise.all([
   importComponent("/src/component/email_status/email_status.js"),
   importComponent("/src/component/block_email_popup/block_email_popup.js"),
-  importComponent(
-    "/src/component/outlook_loading_screen/outlook_loading_screen.js"
-  ),
+  importComponent("/src/component/outlook_loading_screen/outlook_loading_screen.js")
 ]).then(([emailStatus, blockPopup, loadingScreen]) => {
   showAlert = emailStatus.showAlert;
   showBlockedPopup = blockPopup.showBlockedPopup;
   showLoadingScreen = loadingScreen.showLoadingScreen;
+  hideLoadingScreen = loadingScreen.hideLoadingScreen;
 });
 
 console.log("Content script loaded.");
@@ -275,6 +275,7 @@ document.addEventListener("click", detectMenuItems, true);
 let shouldApplyPointerEvents = true; // Default value
 
 // Blocking user interactions
+
 function blockUserInteraction() {
   document.body.style.pointerEvents = "none"; // Disable all pointer events on the page
   window.addEventListener("keydown", preventDefaultForKeyPress, true); // Block keyboard interaction
@@ -301,12 +302,12 @@ function hideTargetedLoadingScreen(loadingOverlay) {
   }
 }
 
-function hideLoadingScreen() {
-  const loadingScreen = document.getElementById("loading-screen");
-  if (loadingScreen) {
-    loadingScreen.remove();
-  }
-}
+// function hideLoadingScreen() {
+//   const loadingScreen = document.getElementById("loading-screen");
+//   if (loadingScreen) {
+//     loadingScreen.remove();
+//   }
+// }
 
 
 /**
@@ -334,10 +335,18 @@ async function executeWithLoadingScreenAndExtraction() {
   try {
     await runEmailExtraction(); // Extract email content
   } finally {
-    hideLoadingScreen(); // Hide the loading screen once email content is extracted
+    // hideLoadingScreen(); // Hide the loading screen once email content is extracted
     unblockUserInteraction(); // Re-enable user interactions
   }
 }
+let lastUrl = location.href;
+new MutationObserver(() => {
+  const currentUrl = location.href;
+  if (currentUrl !== lastUrl) {
+    lastUrl = currentUrl;
+    hideLoadingScreen();
+  }
+}).observe(document, { subtree: true, childList: true });
 
 /**
  * Toggles the pointer-events property of email body containers to either block or allow interactions.
@@ -407,6 +416,11 @@ function setupClickListener(attempts = 500) {
   if (emailListContainer) {
     console.log("Email list container found, setting up click listener");
     emailListContainer.addEventListener("click", (event) => {
+      emailListContainer.style.pointerEvents = "none";
+      setTimeout(() => {
+        emailListContainer.style.pointerEvents = "auto";
+      }, 2000);
+
       let clickedElement = event.target;
 
       while (clickedElement && !clickedElement.classList.contains("EeHm8")) {
@@ -513,6 +527,7 @@ function setupClickListener(attempts = 500) {
                     console.log("Local Storage status", status);
                     shouldApplyPointerEvents = false;
                     blockEmailBody();
+                    hideLoadingScreen();
                     showAlert("safe", unsafeReason);
                     console.log(
                       `Removing blocking layer because message is ${status}`
@@ -525,8 +540,10 @@ function setupClickListener(attempts = 500) {
                     showAlert("unsafe", unsafeReason);
                     shouldApplyPointerEvents = true;
                     blockEmailBody();
+                    hideLoadingScreen();
                   } else if (status === "pending") {
                     console.log("Pending status in Local Storage");
+                    hideLoadingScreen();
                     showAlert("pending", unsafeReason);
                     chrome.storage.local.get("outlook_email", (data) => {
                       console.log(
@@ -769,6 +786,46 @@ async function runEmailExtraction() {
     }
   };
 
+  // const extractTextContent = async () => {
+  //   // Start performance tracking for entire operation
+  //   const startTime = performance.now();
+  
+  //   // Find the email content container element
+  //   const element = document.querySelector(".lz61e.allowTextSelection");
+  //   const elementLoadTime = performance.now() - startTime;
+  //   console.info(`✓ DOM element located in ${elementLoadTime.toFixed(2)}ms`);
+  
+  //   if (element && element.innerText.trim().length > 0) {
+  //     // Extract the email content
+  //     const contentStartTime = performance.now();
+  //     const emailContent = element.innerText;
+  //     const contentExtractTime = performance.now() - contentStartTime;
+  //     console.info(`✓ Content extracted in ${contentExtractTime.toFixed(2)}ms`);
+  //     console.debug("📧 Email content:", emailContent.substring(0, 100) + "...");
+  
+  //     // Send content to background script
+  //     const sendStartTime = performance.now();
+  //     await sendContentToBackground(emailContent);
+  //     const sendTime = performance.now() - sendStartTime;
+  //     console.info(`✓ Content sent to background in ${sendTime.toFixed(2)}ms`);
+  
+  //     // Close email after processing
+  //     await closeEmail();
+  //     console.info("✓ Email closed successfully");
+  
+  //     // Log total execution metrics
+  //     const totalTime = performance.now() - startTime;
+  //     console.info(`✨ Total operation completed in ${totalTime.toFixed(2)}ms`);
+  
+  //   } else {
+  //     // Handle retry logic for empty/missing content
+  //     console.warn("⚠️ Content not found, initiating retry in 1 second...");
+  //     await new Promise((resolve) => setTimeout(resolve, 1000));
+  //     await extractTextContent();
+  //   }
+  // };
+  
+  
   const extractTextContent = async () => {
     const element = document.querySelector(".lz61e.allowTextSelection");
     if (element && element.innerText.trim().length > 0) {
@@ -845,15 +902,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "blockUrls") {
       console.log("Outlook Content script received message:", message.action);
       shouldApplyPointerEvents = true;
+      hideLoadingScreen();
       showAlert("unsafe", messageReason);
       console.log("Blocking URLs for Outlook");
     } else if (message.action === "unblock") {
       shouldApplyPointerEvents = false;
       console.log("Unblocking URLs for Outlook");
+      hideLoadingScreen();
       showAlert("safe");
     } else if (message.action === "pending") {
       console.log("Pending Status for Outlook");
       shouldApplyPointerEvents = true;
+      hideLoadingScreen();
       showAlert("pending");
       console.log("Blocking URLs for Outlook due to pending status");
     }

@@ -28,17 +28,20 @@
     {
       "matches": ["*://mail.google.com/*"],
       "js": ["/src/services/gmail/gmail_content.js"],
-      "run_at": "document_start"
+      "run_at": "document_start",
+      "type": "module"
     },
     {
       "matches": ["*://outlook.live.com/*"],
       "js": ["/src/services/outlook/outlook_content.js"],
-      "run_at": "document_start"
+      "run_at": "document_start",
+      "type": "module"
     },
     {
       "matches": ["*://mail.yahoo.com/*", "*://in.mail.yahoo.com/*"],
       "js": ["/src/services/yahoo/yahoo_content.js"],
-      "run_at": "document_start"
+      "run_at": "document_start",
+      "type": "module"
     }
   ],
   "web_accessible_resources": [

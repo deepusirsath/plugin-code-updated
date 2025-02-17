@@ -343,9 +343,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 async function sendEmlToServer(messageId, blob = null, client, user_email) {
   try {
-    if (!pluginId) {
-      pluginId = chrome.runtime.id;
-    }
+    // if (!pluginId) {
+    //   pluginId = chrome.runtime.id;
+    // }
+    console.log("sendEmlToServer process has started");
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
     const activeTabId = tabs[0].id;
     const formData = new FormData();
@@ -376,9 +377,6 @@ async function sendEmlToServer(messageId, blob = null, client, user_email) {
         "Content-Disposition": 'attachment; filename="downloaded.eml"',
       },
     });
-
-    // If the response is received before the timeout, clear the timer
-    // clearTimeout(delayTimer);
 
     console.log("File successfully uploaded to the server");
     const serverData = await uploadResponse.json();
@@ -443,10 +441,7 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
         chrome.tabs
           .sendMessage(activeTabId, { action, client, unsafeReason })
           .then((response) => {
-            console.log(
-              `Message sent to content script for ${action}:`,
-              response
-            );
+            console.log(`Message sent to content script for ${action}:`,response);
           })
           .catch((error) => {
             console.error("Error sending message to content script:", error);
@@ -466,14 +461,17 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "pendingStatusGmail") {
     const messageId = message.messageId;
+    currentMessageId = messageId;
     const email = message.emailId;
     checkPendingResponseStatus(messageId, email, "gmail");
   } else if (message.action === "pendingStatusYahoo") {
     const messageId = message.messageId;
+    currentMessageId = messageId;
     const email = message.emailId;
     checkPendingResponseStatus(messageId, email, "yahoo");
   } else if (message.action === "pendingStatusOutlook") {
     const messageId = message.messageId;
+    currentMessageId = messageId;
     const email = message.emailId;
     checkPendingResponseStatus(messageId, email, "outlook");
   }
@@ -511,9 +509,47 @@ async function checkPendingResponseStatus(messageId, email, client) {
 
 // ________________________________________ GMAIL ______________________________________________
 
+
+// let processedMessageIds = new Set();
+// let lastProcessedTime = 0;
+// const DEBOUNCE_DELAY = 300; // increased to 300ms
+
+// chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+//   const currentTime = Date.now();
+//   // Only process when status is complete to ensure full page load
+//   if (changeInfo.status === "complete") {
+//     if (currentTime - lastProcessedTime < DEBOUNCE_DELAY) {
+//       return;
+//     }
+//     lastProcessedTime = currentTime;
+//     const urlToCheck = tab.url;
+//     const matchedKeyword = checkGmailUrl(urlToCheck);
+//     if (matchedKeyword) {
+//       // Get current message ID from URL
+//       const messageId = urlToCheck.split('/').pop();
+//       // Check if we've already processed this message
+//       if (!processedMessageIds.has(messageId)) {
+//         processedMessageIds.add(messageId);
+//         chrome.tabs.sendMessage(
+//           tabId,
+//           { action: "GmailDetectedForExtraction" },
+//           (response) => {
+//             console.log("Response from content script:", response);
+//           }
+//         );
+//         // Clear old message IDs periodically
+//         if (processedMessageIds.size > 100) {
+//           processedMessageIds.clear();
+//         }
+//       }
+//     }
+//   }
+// });
+
+
+
 let lastProcessedTime = 0;
 const DEBOUNCE_DELAY = 100; // milliseconds
-
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   const currentTime = Date.now();
 
@@ -550,6 +586,67 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
+
+// async function emlExtractionGmail(emlUrl, currentMessageId, emailId) {
+//   // Start performance tracking
+//   const startTime = performance.now();
+
+//   try {
+//     // Step 1: Fetch email content
+//     const fetchStart = performance.now();
+//     const response = await fetch(emlUrl, {
+//       mode: "cors",
+//       credentials: "include", 
+//       headers: {
+//         Accept: "*/*",
+//       },
+//     });
+//     const fetchEnd = performance.now();
+//     console.info(`✓ Email fetch completed in ${(fetchEnd - fetchStart).toFixed(2)}ms`);
+
+//     // Step 2: Extract email text content
+//     const textStart = performance.now();
+//     const emailContent = await response.text();
+//     const textEnd = performance.now();
+//     console.info(`✓ Content extraction completed in ${(textEnd - textStart).toFixed(2)}ms`);
+//     console.debug("📧 Raw email content:", emailContent);
+
+//     // Step 3: Create formatted email blob
+//     const blobStart = performance.now();
+//     const formattedContent = [
+//       "MIME-Version: 1.0",
+//       "Content-Type: message/rfc822",
+//       "",
+//       emailContent,
+//     ].join("\r\n");
+
+//     const emlBlob = new Blob([formattedContent], {
+//       type: "message/rfc822", 
+//     });
+//     const blobEnd = performance.now();
+//     console.info(`✓ Blob creation completed in ${(blobEnd - blobStart).toFixed(2)}ms`);
+//     console.debug("📎 Email blob created:", emlBlob);
+
+//     // Step 4: Upload to server if blob exists
+//     if (emlBlob) {
+//       const serverStart = performance.now();
+//       await sendEmlToServer(currentMessageId, emlBlob, "gmail", emailId);
+//       const serverEnd = performance.now();
+//       console.info(`✓ Server upload completed in ${(serverEnd - serverStart).toFixed(2)}ms`);
+//       console.info("🚀 Email successfully sent to server");
+//     }
+
+//     // Log total execution time
+//     const totalTime = performance.now() - startTime;
+//     console.info(`✨ Total processing completed in ${totalTime.toFixed(2)}ms`);
+
+//   } catch (error) {
+//     console.error("❌ Email extraction failed:", error);
+//   }
+// }
+
+
+
 async function emlExtractionGmail(emlUrl, currentMessageId, emailId) {
   try {
     const response = await fetch(emlUrl, {
@@ -573,10 +670,14 @@ async function emlExtractionGmail(emlUrl, currentMessageId, emailId) {
       type: "message/rfc822",
     });
     console.log("Email Blob:", emlBlob);
-
     if (emlBlob) {
+      console.log('About to send to server:', {
+        currentMessageId,
+        emailId,
+        blobSize: emlBlob.size
+      });
       await sendEmlToServer(currentMessageId, emlBlob, "gmail", emailId);
-      console.log("Email Blob sent to server");
+      console.log('Server upload completed');
     }
   } catch (error) {
     console.log("Error fetching email data:", error);
@@ -617,6 +718,66 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   }
 });
 
+/**
+ * Extracts and processes Yahoo email content
+ * @param {string} emlUrl - URL to fetch email content
+ * @param {string} currentMessageId - Current message identifier
+ * @param {string} userEmail - User's email address
+ */
+// async function emlExtractionYahoo(emlUrl, currentMessageId, userEmail) {
+//   // Start performance tracking
+//   const startTime = performance.now();
+
+//   try {
+//     // Step 1: Fetch email content
+//     const fetchStart = performance.now();
+//     const response = await fetch(emlUrl);
+//     const fetchEnd = performance.now();
+//     console.info(`✓ Email fetch completed in ${(fetchEnd - fetchStart).toFixed(2)}ms`);
+
+//     // Step 2: Extract email text content
+//     const textStart = performance.now();
+//     const emailContent = await response.text();
+//     const textEnd = performance.now();
+//     console.info(`✓ Content extraction completed in ${(textEnd - textStart).toFixed(2)}ms`);
+//     console.debug("📧 Raw email content:", emailContent);
+
+//     // Step 3: Create formatted email blob
+//     const blobStart = performance.now();
+//     const formattedContent = [
+//       "MIME-Version: 1.0",
+//       "Content-Type: message/rfc822",
+//       "",
+//       emailContent,
+//     ].join("\r\n");
+
+//     const emlBlob = new Blob([formattedContent], {
+//       type: "message/rfc822",
+//     });
+//     const blobEnd = performance.now();
+//     console.info(`✓ Blob creation completed in ${(blobEnd - blobStart).toFixed(2)}ms`);
+//     console.debug("📎 Email blob created:", emlBlob);
+
+//     // Step 4: Upload to server if blob exists
+//     if (emlBlob) {
+//       const serverStart = performance.now();
+//       await sendEmlToServer(currentMessageId, emlBlob, "yahoo", userEmail);
+//       const serverEnd = performance.now();
+//       console.info(`✓ Server upload completed in ${(serverEnd - serverStart).toFixed(2)}ms`);
+//       console.info("🚀 Email successfully sent to server");
+//     }
+
+//     // Log total execution time
+//     const totalTime = performance.now() - startTime;
+//     console.info(`✨ Total processing completed in ${totalTime.toFixed(2)}ms`);
+
+//   } catch (error) {
+//     console.error("❌ Email extraction failed:", error);
+//   }
+// }
+
+
+
 async function emlExtractionYahoo(emlUrl, currentMessageId, userEmail) {
   try {
     const response = await fetch(emlUrl);
@@ -651,7 +812,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     let emlUrl = message.url;
 
     console.log("User email:", userEmail);
-    console.log("Message ID:", currentMessageId);
+    console.log("currentMessageId ID:", currentMessageId);
     console.log("EML URL:", emlUrl);
     emlExtractionYahoo(emlUrl, currentMessageId, userEmail);
   }
