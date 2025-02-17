@@ -12,16 +12,6 @@ let showBlockedPopup = null;
 let showLoadingScreen = null;
 let hideLoadingScreen = null;
 
-/**
- * Asynchronously imports two JavaScript modules using Promise.all and assigns specific functions
- * from the imported modules to global variables.
- *
- * - Imports `email_status.js` and `block_email_popup.js` components.
- * - Extracts `showAlert` from `email_status.js` and assigns it to a global variable.
- * - Extracts `showBlockedPopup` from `block_email_popup.js` and assigns it to a global variable.
- * - Ensures both modules are fully loaded before executing further logic.
- */
-
 Promise.all([
   importComponent("/src/component/email_status/email_status.js"),
   importComponent("/src/component/block_email_popup/block_email_popup.js"),
@@ -32,13 +22,6 @@ Promise.all([
   showLoadingScreen = loadingScreen.showLoadingScreen;
   hideLoadingScreen = loadingScreen.hideLoadingScreen;
 });
-// Promise.all([
-//   importComponent("/src/component/email_status/email_status.js"),
-//   importComponent("/src/component/block_email_popup/block_email_popup.js"),
-// ]).then(([emailStatus, blockPopup]) => {
-//   showAlert = emailStatus.showAlert;
-//   showBlockedPopup = blockPopup.showBlockedPopup;
-// });
 
 /**
  * Continuously checks for the presence of elements with the class "nH a98 iY" in the DOM.
@@ -71,8 +54,13 @@ const waitForElements = () => {
 // Replace the original setTimeout with the new function
 waitForElements();
 
+// document.addEventListener("visibilitychange", () => {
+//   if (!document.hidden) {
+//     findEmailId();
+//   }
+// });
 document.addEventListener("visibilitychange", () => {
-  if (!document.hidden) {
+  if (!document.hidden && !emailId) {
     findEmailId();
   }
 });

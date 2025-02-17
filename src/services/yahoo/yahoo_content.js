@@ -21,17 +21,7 @@ Promise.all([
   showLoadingScreen = loadingScreen.showLoadingScreen;
   hideLoadingScreen = loadingScreen.hideLoadingScreen;
 });
-// let showAlert = null;
-// let showBlockedPopup = null;
 
-// // Load components
-// Promise.all([
-//   importComponent("/src/component/email_status/email_status.js"),
-//   importComponent("/src/component/block_email_popup/block_email_popup.js"),
-// ]).then(([emailStatus, blockPopup]) => {
-//   showAlert = emailStatus.showAlert;
-//   showBlockedPopup = blockPopup.showBlockedPopup;
-// });
 
 let messageReason = " ";
 document.addEventListener("visibilitychange", function () {

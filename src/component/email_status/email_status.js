@@ -1,3 +1,28 @@
+/**
+ * Displays an alert message on the email platform (Gmail, Outlook, or Yahoo).
+ *
+ * The function detects the active email platform and creates a styled alert box
+ * that appears in the center of the screen. The alert provides different messages
+ * based on the provided key (`safe`, `unsafe`, or `inform`) and includes dynamic 
+ * styling and icons for better user visibility.
+ *
+ * @param {string} key - The type of alert to display (`safe`, `unsafe`, or `inform`).
+ * @param {string} [messageReason=" "] - An optional additional message for "unsafe" alerts.
+ *
+ * The function follows these steps:
+ * 1. Detects the email platform by checking the DOM structure.
+ * 2. Creates an alert container with styles for positioning and visibility.
+ * 3. Determines the alert type:
+ *    - `"safe"`: Displays a green success alert.
+ *    - `"unsafe"`: Displays a red warning alert with additional details.
+ *    - `"inform"`: Displays an orange informational alert.
+ * 4. Appends an animated SVG icon corresponding to the alert type.
+ * 5. Provides a close button to dismiss the alert.
+ * 6. The function exits if no supported email platform is detected.
+ *
+ * The function ensures a user-friendly and visually distinct alert system for security warnings.
+ */
+
 export function showAlert(key, messageReason = " ") {
   // Detect the email platform
   const GmailElements = document.getElementsByClassName("nH a98 iY");
