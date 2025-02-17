@@ -64,7 +64,6 @@ const waitForElements = () => {
       clearInterval(checkElements);
     } else if (attempts >= maxAttempts) {
       clearInterval(checkElements);
-      console.log("Elements not found after maximum attempts");
     }
   }, 1000);
 };
@@ -482,7 +481,6 @@ new MutationObserver(() => {
 
 function getBaseUrl(url) {
   const match = url.match(/^(https:\/\/mail\.google\.com\/mail\/u\/\d+)\//);
-  console.log(match);
   return match ? match[1] : "https://mail.google.com/mail/u/0"; // Default fallback
 }
 

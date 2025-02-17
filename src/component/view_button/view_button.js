@@ -14,15 +14,11 @@ import { loadCSS } from "/src/helper/content_loader_helper.js";
  * - Automatically loads required CSS styles
  * - Sets button class and text content
  * - Stores message ID in data attribute
- * - Auto-disables for SAFE, PENDING or status code 1
  *
  * Example:
  * const button = createViewButton('msg123', MAIL_STATUS.SAFE);
  * container.appendChild(button);
  *
- * Button States:
- * - Enabled: Default state for actionable items
- * - Disabled: For safe/pending mails or status code 1
  */
 export const createViewButton = (sender, status) => {
   const view_button = `/src/${BASEPATH.COMPONENT}/${COMPONENTS.VIEW_BUTTON}/${COMPONENTS.VIEW_BUTTON}`;
@@ -31,15 +27,5 @@ export const createViewButton = (sender, status) => {
   button.className = "view-button";
   button.textContent = "View";
   button.dataset.msg_id = sender;
-
-  // Disable button for safe and pending status
-  if (
-    status === MAIL_STATUS.SAFE ||
-    status === MAIL_STATUS.PENDING ||
-    status === 1
-  ) {
-    button.disabled = true;
-  }
-
   return button;
 };

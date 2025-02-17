@@ -38,7 +38,6 @@
   font-size: 16px;
 }
 
-
 .message-id-value {
   font-weight: bold;
   display: inline-block;
@@ -120,18 +119,6 @@ textarea:focus {
   height: 20px;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
 .custom-alert-overlay {
   position: fixed;
   top: 0;
@@ -148,15 +135,31 @@ textarea:focus {
 }
 
 @keyframes alertEntrance {
-  0% { transform: scale(0.5); opacity: 0; }
-  50% { transform: scale(1.2); }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 @keyframes successIconScale {
-  0% { transform: scale(0); opacity: 0; }
-  50% { transform: scale(1.2); }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 @keyframes fadeOut {
@@ -181,7 +184,7 @@ textarea:focus {
 
 .custom-alert-box.success {
   animation: alertEntrance 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  border-top: 5px solid #4CAF50;
+  border-top: 5px solid #4caf50;
 }
 
 .custom-alert-box.limit {
@@ -200,7 +203,7 @@ textarea:focus {
 
 .success-icon {
   animation: successIconScale 0.6s ease-out forwards;
-  fill: #4CAF50;
+  fill: #4caf50;
 }
 
 .limit-icon {
@@ -248,7 +251,7 @@ textarea:focus {
 }
 
 .custom-alert-box button::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;

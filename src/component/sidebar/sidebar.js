@@ -5,6 +5,7 @@ import { TARGET_ID } from "/src/constant/target_id.js";
 import { initializeDisputeForm } from "/src/pages/dispute/dispute.js";
 import { showLoader, hideLoader } from "/src/component/loader/loader.js";
 import { setCurrentSearchQuery } from "/src/pages/spam-mail/spam-mail.js";
+import {setCurrentdisputeMailSearchQuery} from "/src/pages/dispute-mail/dispute-mail.js";
 import {
   loadComponent,
   loadCssAndHtmlFile,
@@ -39,6 +40,7 @@ const updateActiveMenuItem = (clickedButton) => {
   if (searchInput) {
     searchInput.value = "";
     setCurrentSearchQuery("");
+    setCurrentdisputeMailSearchQuery("");
   }
 
   if (clearButton) {

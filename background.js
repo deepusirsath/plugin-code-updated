@@ -269,14 +269,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 response.emailId
               );
 
-              if (dispute_count >= 0) {
+              if (dispute_count > 0) {
                 sendResponse({
                   status:
-                    emailStatus === "Dispute"
+                    emailStatus === "Dispute" && !adminRemark
                       ? "Dispute"
                       : emailStatusData
                       ? emailStatusData
                       : "-",
+                  messageId: response.messageId,
+                  countRaise: dispute_count,
+                  emailId: response.emailId,
+                  senderEmail: response.senderEmail,
+                  adminRemark: adminRemark,
+                });
+              } else {
+                sendResponse({
+                  status: emailStatusData ? emailStatusData : "-",
                   messageId: response.messageId,
                   countRaise: dispute_count,
                   emailId: response.emailId,
@@ -313,7 +322,6 @@ async function checkDisputeStatus(messageId, email, sendResponse, client) {
     const serverData = data.data;
 
     if (data?.data?.eml_status) {
-      chrome.storage.local.set({ email_status: data?.data?.eml_status });
       handleEmailScanResponse(serverData, activeTabId, client);
       return data?.data?.eml_status || null;
     }
@@ -395,21 +403,11 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
   let unsafeReason = serverData.unsafe_reasons || " ";
   console.log("serverData:", serverData);
 
-  console.log("unsafe reason Response:", unsafeReason);
-  console.log(
-    "Received Message ID from Server:",
-    messId,
-    resStatus,
-    unsafeReason
-  );
-
   if (typeof resStatus === "undefined" || typeof messId === "undefined") {
     chrome.runtime.sendMessage({
       action: "erroRecievedFromServer",
       client: client,
     });
-  } else {
-    chrome.storage.local.set({ email_status: resStatus });
   }
 
   chrome.storage.local.get("messages", function (result) {
@@ -424,8 +422,6 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
     chrome.storage.local.set({ messages: JSON.stringify(messages) });
 
     if (currentMessageId == messId) {
-      console.log("Current Message Id matches");
-
       const statusActions = {
         unsafe: "blockUrls",
         Unsafe: "blockUrls",
@@ -818,37 +814,29 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-// Received message from dispute_popup for disputing on particular mail
-chrome.runtime.onMessage.addListener((request, messageId, sendResponse) => {
-  const messageIdData = request.messageId;
-  const email = request.emailId;
-  const client = request.client;
+const handleReload = async (messageIdData, email, client, sendResponse) => {
+  try {
+    const [disputeStatus, adminComment] = await Promise.all([
+      checkDisputeStatus(messageIdData, email, client),
+      checkAdminComment(messageIdData, email),
+    ]);
 
-  if (request.action === "reload") {
-    const combinedResponse = {};
-    let completedRequests = 0;
-
-    const handleApiResponse = () => {
-      completedRequests++;
-      if (completedRequests === 2) {
-        sendResponse(combinedResponse);
-      }
-    };
-
-    checkDisputeStatus(
-      messageIdData,
-      email,
-      (response) => {
-        combinedResponse.disputeStatus = response;
-        handleApiResponse();
-      },
-      client
-    );
-
-    checkAdminComment(messageIdData, email, (response) => {
-      combinedResponse.adminComment = response;
-      handleApiResponse();
+    sendResponse({
+      disputeStatus,
+      adminComment,
     });
+  } catch (error) {
+    sendResponse({ error: "Failed to fetch updates" });
+  }
+};
+
+// Received message from dispute_popup for disputing on particular mail
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === "reload") {
+    const messageIdData = request.messageId;
+    const email = request.emailId;
+    const client = request.client;
+    handleReload(messageIdData, email, client, sendResponse);
     return true;
   }
 });
@@ -859,11 +847,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const email = message.email;
   const url = baseUrl + "/pending-status-check/";
   if (message.action === "firstCheckForEmail") {
-    console.log(
-      "Received message from content.js first Check Email here :",
-      message
-    );
-
     fetch(url, {
       method: "POST",
       headers: {
@@ -876,7 +859,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log("Response received from the server:", data);
         sendResponse({
           IsResponseRecieved: "success",
           data: data,
@@ -884,7 +866,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
       })
       .catch((error) => {
-        console.error("Error in calling the first check API:", error);
         sendResponse({
           status: "error",
           client: client,

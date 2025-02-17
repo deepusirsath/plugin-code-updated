@@ -5,6 +5,7 @@ import {
 } from "/src/routes/api_route.js";
 import { postData } from "/src/api/api_method.js";
 import { showCustomAlert } from "/src/component/custom_alert/custom_alert.js";
+import { showLoader, hideLoader } from "/src/component/loader/loader.js";
 
 /**
  * Initializes and manages a dispute form interface with validation and submission handling
@@ -36,12 +37,21 @@ import { showCustomAlert } from "/src/component/custom_alert/custom_alert.js";
 export const initializeDisputeForm = (disputeData) => {
   const reasonTextarea = document.getElementById("reason");
   const submitButton = document.getElementById("submit");
+  const reloadIcon = document.getElementById("reload");
+
   document.getElementById("messageId").innerHTML = disputeData.messageId;
   document.querySelector(".status").textContent = disputeData.status;
   document.getElementById("emailId").textContent = disputeData.senderEmail;
   document.getElementById("countRaise").textContent = disputeData.countRaise;
   document.getElementById("adminRemark").textContent =
     disputeData.adminRemark || " - ";
+
+  const updateReloadIconVisibility = (status) => {
+    reloadIcon.style.display = status === "Dispute" ? "inline-block" : "none";
+  };
+
+  // Initial visibility setup
+  updateReloadIconVisibility(disputeData.status);
 
   /**
    * Calculates the word count of a given text.
@@ -111,17 +121,51 @@ export const initializeDisputeForm = (disputeData) => {
    *   - User's reason text
    *   - Message ID
    *   - Receiver's email from Chrome storage
-   * - Sends dispute if count is within limits
-   * - Shows alert and disables submission if limit exceeded
+   * - Sends dispute if count is within limits (0-2)
+   * - Shows alert and disables submission if:
+   *   - Previous dispute is pending
+   *   - Maximum limit (3) reached
    *
    * @listens {click}
    * @async
    * @fires sendDispute - When dispute count is valid
    * @fires showCustomAlert - When dispute limit is reached
    */
+  // submitButton.addEventListener("click", async () => {
+  //   disableSubmitButton();
+  //   const disputeCount = disputeData.countRaise || 0;
+  //   if (disputeCount < 3 && disputeCount >= 0) {
+  //     const reasonText = reasonTextarea.value.trim();
+  //     const messageId = document.getElementById("messageId").textContent;
+  //     const receiver_email = await chrome.storage.local.get("receiver_email");
+  //     sendDispute(reasonText, messageId, receiver_email?.receiver_email);
+  //   } else {
+  //     disableSubmitButton();
+  //     showCustomAlert(
+  //       "You have reached the maximum limit for disputes. Each email can be disputed a maximum of three times.",
+  //       "limit"
+  //     );
+  //   }
+  // });
   submitButton.addEventListener("click", async () => {
     disableSubmitButton();
     const disputeCount = disputeData.countRaise || 0;
+    const currentStatus = disputeData.status;
+
+    const existingAlerts = document.querySelectorAll(".custom-alert-overlay");
+    existingAlerts.forEach((alert) => alert.remove());
+
+    // Check if previous dispute is still pending admin response
+    if (currentStatus === "Dispute" && disputeCount < 3) {
+      showCustomAlert(
+        "Please wait for admin response before raising another dispute.",
+        "warning"
+      );
+      enableSubmitButton();
+      return;
+    }
+
+    // Check dispute count limit
     if (disputeCount < 3 && disputeCount >= 0) {
       const reasonText = reasonTextarea.value.trim();
       const messageId = document.getElementById("messageId").textContent;
@@ -171,7 +215,7 @@ export const initializeDisputeForm = (disputeData) => {
       return;
     }
     window.disputeAlertShown = true;
-    
+
     if (!response?.error) {
       showCustomAlert(
         "Your dispute has been successfully submitted. Please wait for the admin's response.",
@@ -184,6 +228,8 @@ export const initializeDisputeForm = (disputeData) => {
   };
 
   document.getElementById("reload").addEventListener("click", async () => {
+    reloadIcon.innerHTML = "";
+    showLoader();
     const messageId = document.getElementById("messageId").textContent;
     const email = await chrome.storage.local.get("receiver_email");
     const emailId = email.receiver_email;
@@ -192,10 +238,18 @@ export const initializeDisputeForm = (disputeData) => {
     chrome.runtime.sendMessage(
       { action: "reload", messageId, emailId, client: client },
       (response) => {
-        document.querySelector(".status").textContent =
-          response.disputeStatus.status;
-        document.getElementById("adminRemark").textContent =
-          response.adminComment.adminRemark;
+        hideLoader();
+        reloadIcon.innerHTML =
+          '<img src="/src/icons/reload.png" alt="reload icon">';
+        if (response.adminComment !== null) {
+          const newStatus = response.disputeStatus;
+          document.querySelector(".status").textContent = newStatus;
+          document.getElementById("adminRemark").textContent =
+            response.adminComment;
+          updateReloadIconVisibility(newStatus);
+        } else {
+          document.querySelector(".status").textContent = "Dispute";
+        }
       }
     );
   });
@@ -257,7 +311,6 @@ export const checkDisputeCount = async (messageId) => {
   try {
     const data = await postData(PLUGIN_COUNTER, { messageId });
     const dispute_count = data.counter || 0;
-    console.log("dispute_count fetched from the API: ", dispute_count);
     if (dispute_count) {
       chrome.storage.local.set({
         dispute_count: data.counter || 0,

@@ -30,7 +30,7 @@ let currentSearchQuery = "";
  * @function setCurrentSearchQuery
  * @returns {void}
  */
-export const setCurrentSearchQuery = (value) => {
+export const setCurrentdisputeMailSearchQuery = (value) => {
   currentSearchQuery = value;
 };
 
@@ -309,5 +309,3 @@ document.addEventListener("componentLoaded", (event) => {
     loadDisputeMailComponent(1);
   }
 });
-
-loadDisputeMailComponent(1);

@@ -130,6 +130,7 @@ const handleCDRFiles = (createViewDetail) => {
  * @param {string} createViewDetail.body - Email body content (HTML)
  * @param {Array} [createViewDetail.unsafe_reasons] - List of security remarks
  * @param {Array} [createViewDetail.cdr_files] - List of CDR processed files
+ *  @param {Array} [createViewDetail.attachments] - List of email attachments
  * @returns {HTMLDivElement} The created popup element
  *
  * The function:
@@ -166,18 +167,22 @@ export const createViewDetail = (createViewDetail) => {
         </div>
         <div class="detail-row">
           <label>Body:</label>
-          <div id="email-body">${extractBodyContent(
-            createViewDetail.body
-          )}</div>                        
+         <div class="email-body">
+         ${extractBodyContent(createViewDetail.body)}
+         ${createViewDetail.attachments
+           .map((attachment) => {
+             return `<div><span>${attachment.file_name}</span></div>`;
+           })
+           .join("")}
+         </div>
         </div>
-        <div id="cdr-files-container"></div>
+      <div id="cdr-files-container"></div>
       </div>
     </div>
   `;
 
   popup.querySelector(".close-popup").addEventListener("click", () => {
     popup.remove();
-    onClose();
   });
 
   document.body.appendChild(popup);
