@@ -24,7 +24,9 @@ let hideLoadingScreen = null;
 Promise.all([
   importComponent("/src/component/email_status/email_status.js"),
   importComponent("/src/component/block_email_popup/block_email_popup.js"),
-  importComponent("/src/component/outlook_loading_screen/outlook_loading_screen.js")
+  importComponent(
+    "/src/component/outlook_loading_screen/outlook_loading_screen.js"
+  ),
 ]).then(([emailStatus, blockPopup, loadingScreen]) => {
   showAlert = emailStatus.showAlert;
   showBlockedPopup = blockPopup.showBlockedPopup;
@@ -122,7 +124,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (data.registration) {
           const lastSegment = url.split("/").pop().split("#").pop();
           if (lastSegment.length >= isValidSegmentLength) {
-            console.log("isValidSegmentLength is pass")
+            console.log("isValidSegmentLength is pass");
             showLoadingScreen();
             init();
           }
@@ -132,9 +134,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse({ status: "received" });
   }
 });
-
-
-
 
 /**
  * Chrome runtime message listener for Gmail-related actions
@@ -308,7 +307,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 // Function to initialize the script
+let isInitialized = false;
 const init = () => {
+  if (isInitialized) return;
+  isInitialized = true;
+
   Promise.all([extractMessageIdAndEml(), findEmailId()])
     .then(() => console.log("Operations completed"))
     .catch((error) => console.error("Error:", error));
@@ -416,7 +419,9 @@ async function extractMessageIdAndEml() {
                     () => {
                       shouldApplyPointerEvents = resStatus !== "safe";
                       blockEmailBody();
-                      console.log("VAlidate Safe content detected hideLoadingScreen");
+                      console.log(
+                        "VAlidate Safe content detected hideLoadingScreen"
+                      );
                       hideLoadingScreen();
                       showAlert(resStatus, unsafeReason);
                     }
@@ -449,26 +454,25 @@ new MutationObserver(() => {
     lastUrl = currentUrl;
     hideLoadingScreen();
   }
-}).observe(document, {subtree: true, childList: true});
-
+}).observe(document, { subtree: true, childList: true });
 
 /**
  * Extracts the base Gmail URL from a full Gmail URL
- * 
+ *
  * @param {string} url - Full Gmail URL to parse
  * @returns {string} Base Gmail URL or default fallback URL
- * 
+ *
  * @description
  * - Uses regex to match Gmail URL pattern with user number
  * - Extracts base URL up to user number (e.g. /mail/u/0)
  * - Returns default URL if no match found
- * 
+ *
  * @example
  * // Returns "https://mail.google.com/mail/u/1"
  * getBaseUrl("https://mail.google.com/mail/u/1/inbox")
- * 
+ *
  * // Returns default "https://mail.google.com/mail/u/0"
- * getBaseUrl("invalid-url") 
+ * getBaseUrl("invalid-url")
  */
 
 function getBaseUrl(url) {
@@ -478,10 +482,10 @@ function getBaseUrl(url) {
 
 /**
  * Constructs a Gmail EML download URL and sends message data to background script
- * 
+ *
  * @param {string} url - The current Gmail URL used to extract the base URL
  * @param {string} messageId - The unique identifier for the Gmail message
- * 
+ *
  * @description
  * This function:
  * 1. Gets the base Gmail URL using getBaseUrl()
@@ -493,12 +497,12 @@ function getBaseUrl(url) {
  *    - safe=1: Safe mode enabled
  *    - zw: Gmail-specific parameter
  * 3. Sends the constructed URL and message details to background script
- * 
+ *
  * @example
  * // For Gmail URL: https://mail.google.com/mail/u/0/#inbox/ABC123
  * createUrl('https://mail.google.com/mail/u/0/#inbox/ABC123', 'ABC123');
  * // Creates EML URL: https://mail.google.com/mail/u/0/?view=att&th=ABC123&attid=0&disp=comp&safe=1&zw
- * 
+ *
  * @throws {Error} Logs error if sending message to background script fails
  */
 
