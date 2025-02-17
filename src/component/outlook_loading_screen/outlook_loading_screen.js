@@ -29,7 +29,8 @@ export function showLoadingScreen() {
     left: 0,
     width: "100%",
     height: "100%",
-    background: "linear-gradient(120deg, rgba(22, 22, 28, 0.9), rgba(12, 12, 18, 0.9))",
+    background:
+      "linear-gradient(120deg, rgba(22, 22, 28, 0.9), rgba(12, 12, 18, 0.9))",
     backdropFilter: "blur(6px)",
     display: "flex",
     alignItems: "center",
@@ -48,7 +49,7 @@ export function showLoadingScreen() {
     alignItems: "center",
     maxWidth: "400px",
     width: "100%",
-    gap: "40px"
+    gap: "40px",
   });
 
   // Wave animation container
@@ -196,7 +197,6 @@ export function showLoadingScreen() {
  * 4. Displays a "Done!" message with a fade-in effect.
  * 5. Removes the loading screen from the DOM after a brief delay.
  */
-
 export const hideLoadingScreen = () => {
   const loadingScreen = document.getElementById('loading-screen');
 
