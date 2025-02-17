@@ -6,7 +6,6 @@ const importComponent = async (path) => {
 
 console.log("Content script loaded");
 // Initialize UI components
-// Initialize UI components
 let showAlert = null;
 let showBlockedPopup = null;
 let showLoadingScreen = null;
@@ -32,13 +31,6 @@ Promise.all([
   showLoadingScreen = loadingScreen.showLoadingScreen;
   hideLoadingScreen = loadingScreen.hideLoadingScreen;
 });
-// Promise.all([
-//   importComponent("/src/component/email_status/email_status.js"),
-//   importComponent("/src/component/block_email_popup/block_email_popup.js"),
-// ]).then(([emailStatus, blockPopup]) => {
-//   showAlert = emailStatus.showAlert;
-//   showBlockedPopup = blockPopup.showBlockedPopup;
-// });
 
 /**
  * Continuously checks for the presence of elements with the class "nH a98 iY" in the DOM.

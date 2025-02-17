@@ -5,7 +5,6 @@ const importComponent = async (path) => {
 };
 
 // Initialize UI components
-// Initialize UI components
 let showAlert = null;
 let showBlockedPopup = null;
 let showLoadingScreen = null;
@@ -21,17 +20,6 @@ Promise.all([
   showLoadingScreen = loadingScreen.showLoadingScreen;
   hideLoadingScreen = loadingScreen.hideLoadingScreen;
 });
-// let showAlert = null;
-// let showBlockedPopup = null;
-
-// // Load components
-// Promise.all([
-//   importComponent("/src/component/email_status/email_status.js"),
-//   importComponent("/src/component/block_email_popup/block_email_popup.js"),
-// ]).then(([emailStatus, blockPopup]) => {
-//   showAlert = emailStatus.showAlert;
-//   showBlockedPopup = blockPopup.showBlockedPopup;
-// });
 
 let messageReason = " ";
 document.addEventListener("visibilitychange", function () {
@@ -85,7 +73,6 @@ const url = window.location.href;
  *
  * @returns {void} Sends a response containing email details if found or an error message.
  */
-
 function handleYahooMailCheck(message, sendResponse) {
   if (
     message.action == "checkYahoomail" ||
@@ -147,7 +134,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
  * @param {Object} sender - Information about the script or extension sending the message.
  * @param {Function} sendResponse - A function to send a response back to the sender.
  */
-
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === "runScript") {
     console.log("URL contains 'message'. Running script...");
@@ -195,7 +181,6 @@ if (yahooMailRegex.test(url) && !extractionDone) {
  * - Stores the extracted message ID and user email in global variables.
  * - Sets `extractionDone` to `true` to indicate completion.
  */
-
 async function executeExtractionScript() {
   setTimeout(() => {
     const { lastMessageId, userEmail } = extractIdsFromNonceScripts();
@@ -226,7 +211,6 @@ new MutationObserver(() => {
  * The extraction process is marked as complete by setting `extractionDone` to `true`.
  * A timeout of 100ms is used to ensure necessary elements are available.
  */
-
 async function executeExtractionScriptIfFailed() {
   setTimeout(() => {
     const { lastMessageId, userEmail } = extractIdsFromNonceScripts();
@@ -248,7 +232,6 @@ async function executeExtractionScriptIfFailed() {
  * @param {Object} sender - The sender of the message.
  * @param {Function} sendResponse - A function to send a response back to the sender (not used in this case).
  */
-
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (
     request.action === "EmailNotFoundInPendingRequest" &&
@@ -273,7 +256,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  *
  * Note: The function currently does not send the coordinates to the background script, but the logic is in place for future use.
  */
-
 function fetchLocation() {
   // Ensure this only runs on Outlook's live mail domain
   let first = "https://mail.yahoo.com/";
@@ -321,7 +303,6 @@ function fetchLocation() {
  *
  * Logs the action performed to the console.
  */
-
 function blockEmailBody() {
   const element = document.querySelector(
     'div[data-test-id="message-group-view-scroller"]'
@@ -357,7 +338,6 @@ function blockEmailBody() {
  *
  * @returns {Object} An object containing the last extracted message ID and user email.
  */
-
 function extractIdsFromNonceScripts() {
   console.log("Extracting IDs from scripts start...");
   let messageIds = [];
@@ -551,7 +531,6 @@ function extractIdsFromNonceScripts() {
  * @param {string} lastMessageId - The unique identifier for the last email message.
  * @param {string} userEmail - The email address of the user.
  */
-
 function createUrl(selectedMailboxId, lastMessageId, userEmail) {
   console.log("Script Executed===========================");
   const url = `https://apis.mail.yahoo.com/ws/v3/mailboxes/@.id==${selectedMailboxId}/messages/@.id==${lastMessageId}/content/rawplaintext?appId=YMailNovation`;
@@ -579,7 +558,6 @@ function createUrl(selectedMailboxId, lastMessageId, userEmail) {
  * @param {Object} sender - The sender of the message (not used in this case).
  * @param {Function} sendResponse - A function to send a response back to the sender (not used in this case).
  */
-
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (
     request.action === "erroRecievedFromServer" &&
@@ -611,7 +589,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  *   - Calls `blockEmailBody()` to apply necessary email body restrictions.
  *   - Sends a success response back to the sender.
  */
-
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.client === "yahoo") {
     messageReason = message.unsafeReason;
@@ -661,7 +638,6 @@ chrome.storage.local.get("messages", function (data) {
  * This function is used to enforce restrictions on certain UI elements by displaying
  * a blocked popup when interactions are detected.
  */
-
 window.addEventListener("click", (e) => {
   const element = document.querySelector(
     'div[data-test-id="message-group-view-scroller"]'
