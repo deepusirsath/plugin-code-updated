@@ -43,7 +43,6 @@ const waitForElements = () => {
     attempts++;
 
     if (elements && elements.length > 0) {
-      // showLoadingScreen();
       blockEmailBody();
       clearInterval(checkElements);
     } else if (attempts >= maxAttempts) {
@@ -121,7 +120,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           const lastSegment = url.split("/").pop().split("#").pop();
           if (lastSegment.length >= isValidSegmentLength) {
             console.log("isValidSegmentLength is pass");
-            showLoadingScreen();
             init();
           }
         }
@@ -378,7 +376,9 @@ async function extractMessageIdAndEml() {
           messageId: messageId,
         });
       }
-    } else {
+    } 
+    else {
+      showLoadingScreen();
       shouldApplyPointerEvents = true;
       blockEmailBody();
       chrome.runtime.sendMessage(
