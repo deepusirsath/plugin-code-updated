@@ -307,11 +307,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 // Function to initialize the script
-let isInitialized = false;
 const init = () => {
-  if (isInitialized) return;
-  isInitialized = true;
-
   Promise.all([extractMessageIdAndEml(), findEmailId()])
     .then(() => console.log("Operations completed"))
     .catch((error) => console.error("Error:", error));
