@@ -104,6 +104,7 @@ let messageReason = " ";
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "GmailDetectedForExtraction") {
+    console.log("GmailDetectedForExtraction message received");
     setTimeout(() => {
       let url = window.location.href;
 
@@ -125,7 +126,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           }
         }
       });
-    }, 1000);
+    }, 100);
     sendResponse({ status: "received" });
   }
 });
