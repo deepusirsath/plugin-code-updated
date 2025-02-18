@@ -165,7 +165,6 @@ if (yahooMailRegex.test(url) && !extractionDone) {
     }
     if (data.registration) {
       setTimeout(() => {
-        showLoadingScreen();
       }, 500); // Move this inside executeExtractionScript
       executeExtractionScript();
     }
@@ -406,7 +405,6 @@ function extractIdsFromNonceScripts() {
   if (lastMessageId) {
     chrome.storage.local.get("messages", function (result) {
       let messages = JSON.parse(result.messages || "{}");
-
       if (messages[lastMessageId]) {
         console.log("Thread ID status:", messages[lastMessageId]);
         const status = messages[lastMessageId].status;
@@ -436,7 +434,10 @@ function extractIdsFromNonceScripts() {
             messageId: sendMessageId,
           });
         }
-      } else {
+      } 
+      else {
+        console.log("No status found in local storage. Sending message to background for first check.");
+        showLoadingScreen();
         shouldApplyPointerEvents = true;
         blockEmailBody();
         console.log(
