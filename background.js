@@ -508,71 +508,26 @@ async function checkPendingResponseStatus(messageId, email, client) {
 
 // ________________________________________ GMAIL ______________________________________________
 
-
-// let processedMessageIds = new Set();
-// let lastProcessedTime = 0;
-// const DEBOUNCE_DELAY = 300; // increased to 300ms
-
-// chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-//   const currentTime = Date.now();
-//   // Only process when status is complete to ensure full page load
-//   if (changeInfo.status === "complete") {
-//     if (currentTime - lastProcessedTime < DEBOUNCE_DELAY) {
-//       return;
-//     }
-//     lastProcessedTime = currentTime;
-//     const urlToCheck = tab.url;
-//     const matchedKeyword = checkGmailUrl(urlToCheck);
-//     if (matchedKeyword) {
-//       // Get current message ID from URL
-//       const messageId = urlToCheck.split('/').pop();
-//       // Check if we've already processed this message
-//       if (!processedMessageIds.has(messageId)) {
-//         processedMessageIds.add(messageId);
-//         chrome.tabs.sendMessage(
-//           tabId,
-//           { action: "GmailDetectedForExtraction" },
-//           (response) => {
-//             console.log("Response from content script:", response);
-//           }
-//         );
-//         // Clear old message IDs periodically
-//         if (processedMessageIds.size > 100) {
-//           processedMessageIds.clear();
-//         }
-//       }
-//     }
-//   }
-// });
-
-
-
-let lastProcessedTime = 0;
-const DEBOUNCE_DELAY = 100; // milliseconds
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  const currentTime = Date.now();
-
-  if (changeInfo.url || changeInfo.status === "complete") {
-    // Prevent duplicate executions within the debounce delay
-    if (currentTime - lastProcessedTime < DEBOUNCE_DELAY) {
-      return;
-    }
-
-    lastProcessedTime = currentTime;
-    const urlToCheck = changeInfo.url || tab.url;
+  if (changeInfo.status === "complete") {
+    const urlToCheck = tab.url;
     const matchedKeyword = checkGmailUrl(urlToCheck);
 
     if (matchedKeyword) {
-      chrome.tabs.sendMessage(
-        tabId,
-        { action: "GmailDetectedForExtraction" },
-        (response) => {
-          console.log("Response from content script:", response);
-        }
-      );
+      setTimeout(() => {
+        chrome.tabs.sendMessage(
+          tabId,
+          { action: "GmailDetectedForExtraction" },
+          (response) => {
+            console.log("Response from content script:", response);
+          }
+        );
+      }, 1000);
     }
   }
 });
+
+
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "sendGmailData") {

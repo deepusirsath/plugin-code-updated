@@ -104,6 +104,7 @@ let messageReason = " ";
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "GmailDetectedForExtraction") {
+    console.log("GmailDetectedForExtraction message received");
     setTimeout(() => {
       let url = window.location.href;
 
@@ -125,7 +126,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           }
         }
       });
-    }, 1000);
+    }, 100);
     sendResponse({ status: "received" });
   }
 });
@@ -302,11 +303,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 // Function to initialize the script
-let isInitialized = false;
 const init = () => {
-  if (isInitialized) return;
-  isInitialized = true;
-
   Promise.all([extractMessageIdAndEml(), findEmailId()])
     .then(() => console.log("Operations completed"))
     .catch((error) => console.error("Error:", error));
