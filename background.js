@@ -352,10 +352,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 async function sendEmlToServer(messageId, blob = null, client, user_email) {
   try {
     // if (!pluginId) {
-    //   pluginId = chrome.runtime.id;
+    //   await getExtensionid();
     // }
     console.log("sendEmlToServer process has started");
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tabs || !tabs.length) {
+      throw new Error("No active tab available");
+    }
     const activeTabId = tabs[0].id;
     const formData = new FormData();
 
