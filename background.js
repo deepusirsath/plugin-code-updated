@@ -224,7 +224,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       ["extensionId", "browserInfo", "ipAddress"],
       (data) => {
         if (chrome.runtime.lastError) {
-          console.error(chrome.runtime.lastError);
           sendResponse({ error: chrome.runtime.lastError });
           return;
         }

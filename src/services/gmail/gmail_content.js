@@ -106,7 +106,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
       chrome.storage.local.get("registration", (data) => {
         if (chrome.runtime.lastError) {
-          console.error(chrome.runtime.lastError);
           return;
         }
 

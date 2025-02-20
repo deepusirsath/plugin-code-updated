@@ -47,7 +47,6 @@ let userEmailId = null;
  */
 chrome.storage.local.get("registration", (data) => {
   if (chrome.runtime.lastError) {
-    console.error(chrome.runtime.lastError);
     return;
   }
   if (data.registration) {
@@ -592,7 +591,6 @@ function setupClickListener(attempts = 500) {
                       }
                     )
                     .catch((error) => {
-                      console.log("API call failed:", error);
                       showAlert("inform");
                     });
                 }
@@ -868,7 +866,6 @@ chrome.storage.local.get("messages", function (result) {
 
 chrome.storage.local.get("registration", (data) => {
   if (chrome.runtime.lastError) {
-    console.error(chrome.runtime.lastError);
     return;
   }
 

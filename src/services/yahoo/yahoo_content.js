@@ -163,7 +163,6 @@ if (yahooMailRegex.test(url) && !extractionDone) {
  
   chrome.storage.local.get("registration", (data) => {
     if (chrome.runtime.lastError) {
-      console.error(chrome.runtime.lastError);
       return;
     }
     if (data.registration) {
@@ -437,7 +436,6 @@ function extractIdsFromNonceScripts() {
           },
           (response) => {
             if (chrome.runtime.lastError) {
-              console.error("Error sending message:", chrome.runtime.lastError);
               return;
             }
             let error = response.status;
@@ -484,7 +482,6 @@ function extractIdsFromNonceScripts() {
                 }, 100);
               }
             } else if (response.status === "error") {
-              console.log("API call failed ok:", error);
               showAlert("inform");
             }
           }
