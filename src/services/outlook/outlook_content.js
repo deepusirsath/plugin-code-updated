@@ -277,7 +277,7 @@ function blockUserInteraction() {
   window.addEventListener("keydown", preventDefaultForKeyPress, true); // Block keyboard interaction
   window.addEventListener("mousedown", preventDefaultForMouse, true); // Block mouse clicks
 }
-
+// Unblocking user interactions
 function unblockUserInteraction() {
   document.body.style.pointerEvents = ""; // Re-enable pointer events
   window.removeEventListener("keydown", preventDefaultForKeyPress, true); // Unblock keyboard

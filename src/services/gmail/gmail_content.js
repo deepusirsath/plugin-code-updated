@@ -54,11 +54,6 @@ const waitForElements = () => {
 // Replace the original setTimeout with the new function
 waitForElements();
 
-// document.addEventListener("visibilitychange", () => {
-//   if (!document.hidden) {
-//     findEmailId();
-//   }
-// });
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden && !emailId) {
     findEmailId();
