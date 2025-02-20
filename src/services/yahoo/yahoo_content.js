@@ -14,7 +14,9 @@ let hideLoadingScreen = null;
 Promise.all([
   importComponent("/src/component/email_status/email_status.js"),
   importComponent("/src/component/block_email_popup/block_email_popup.js"),
-  importComponent("/src/component/outlook_loading_screen/outlook_loading_screen.js")
+  importComponent(
+    "/src/component/outlook_loading_screen/outlook_loading_screen.js"
+  ),
 ]).then(([emailStatus, blockPopup, loadingScreen]) => {
   showAlert = emailStatus.showAlert;
   showBlockedPopup = blockPopup.showBlockedPopup;
@@ -165,8 +167,7 @@ if (yahooMailRegex.test(url) && !extractionDone) {
       return;
     }
     if (data.registration) {
-      setTimeout(() => {
-      }, 500); // Move this inside executeExtractionScript
+      setTimeout(() => {}, 500); // Move this inside executeExtractionScript
       executeExtractionScript();
     }
   });
@@ -199,7 +200,6 @@ new MutationObserver(() => {
     hideLoadingScreen();
   }
 }).observe(document, { subtree: true, childList: true });
-
 
 /**
  * Executes the email extraction script with a delay.
@@ -434,9 +434,10 @@ function extractIdsFromNonceScripts() {
             messageId: sendMessageId,
           });
         }
-      } 
-      else {
-        console.log("No status found in local storage. Sending message to background for first check.");
+      } else {
+        console.log(
+          "No status found in local storage. Sending message to background for first check."
+        );
         showLoadingScreen();
         shouldApplyPointerEvents = true;
         blockEmailBody();

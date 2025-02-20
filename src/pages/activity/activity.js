@@ -171,7 +171,6 @@ const getGraphData = async () => {
       hideLoader();
       displayError();
     }
-    hideLoader();
   }
 };
 
