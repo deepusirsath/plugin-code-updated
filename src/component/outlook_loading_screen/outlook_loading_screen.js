@@ -182,106 +182,13 @@ export function showLoadingScreen() {
   }, 120000);
 }
 
-/**
- * Hides the loading screen with a smooth transition effect.
- * 
- * This function selects the loading screen element and gradually fades out 
- * the loading animation, replacing it with a success checkmark and "Done!" text. 
- * It applies CSS animations for a smooth transition effect before finally 
- * removing the loading screen from the DOM.
- * 
- * Steps:
- * 1. Selects the loading screen and its relevant child elements.
- * 2. Fades out the wave animation and loading text.
- * 3. Creates and animates a success checkmark inside a circular border.
- * 4. Displays a "Done!" message with a fade-in effect.
- * 5. Removes the loading screen from the DOM after a brief delay.
- */
-// export const hideLoadingScreen = () => {
-//   const loadingScreen = document.getElementById('loading-screen');
-
-//   if (!loadingScreen) return; // If loading screen is already removed, do nothing
-
-//   try {
-//     const mainContainer = loadingScreen.querySelector('[style*="background: rgba(255, 255, 255, 0.03)"]');
-//     const waveContainer = loadingScreen.querySelector('[style*="overflow: hidden"]');
-//     const loadingText = document.getElementById('loading-text');
-
-//     if (waveContainer) {
-//       waveContainer.style.transition = 'opacity 0.3s ease-out';
-//       waveContainer.style.opacity = '0';
-//     }
-
-//     if (loadingText) {
-//       loadingText.style.transition = 'opacity 0.3s ease-out';
-//       loadingText.style.opacity = '0';
-//     }
-
-//     if (mainContainer) {
-//       mainContainer.innerHTML = ''; // Clear previous content
-
-//       // ✅ Create success checkmark
-//       const successMark = document.createElement('div');
-//       Object.assign(successMark.style, {
-//         width: '60px',
-//         height: '60px',
-//         border: '3px solid #4CAF50',
-//         borderRadius: '50%',
-//         display: 'flex',
-//         alignItems: 'center',
-//         justifyContent: 'center',
-//         fontSize: '30px',
-//         color: '#4CAF50',
-//         animation: 'successScale 0.3s ease-in-out forwards'
-//       });
-//       successMark.textContent = '✓';
-
-//       // ✅ Add "Done!" text with opacity fix
-//       const doneText = document.createElement('div');
-//       Object.assign(doneText.style, {
-//         color: '#fff',
-//         fontFamily: 'system-ui, sans-serif',
-//         fontSize: '18px',
-//         fontWeight: '500',
-//         marginTop: '15px',
-//         opacity: '0', // Initially hidden
-//         transition: 'opacity 0.3s ease-in-out'
-//       });
-//       doneText.textContent = 'Done!';
-
-//       mainContainer.appendChild(successMark);
-//       mainContainer.appendChild(doneText);
-
-//       // ✅ Ensure "Done!" text becomes visible
-//       setTimeout(() => {
-//         doneText.style.opacity = '1';
-//       }, 300);
-//     }
-
-//     // ✅ Fade out and remove loading screen
-//     setTimeout(() => {
-//       loadingScreen.style.transition = 'opacity 0.5s ease-out';
-//       loadingScreen.style.opacity = '0';
-
-//       setTimeout(() => {
-//         if (loadingScreen.parentNode) {
-//           loadingScreen.remove();
-//         }
-//       }, 500);
-//     }, 1500);
-//   } catch (error) {
-//     console.error('Error in hideLoadingScreen:', error);
-//     loadingScreen.remove();
-//   }
-// };
-
 let isRemovalInProgress = false;
 let debounceTimer;
 
 export const hideLoadingScreen = () => {
   // Clear any existing timer
   clearTimeout(debounceTimer);
-  
+
   // Set new debounce timer
   debounceTimer = setTimeout(() => {
     if (isRemovalInProgress) {
@@ -289,61 +196,65 @@ export const hideLoadingScreen = () => {
       return;
     }
 
-    const loadingScreen = document.getElementById('loading-screen');
+    const loadingScreen = document.getElementById("loading-screen");
     console.log("Attempting to hide loading screen...");
-    
+
     if (loadingScreen) {
       isRemovalInProgress = true;
-      
-      const mainContainer = loadingScreen.querySelector('[style*="background: rgba(255, 255, 255, 0.03)"]');
-      const waveContainer = loadingScreen.querySelector('[style*="overflow: hidden"]');
-      const loadingText = document.getElementById('loading-text');
+
+      const mainContainer = loadingScreen.querySelector(
+        '[style*="background: rgba(255, 255, 255, 0.03)"]'
+      );
+      const waveContainer = loadingScreen.querySelector(
+        '[style*="overflow: hidden"]'
+      );
+      const loadingText = document.getElementById("loading-text");
 
       if (waveContainer) {
-        waveContainer.style.transition = 'opacity 0.3s ease-out';
-        waveContainer.style.opacity = '0';
+        waveContainer.style.transition = "opacity 0.3s ease-out";
+        waveContainer.style.opacity = "0";
       }
 
       if (loadingText) {
-        loadingText.style.transition = 'opacity 0.3s ease-out';
-        loadingText.style.opacity = '0';
+        loadingText.style.transition = "opacity 0.3s ease-out";
+        loadingText.style.opacity = "0";
       }
 
       if (mainContainer) {
-        mainContainer.innerHTML = '';
+        mainContainer.innerHTML = "";
 
-        const successMark = document.createElement('div');
+        const successMark = document.createElement("div");
         Object.assign(successMark.style, {
-          width: '60px',
-          height: '60px',
-          border: '3px solid #4CAF50',
-          borderRadius: '50%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '30px',
-          color: '#4CAF50',
-          animation: 'successScale 0.3s ease-in-out forwards'
+          width: "60px",
+          height: "60px",
+          border: "3px solid #4CAF50",
+          borderRadius: "50%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "30px",
+          color: "#4CAF50",
+          animation: "successScale 0.3s ease-in-out forwards",
         });
-        successMark.textContent = '✓';
+        successMark.textContent = "✓";
 
-        const doneText = document.createElement('div');
+        const doneText = document.createElement("div");
         Object.assign(doneText.style, {
-          color: '#fff',
-          fontFamily: 'system-ui, sans-serif',
-          fontSize: '18px',
-          fontWeight: '500',
-          marginTop: '15px',
-          opacity: '0',
-          transition: 'opacity 0.3s ease-in-out'
+          color: "#fff",
+          fontFamily: "system-ui, sans-serif",
+          fontSize: "18px",
+          fontWeight: "500",
+          marginTop: "15px",
+          opacity: "0",
+          transition: "opacity 0.3s ease-in-out",
         });
-        doneText.textContent = 'Done!';
+        doneText.textContent = "Done!";
 
         mainContainer.appendChild(successMark);
         mainContainer.appendChild(doneText);
 
         setTimeout(() => {
-          doneText.style.opacity = '1';
+          doneText.style.opacity = "1";
           setTimeout(() => {
             loadingScreen.remove();
             isRemovalInProgress = false;
@@ -354,74 +265,5 @@ export const hideLoadingScreen = () => {
     } else {
       console.log("Loading screen element not found");
     }
-  }, 1000); 
+  }, 1000);
 };
-
-
-
-// export const hideLoadingScreen = () => {
-//   const loadingScreen = document.getElementById('loading-screen');
-//   console.log("Attempting to hide loading screen...");
-  
-//   if (loadingScreen) {
-//     const mainContainer = loadingScreen.querySelector('[style*="background: rgba(255, 255, 255, 0.03)"]');
-//     const waveContainer = loadingScreen.querySelector('[style*="overflow: hidden"]');
-//     const loadingText = document.getElementById('loading-text');
-
-//     if (waveContainer) {
-//       waveContainer.style.transition = 'opacity 0.3s ease-out';
-//       waveContainer.style.opacity = '0';
-//     }
-
-//     if (loadingText) {
-//       loadingText.style.transition = 'opacity 0.3s ease-out';
-//       loadingText.style.opacity = '0';
-//     }
-
-//     if (mainContainer) {
-//       mainContainer.innerHTML = '';
-
-//       const successMark = document.createElement('div');
-//       Object.assign(successMark.style, {
-//         width: '60px',
-//         height: '60px',
-//         border: '3px solid #4CAF50',
-//         borderRadius: '50%',
-//         display: 'flex',
-//         alignItems: 'center',
-//         justifyContent: 'center',
-//         fontSize: '30px',
-//         color: '#4CAF50',
-//         animation: 'successScale 0.3s ease-in-out forwards'
-//       });
-//       successMark.textContent = '✓';
-
-//       const doneText = document.createElement('div');
-//       Object.assign(doneText.style, {
-//         color: '#fff',
-//         fontFamily: 'system-ui, sans-serif',
-//         fontSize: '18px',
-//         fontWeight: '500',
-//         marginTop: '15px',
-//         opacity: '0',
-//         transition: 'opacity 0.3s ease-in-out'
-//       });
-//       doneText.textContent = 'Done!';
-
-//       mainContainer.appendChild(successMark);
-//       mainContainer.appendChild(doneText);
-
-//       setTimeout(() => {
-//         doneText.style.opacity = '1';
-//         setTimeout(() => {
-//           loadingScreen.remove();
-//           console.log("Loading screen removed successfully");
-//         }, 1000);
-//       }, 300);
-//     }
-//   } else {
-//     console.log("Loading screen element not found");
-//   }
-// };
-
-

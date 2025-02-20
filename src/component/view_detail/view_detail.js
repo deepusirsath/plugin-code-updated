@@ -169,11 +169,14 @@ export const createViewDetail = (createViewDetail) => {
           <label>Body:</label>
          <div class="email-body">
          ${extractBodyContent(createViewDetail.body)}
-         ${createViewDetail.attachments
-           .map((attachment) => {
-             return `<div><span>${attachment.file_name}</span></div>`;
-           })
-           .join("")}
+         ${
+           createViewDetail?.attachments &&
+           createViewDetail.attachments
+             .map((attachment) => {
+               return `<div><span>${attachment.file_name}</span></div>`;
+             })
+             .join("")
+         }
          </div>
         </div>
       <div id="cdr-files-container"></div>
