@@ -2,6 +2,7 @@ import { ERROR_MESSAGES } from "/src/constant/error_message.js";
 import { postData } from "/src/api/api_method.js";
 import { validateField } from "/src/helper/validation_helper.js";
 import { validationConfig } from "/src/pages/registration/validation-config.js";
+import { showCustomAlert } from "/src/component/custom_alert/custom_alert.js";
 
 // Setup field validators
 ["name", "mobile", "email"].forEach((field) => {
@@ -36,7 +37,7 @@ const validateLicenseId = async (licenseId) => {
     errorDisplay.textContent =
       response.message || ERROR_MESSAGES.LICENSE_ID_NOT_CORRECT;
   } catch (error) {
-    errorDisplay.textContent = "Error verifying license. Please try again.";
+    errorDisplay.textContent = ERROR_MESSAGES.SOMETHING_WENT_WRONG;
   }
   return false;
 };
@@ -72,17 +73,15 @@ document.getElementById("submit").addEventListener("click", async function () {
     });
 
     if (response.success) {
-      alert("Form submitted successfully");
+      showCustomAlert("Form submitted successfully.", "success");
       chrome.storage.local.set({ registration: true });
       chrome.runtime.sendMessage({ action: "reloadPage" }, function (response) {
         if (response.success) {
           window.close();
         }
       });
-    } else {
-      alert(response.message || "Failed to submit form");
     }
   } catch (error) {
-    alert("Error submitting form");
+    showCustomAlert(ERROR_MESSAGES.SOMETHING_WENT_WRONG, "error");
   }
 });

@@ -807,64 +807,6 @@ async function emlExtractionGmail(emlUrl, currentMessageId, emailId) {
   }
 }
 
-// async function emlExtractionGmail(emlUrl, currentMessageId, emailId) {
-//   // Start performance tracking
-//   const startTime = performance.now();
-
-//   try {
-//     // Step 1: Fetch email content
-//     const fetchStart = performance.now();
-//     const response = await fetch(emlUrl, {
-//       mode: "cors",
-//       credentials: "include",
-//       headers: {
-//         Accept: "*/*",
-//       },
-//     });
-//     const fetchEnd = performance.now();
-//     console.info(`✓ Email fetch completed in ${(fetchEnd - fetchStart).toFixed(2)}ms`);
-
-//     // Step 2: Extract email text content
-//     const textStart = performance.now();
-//     const emailContent = await response.text();
-//     const textEnd = performance.now();
-//     console.info(`✓ Content extraction completed in ${(textEnd - textStart).toFixed(2)}ms`);
-//     console.debug("📧 Raw email content:", emailContent);
-
-//     // Step 3: Create formatted email blob
-//     const blobStart = performance.now();
-//     const formattedContent = [
-//       "MIME-Version: 1.0",
-//       "Content-Type: message/rfc822",
-//       "",
-//       emailContent,
-//     ].join("\r\n");
-
-//     const emlBlob = new Blob([formattedContent], {
-//       type: "message/rfc822",
-//     });
-//     const blobEnd = performance.now();
-//     console.info(`✓ Blob creation completed in ${(blobEnd - blobStart).toFixed(2)}ms`);
-//     console.debug("📎 Email blob created:", emlBlob);
-
-//     // Step 4: Upload to server if blob exists
-//     if (emlBlob) {
-//       const serverStart = performance.now();
-//       await sendEmlToServer(currentMessageId, emlBlob, "gmail", emailId);
-//       const serverEnd = performance.now();
-//       console.info(`✓ Server upload completed in ${(serverEnd - serverStart).toFixed(2)}ms`);
-//       console.info("🚀 Email successfully sent to server");
-//     }
-
-//     // Log total execution time
-//     const totalTime = performance.now() - startTime;
-//     console.info(`✨ Total processing completed in ${totalTime.toFixed(2)}ms`);
-
-//   } catch (error) {
-//     console.error("❌ Email extraction failed:", error);
-//   }
-// }
-
 /** ________________________________________ OUTLOOK ______________________________________________*/
 
 /**
@@ -921,58 +863,6 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     }
   }
 });
-
-// async function emlExtractionYahoo(emlUrl, currentMessageId, userEmail) {
-//   // Start performance tracking
-//   const startTime = performance.now();
-
-//   try {
-//     // Step 1: Fetch email content
-//     const fetchStart = performance.now();
-//     const response = await fetch(emlUrl);
-//     const fetchEnd = performance.now();
-//     console.info(`✓ Email fetch completed in ${(fetchEnd - fetchStart).toFixed(2)}ms`);
-
-//     // Step 2: Extract email text content
-//     const textStart = performance.now();
-//     const emailContent = await response.text();
-//     const textEnd = performance.now();
-//     console.info(`✓ Content extraction completed in ${(textEnd - textStart).toFixed(2)}ms`);
-//     console.debug("📧 Raw email content:", emailContent);
-
-//     // Step 3: Create formatted email blob
-//     const blobStart = performance.now();
-//     const formattedContent = [
-//       "MIME-Version: 1.0",
-//       "Content-Type: message/rfc822",
-//       "",
-//       emailContent,
-//     ].join("\r\n");
-
-//     const emlBlob = new Blob([formattedContent], {
-//       type: "message/rfc822",
-//     });
-//     const blobEnd = performance.now();
-//     console.info(`✓ Blob creation completed in ${(blobEnd - blobStart).toFixed(2)}ms`);
-//     console.debug("📎 Email blob created:", emlBlob);
-
-//     // Step 4: Upload to server if blob exists
-//     if (emlBlob) {
-//       const serverStart = performance.now();
-//       await sendEmlToServer(currentMessageId, emlBlob, "yahoo", userEmail);
-//       const serverEnd = performance.now();
-//       console.info(`✓ Server upload completed in ${(serverEnd - serverStart).toFixed(2)}ms`);
-//       console.info("🚀 Email successfully sent to server");
-//     }
-
-//     // Log total execution time
-//     const totalTime = performance.now() - startTime;
-//     console.info(`✨ Total processing completed in ${totalTime.toFixed(2)}ms`);
-
-//   } catch (error) {
-//     console.error("❌ Email extraction failed:", error);
-//   }
-// }
 
 /**
  * Extracts and processes Yahoo email content for phishing detection
