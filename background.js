@@ -32,13 +32,11 @@ chrome.storage.local.set({ registration: true });
 
 // Listener for chrome startup
 chrome.runtime.onStartup.addListener(() => {
-  console.log("On startup is running");
   userDetails();
 });
 
 // Listener for chrome installation
 chrome.runtime.onInstalled.addListener(() => {
-  console.log("On Installed is running");
   userDetails();
 });
 
@@ -487,7 +485,6 @@ async function sendEmlToServer(messageId, blob = null, client, user_email) {
     // if (!pluginId) {
     //   await getExtensionid();
     // }
-    console.log("sendEmlToServer process has started");
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tabs || !tabs.length) {
       throw new Error("No active tab available");
@@ -522,9 +519,9 @@ async function sendEmlToServer(messageId, blob = null, client, user_email) {
       },
     });
 
-    console.log("File successfully uploaded to the server");
+
     const serverData = await uploadResponse.json();
-    console.log("Server Response:", serverData);
+    
 
     // Handle the response using the separate handler function
     handleEmailScanResponse(serverData, activeTabId, client);
@@ -557,7 +554,7 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
   const resStatus = serverData.eml_status || serverData.email_status;
   const messId = serverData.messageId || serverData.msg_id;
   let unsafeReason = serverData.unsafe_reasons || " ";
-  console.log("serverData:", serverData);
+ 
 
   if (typeof resStatus === "undefined" || typeof messId === "undefined") {
     chrome.runtime.sendMessage({
@@ -603,7 +600,6 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
           });
       }
     } else {
-      console.log("Response received for different message ID");
       chrome.runtime.sendMessage({
         action: "erroRecievedFromServer",
         client: client,
@@ -676,7 +672,6 @@ async function checkPendingResponseStatus(messageId, email, client) {
     const activeTabId = tabs && tabs[0] ? tabs[0].id : null;
 
     if (!activeTabId) {
-      console.log("No active tab found");
       return;
     }
     const response = await fetch(url, {
@@ -747,9 +742,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "sendGmailData") {
     currentMessageId = message.messageId;
     const { messageId, emailId, eml_Url } = message;
-    console.log("Received messageId:", message.messageId);
-    console.log("Received emailId:", message.emailId);
-    console.log("Received eml_Url:", message.eml_Url);
     emlExtractionGmail(eml_Url, messageId, emailId);
   }
 });
@@ -780,7 +772,7 @@ async function emlExtractionGmail(emlUrl, currentMessageId, emailId) {
       },
     });
     const emailContent = await response.text();
-    console.log("Email Content:", emailContent);
+   
 
     const formattedContent = [
       "MIME-Version: 1.0",
@@ -792,15 +784,10 @@ async function emlExtractionGmail(emlUrl, currentMessageId, emailId) {
     const emlBlob = new Blob([formattedContent], {
       type: "message/rfc822",
     });
-    console.log("Email Blob:", emlBlob);
+
     if (emlBlob) {
-      console.log("About to send to server:", {
-        currentMessageId,
-        emailId,
-        blobSize: emlBlob.size,
-      });
+     
       await sendEmlToServer(currentMessageId, emlBlob, "gmail", emailId);
-      console.log("Server upload completed");
     }
   } catch (error) {
     console.log("Error fetching email data:", error);
@@ -889,7 +876,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const emailContent = message.emailContent;
     currentMessageId = message.dataConvid;
     user_email = message.userEmailId;
-    console.log("Data Convid Id:", currentMessageId);
+    
     // Ensure pluginId is set
     getExtensionid().then(() => {
       sendEmlToServer(currentMessageId, emailContent, "outlook", user_email);
@@ -899,7 +886,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 /** ________________________________________ Yahoo ______________________________________________*/
 chrome.storage.local.remove("messages", function () {
-  console.log("Messages cleared from local storage");
 });
 
 /**
@@ -1009,7 +995,7 @@ async function emlExtractionYahoo(emlUrl, currentMessageId, userEmail) {
   try {
     const response = await fetch(emlUrl);
     const emailContent = await response.text();
-    console.log("Email Content:", emailContent);
+  
 
     // Create properly formatted email content with headers
     const formattedContent = [
@@ -1022,7 +1008,7 @@ async function emlExtractionYahoo(emlUrl, currentMessageId, userEmail) {
     const emlBlob = new Blob([formattedContent], {
       type: "message/rfc822",
     });
-    console.log("Email Blob:", emlBlob);
+   
 
     if (emlBlob) {
       await sendEmlToServer(currentMessageId, emlBlob, "yahoo", userEmail);
@@ -1057,9 +1043,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     currentMessageId = message.lastMessageId;
     let emlUrl = message.url;
 
-    console.log("User email:", userEmail);
-    console.log("currentMessageId ID:", currentMessageId);
-    console.log("EML URL:", emlUrl);
+    
     emlExtractionYahoo(emlUrl, currentMessageId, userEmail);
   }
 });

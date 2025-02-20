@@ -25,7 +25,7 @@ Promise.all([
 let messageReason = " ";
 document.addEventListener("visibilitychange", function () {
   chrome.storage.local.remove(["gmail_email", "outlook_email"], () => {
-    console.log("Stored data removed.");
+    
   });
 
   if (document.visibilityState === "visible") {
@@ -47,7 +47,7 @@ document.addEventListener("visibilitychange", function () {
     if (userEmail) {
       chrome.storage.local.remove(["gmail_email", "outlook_email"], () => {
         chrome.storage.local.set({ yahoo_email: userEmail }, () => {
-          console.log("Yahoo email stored:", userEmail);
+          
         });
       });
     }
@@ -94,13 +94,13 @@ function handleYahooMailCheck(message, sendResponse) {
       const match = script.textContent.match(regex);
       if (match) {
         senderEmail = match[1]; // Assign the extracted email
-        console.log("Found unsafeEmail:", senderEmail);
+       
         break; // Stop after finding the first match
       }
     }
 
     chrome.storage.local.remove(["gmail_email", "outlook_email"], () => {
-      console.log("Stored data removed.");
+     
     });
 
     if (emailBodySearch) {
@@ -137,7 +137,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
  */
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === "runScript") {
-    console.log("URL contains 'message'. Running script...");
+    
     // Exit early since reload will reset the script
     window.location.reload();
     return;
@@ -158,7 +158,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
  */
 const yahooMailRegex = /^https:\/\/(in\.)?mail\.yahoo\.com.*message/;
 if (yahooMailRegex.test(url) && !extractionDone) {
-  console.log("Extracted URL:");
+ 
   chrome.storage.local.get("registration", (data) => {
     if (chrome.runtime.lastError) {
       console.error(chrome.runtime.lastError);
@@ -236,10 +236,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     request.action === "EmailNotFoundInPendingRequest" &&
     request.client === "yahoo"
   ) {
-    console.log(
-      "Received message in content script EmailNotFoundInPendingRequest:",
-      request
-    );
+    
     executeExtractionScriptIfFailed();
   }
 });
@@ -262,7 +259,7 @@ function fetchLocation() {
   if (window.location.href.includes(first || second)) {
     // Check if geolocation is supported
     if (!navigator.geolocation) {
-      console.log("Geolocation is not supported by this chrome.");
+     
       return;
     }
     // Attempt to get the user's current position
@@ -270,7 +267,7 @@ function fetchLocation() {
       (position) => {
         const latitude = position.coords.latitude;
         const longitude = position.coords.longitude;
-        console.log(`Latitude: ${latitude}, Longitude: ${longitude}`);
+     
 
         // // Send the coordinates to the background script
         // chrome.runtime.sendMessage({
@@ -286,7 +283,7 @@ function fetchLocation() {
       }
     );
   } else {
-    console.log("This script only runs on outlook, yahoo and Gmail");
+  
   }
 }
 
@@ -308,10 +305,10 @@ function blockEmailBody() {
   );
   if (element) {
     if (shouldApplyPointerEvents) {
-      console.log("Blocking the email body");
+     
       element.style.pointerEvents = "none";
     } else {
-      console.log("Unblocking the email body");
+   
       element.style.pointerEvents = "all";
     }
   }
@@ -338,7 +335,7 @@ function blockEmailBody() {
  * @returns {Object} An object containing the last extracted message ID and user email.
  */
 function extractIdsFromNonceScripts() {
-  console.log("Extracting IDs from scripts start...");
+ 
   let messageIds = [];
   let selectedMailboxId = null;
   let userEmail = null;
@@ -350,24 +347,18 @@ function extractIdsFromNonceScripts() {
   if (isSentFound) {
     shouldApplyPointerEvents = false;
     hideLoadingScreen();
-    console.log("Sent folder found. Skipping extraction.");
+  
     return;
   }
 
   const scripts = Array.from(document.querySelectorAll("script[nonce]"));
 
-  console.log("Scripts:", scripts);
-  console.log("Number of scripts found:", scripts.length);
 
   scripts.forEach((script) => {
     const nonceValue = script.getAttribute("nonce");
     const content = script.textContent || script.innerHTML;
 
     if (nonceValue === "") {
-      console.log(
-        "Nonce value is empty. Skipping this script.",
-        nonceValue === ""
-      );
       const messageIdRegex = /"messageId":"([A-Za-z0-9_-]+)"/g;
       const selectedMailboxRegex =
         /"selectedMailbox":\{"id":"([A-Za-z0-9_-]+)","email":"([A-Za-z0-9@._-]+)"/;
@@ -383,10 +374,9 @@ function extractIdsFromNonceScripts() {
         userEmail = selectedMailboxMatch[2];
       }
       chrome.storage.local.set({ yahoo_email: userEmail }, () => {
-        console.log("Email Id is stored in the Local", yahoo_email);
       });
     } else {
-      console.log("Script nonce:", nonceValue);
+      
     }
   });
 
@@ -395,9 +385,7 @@ function extractIdsFromNonceScripts() {
 
   // If messageId or selectedMailboxId is not found, re-execute after 1 second
   if (!selectedMailboxId || !lastMessageId) {
-    console.log(
-      "messageId or selectedMailboxId not found, retrying in 1 second..."
-    );
+    
     setTimeout(executeExtractionScriptIfFailed, 200);
     return;
   }
@@ -406,28 +394,27 @@ function extractIdsFromNonceScripts() {
     chrome.storage.local.get("messages", function (result) {
       let messages = JSON.parse(result.messages || "{}");
       if (messages[lastMessageId]) {
-        console.log("Thread ID status:", messages[lastMessageId]);
+       
         const status = messages[lastMessageId].status;
         const unsafeReason = messages[lastMessageId].unsafeReason;
 
         if (status === "safe" || status === "Safe") {
           hideLoadingScreen();
           showAlert("safe", unsafeReason);
-          console.log("Local Storage status", status);
+          
           shouldApplyPointerEvents = false;
           blockEmailBody();
-          console.log(`Removing blocking layer because message is ${status}`);
+        
         } else if (status === "unsafe" || status === "Unsafe") {
           hideLoadingScreen();
           showAlert("unsafe", unsafeReason);
-          console.log("Local Storage status", status);
-          console.log(`Applying blocking layer because message is ${status}`);
+        
           shouldApplyPointerEvents = true;
           blockEmailBody();
         } else if (status === "pending" || status === "Pending") {
           hideLoadingScreen();
           showAlert("pending", unsafeReason);
-          console.log("send response to background for pending status");
+          
           chrome.runtime.sendMessage({
             action: "pendingStatusYahoo",
             emailId: sendUserEmail,
@@ -436,13 +423,11 @@ function extractIdsFromNonceScripts() {
         }
       } 
       else {
-        console.log("No status found in local storage. Sending message to background for first check.");
+       
         showLoadingScreen();
         shouldApplyPointerEvents = true;
         blockEmailBody();
-        console.log(
-          "Sending message to background for first check for firstCheckForEmail API in YAHOO MAIL"
-        );
+      
         chrome.runtime.sendMessage(
           {
             client: "yahoo",
@@ -459,19 +444,14 @@ function extractIdsFromNonceScripts() {
 
             if (response.IsResponseRecieved === "success") {
               if (response.data.code === 200) {
-                console.log(
-                  "Response from background for firstCheckForEmail API:",
-                  response
-                );
+                
                 const serverData = response.data.data;
                 const resStatus =
                   serverData.eml_status || serverData.email_status;
                 const messId = serverData.messageId || serverData.msg_id;
                 const unsafeReason = serverData.unsafe_reasons || " ";
 
-                console.log("serverData:", serverData);
-                console.log("resStatus:", resStatus);
-                console.log("messId:", messId);
+              
 
                 if (["safe", "unsafe", "pending"].includes(resStatus)) {
                   chrome.storage.local.get("messages", function (result) {
@@ -486,14 +466,10 @@ function extractIdsFromNonceScripts() {
                         messages: JSON.stringify(messages),
                       },
                       () => {
-                        console.log(
-                          `Status ${resStatus} stored for message ${messId}`
-                        );
+                        
                         shouldApplyPointerEvents = resStatus !== "safe";
                         blockEmailBody();
-                        console.log(
-                          `Removing blocking layer because message is ${resStatus}`
-                        );
+                        
                         hideLoadingScreen();
                         showAlert(resStatus, unsafeReason);
                       }
@@ -502,7 +478,7 @@ function extractIdsFromNonceScripts() {
                 }
               } else {
                 blockEmailBody();
-                console.log("Message not found on server, extracting content");
+                
                 setTimeout(() => {
                   createUrl(selectedMailboxId, lastMessageId, userEmail);
                 }, 100);
@@ -516,7 +492,7 @@ function extractIdsFromNonceScripts() {
       }
     });
   } else {
-    console.log("messageId not found, skipping email extraction");
+   
   }
   return { lastMessageId, userEmail };
 }
@@ -530,9 +506,7 @@ function extractIdsFromNonceScripts() {
  * @param {string} userEmail - The email address of the user.
  */
 function createUrl(selectedMailboxId, lastMessageId, userEmail) {
-  console.log("Script Executed===========================");
   const url = `https://apis.mail.yahoo.com/ws/v3/mailboxes/@.id==${selectedMailboxId}/messages/@.id==${lastMessageId}/content/rawplaintext?appId=YMailNovation`;
-  console.log("Extracted URL:", url);
   try {
     chrome.runtime.sendMessage({
       action: "sendYahooData",
@@ -561,9 +535,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     request.action === "erroRecievedFromServer" &&
     request.client === "yahoo"
   ) {
-    console.log(
-      "Received message from server to show the erroRecievedFromServer:"
-    );
+  
     showAlert("inform");
   }
 });
@@ -591,29 +563,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.client === "yahoo") {
     messageReason = message.unsafeReason;
     // Check if the message is for Outlook
-    console.log(
-      "this is the function that will be called when the content script receives a message for the yahoo client"
-    );
+  
     chrome.storage.local.remove(["gmail_email", "outlook_email"], () => {
-      console.log("Stored data removed.");
+      
     });
     if (message.action === "blockUrls") {
-      console.log("Outlook Content script received message:", message.action);
       shouldApplyPointerEvents = true;
       hideLoadingScreen();
       showAlert("unsafe", messageReason);
-      console.log("Blocking URLs for Yahoo");
+      
     } else if (message.action === "unblock") {
       shouldApplyPointerEvents = false;
-      console.log("Unblocking URLs for Yahoo");
+      
       hideLoadingScreen();
       showAlert("safe");
     } else if (message.action === "pending") {
-      console.log("Pending Status for Yahoo");
+      
       shouldApplyPointerEvents = true;
       hideLoadingScreen();
       showAlert("pending");
-      console.log("Blocking URLs for Yahoo due to pending status");
+    
     }
     blockEmailBody();
     sendResponse({ status: "success" });

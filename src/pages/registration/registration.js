@@ -46,7 +46,6 @@ document
   });
 
 document.getElementById("submit").addEventListener("click", async function () {
-  console.log("submit button clicked");
   const formElements = {
     licenseId: document.getElementById("licenseId").value,
     pluginId: document.getElementById("pluginId").value,
@@ -74,12 +73,11 @@ document.getElementById("submit").addEventListener("click", async function () {
     if (response.success) {
       alert("Form submitted successfully");
       chrome.storage.local.set({ registration: true });
-      console.log("Registration status stored");
       chrome.runtime.sendMessage({ action: "reloadPage" }, function (response) {
         if (response.success) {
           window.close();
         } else {
-          console.error("Failed to reload the page");
+          
         }
       });
     }

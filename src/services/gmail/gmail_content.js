@@ -4,7 +4,7 @@ const importComponent = async (path) => {
   return await import(src);
 };
 
-console.log("Content script loaded");
+
 // Initialize UI components
 let showAlert = null;
 let showBlockedPopup = null;
@@ -98,7 +98,6 @@ let messageReason = " ";
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "GmailDetectedForExtraction") {
-    console.log("GmailDetectedForExtraction message received");
     setTimeout(() => {
       let url = window.location.href;
 
@@ -114,7 +113,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (data.registration) {
           const lastSegment = url.split("/").pop().split("#").pop();
           if (lastSegment.length >= isValidSegmentLength) {
-            console.log("isValidSegmentLength is pass");
             init();
           }
         }
@@ -271,21 +269,17 @@ chrome.runtime.onMessage.addListener((request) => {
  */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.client === "gmail") {
-    console.log("Message received:", message);
+    
     messageReason = message.unsafeReason;
-    console.log("Message reason:", messageReason);
     if (message.action === "blockUrls") {
-      console.log("blocking content hideLoadingScreen");
       hideLoadingScreen();
       shouldApplyPointerEvents = true;
       showAlert("unsafe", messageReason);
     } else if (message.action === "unblock") {
-      console.log("Unblocking content hideLoadingScreen");
       hideLoadingScreen();
       shouldApplyPointerEvents = false;
       showAlert("safe");
     } else if (message.action === "pending") {
-      console.log("Pending verification hideLoadingScreen");
       hideLoadingScreen();
       shouldApplyPointerEvents = true;
       showAlert("pending");
@@ -327,7 +321,6 @@ const init = () => {
  * @function extractMessageIdAndEml
  */
 async function extractMessageIdAndEml() {
-  console.log("extractMessageIdAndEml started");
   blockEmailBody();
   const node = document.querySelector("[data-legacy-message-id]");
   if (!node) {
@@ -339,25 +332,21 @@ async function extractMessageIdAndEml() {
   if (!messageId) {
     return;
   }
-  console.log("Message ID:", messageId);
+  
   chrome.storage.local.get("messages", function (result) {
     let messages = JSON.parse(result.messages || "{}");
-    console.log("Messages:", messages);
+   
     if (messages[messageId]) {
-      console.log("Message found in local storage");
       const status = messages[messageId].status;
       const unsafeReason = messages[messageId].unsafeReason;
-      console.log("Status:", status);
-      console.log("Unsafe Reason:", unsafeReason);
+    
 
       if (status === "safe" || status === "Safe") {
-        console.log("Safe content detected hideLoadingScreen");
         hideLoadingScreen();
         showAlert("safe", unsafeReason);
         shouldApplyPointerEvents = false;
         blockEmailBody();
       } else if (status === "unsafe" || status === "Unsafe") {
-        console.log("Unsafe content detected hideLoadingScreen");
         hideLoadingScreen();
         showAlert("unsafe", unsafeReason);
         shouldApplyPointerEvents = true;
@@ -406,9 +395,6 @@ async function extractMessageIdAndEml() {
                     () => {
                       shouldApplyPointerEvents = resStatus !== "safe";
                       blockEmailBody();
-                      console.log(
-                        "VAlidate Safe content detected hideLoadingScreen"
-                      );
                       hideLoadingScreen();
                       showAlert(resStatus, unsafeReason);
                     }

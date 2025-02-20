@@ -192,12 +192,10 @@ export const hideLoadingScreen = () => {
   // Set new debounce timer
   debounceTimer = setTimeout(() => {
     if (isRemovalInProgress) {
-      console.log("Screen removal already in progress");
       return;
     }
 
     const loadingScreen = document.getElementById("loading-screen");
-    console.log("Attempting to hide loading screen...");
 
     if (loadingScreen) {
       isRemovalInProgress = true;
@@ -258,12 +256,10 @@ export const hideLoadingScreen = () => {
           setTimeout(() => {
             loadingScreen.remove();
             isRemovalInProgress = false;
-            console.log("Loading screen removed successfully");
           }, 1000);
         }, 300);
       }
     } else {
-      console.log("Loading screen element not found");
     }
   }, 1000);
 };
