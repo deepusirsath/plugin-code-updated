@@ -10,6 +10,7 @@ let showBlockedPopup = null;
 let showLoadingScreen = null;
 let hideLoadingScreen = null;
 
+// import component
 Promise.all([
   importComponent("/src/component/email_status/email_status.js"),
   importComponent("/src/component/block_email_popup/block_email_popup.js"),
@@ -189,7 +190,6 @@ async function executeExtractionScript() {
     extractionDone = true;
   }, 2500);
 }
-
 
 let lastUrl = location.href;
 new MutationObserver(() => {
@@ -513,9 +513,6 @@ function extractIdsFromNonceScripts() {
             }
           }
         );
-        // .catch((error) => {
-        //   console.error("Error sending message to background:", error);
-        // });
       }
     });
   } else {
@@ -621,14 +618,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     blockEmailBody();
     sendResponse({ status: "success" });
   }
-});
-
-chrome.storage.local.get(null, function (data) {
-  console.log("Data retrieved from local storage:", data);
-});
-
-chrome.storage.local.get("messages", function (data) {
-  console.log("Messages retrieved from local storage:", data);
 });
 
 /**

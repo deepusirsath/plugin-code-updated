@@ -3,7 +3,7 @@
  *
  * The function detects the active email platform and creates a styled alert box
  * that appears in the center of the screen. The alert provides different messages
- * based on the provided key (`safe`, `unsafe`, or `inform`) and includes dynamic 
+ * based on the provided key (`safe`, `unsafe`, or `inform`) and includes dynamic
  * styling and icons for better user visibility.
  *
  * @param {string} key - The type of alert to display (`safe`, `unsafe`, or `inform`).
@@ -26,12 +26,16 @@
 export function showAlert(key, messageReason = " ") {
   // Detect the email platform
   const GmailElements = document.getElementsByClassName("nH a98 iY");
-  const OutlookElement = document.querySelector("#ConversationReadingPaneContainer");
+  const OutlookElement = document.querySelector(
+    "#ConversationReadingPaneContainer"
+  );
   const OutlookjunkBox = document.querySelector("#ItemReadingPaneContainer");
   const Yahooelement = document.querySelector(
     'div[data-test-id="message-group-view-scroller"]'
   );
-  if (!(GmailElements.length || OutlookElement || OutlookjunkBox || Yahooelement)) {
+  if (
+    !(GmailElements.length || OutlookElement || OutlookjunkBox || Yahooelement)
+  ) {
     return;
   }
 
@@ -145,13 +149,39 @@ export function showAlert(key, messageReason = " ") {
       break;
 
     case "unsafe":
+      const reasonText = String(messageReason || "");
+      const reasonParts = reasonText.includes(":")
+        ? reasonText.split(":")
+        : ["", "", ""];
+      const headerChecks = reasonParts[2]?.includes(",")
+        ? reasonParts[2].split(",").map((item) => item.trim())
+        : [];
+
       message.innerHTML = `
-    <div style="font-family: 'Segoe UI', sans-serif;">
-        <div style="font-size: 16px; color: #333;font-weight : bolder">
+    <div style="font-family: 'Segoe UI', sans-serif; text-align: center;">
+        <div style="font-size: 16px; color: #333; font-weight: bolder">
             Security Notice: This email has been identified as unsafe.
         </div>
         <hr style="border: 0; height: 1px; background: #e0e0e0; margin: 8px 0;"/>
-        <div style="color: #dc3545; font-size: 16px; font-weight : bold">${messageReason}</div>
+        <div style="color: #dc3545; font-size: 16px;">
+            ${
+              headerChecks.length > 0
+                ? `
+                <ul style="margin: 0 auto; padding: 0; list-style-type: none; text-align: center; display: inline-block;">
+                    ${headerChecks
+                      .map(
+                        (check) => `
+                        <li style="margin-bottom: 2px; line-height: 1.2; text-align: left;">
+                            <span style="display: inline-block; width: 1em; margin-right: 0.5em;">•</span>${check}
+                        </li>
+                    `
+                      )
+                      .join("")}
+                </ul>
+            `
+                : reasonText
+            }
+        </div>
     </div>`;
 
       alertContainer.style.width = "360px";

@@ -128,23 +128,31 @@ const handleCDRFiles = (createViewDetail) => {
  * @param {string} createViewDetail.sender - Email sender address
  * @param {string} createViewDetail.subject - Email subject line
  * @param {string} createViewDetail.body - Email body content (HTML)
- * @param {Array} [createViewDetail.unsafe_reasons] - List of security remarks
- * @param {Array} [createViewDetail.cdr_files] - List of CDR processed files
- *  @param {Array} [createViewDetail.attachments] - List of email attachments
- * @returns {HTMLDivElement} The created popup element
- *
+ * @param {Array<string>} [createViewDetail.all_reasons] - List of security remarks/reasons
+ * @param {Array<Object>} [createViewDetail.attachments] - List of email attachments
+ * @param {Array<Object>} [createViewDetail.cdr_files] - List of CDR processed files
+ * @returns {HTMLDivElement} The created popup element containing:
+ * - Email header with close button
+ * - Security remarks section
+ * - Email details (sender, subject, body)
+ * - Attachment list
+ * - CDR files download section
+ * 
  * The function:
- * - Loads required CSS styles
- * - Creates a popup with email details including sender, subject, and body
- * - Displays security remarks if available
- * - Integrates CDR file download functionality
- * - Handles popup closure
- * - Sanitizes email body content for safe display
+ * 1. Loads required CSS styles
+ * 2. Creates a popup with email information
+ * 3. Processes and displays security remarks
+ * 4. Sanitizes and renders email body content
+ * 5. Shows attachments if present
+ * 6. Integrates CDR file download functionality
+ * 7. Handles popup closure
  */
+
 export const createViewDetail = (createViewDetail) => {
   const view_detail = `/src/${BASEPATH.COMPONENT}/${COMPONENTS.VIEW_DETAIL}/${COMPONENTS.VIEW_DETAIL}`;
   loadCSS(`${view_detail}.css`);
 
+  
   const popup = document.createElement("div");
   popup.className = "popup-test";
   popup.innerHTML = `
@@ -154,8 +162,11 @@ export const createViewDetail = (createViewDetail) => {
         <button class="close-popup">×</button>
       </div>
       <div class="remarks-detail">
-        ${createViewDetail?.unsafe_reasons?.[0] || "No Remarks"}
-      </div>
+  ${createViewDetail?.all_reasons?.length > 0 
+    ? createViewDetail.all_reasons.map(reason => `<div>${reason}</div>`).join('')
+    : "No Remarks"
+  }
+</div>
       <div class="popup-body">
         <div class="detail-row">
           <label>Sender:</label>
@@ -169,11 +180,14 @@ export const createViewDetail = (createViewDetail) => {
           <label>Body:</label>
          <div class="email-body">
          ${extractBodyContent(createViewDetail.body)}
-         ${createViewDetail.attachments
-           .map((attachment) => {
-             return `<div><span>${attachment.file_name}</span></div>`;
-           })
-           .join("")}
+         ${
+           createViewDetail?.attachments &&
+           createViewDetail?.attachments
+             .map((attachment) => {
+               return `<div><span>${attachment.file_name}</span></div>`;
+             })
+             .join("")
+         }
          </div>
         </div>
       <div id="cdr-files-container"></div>
