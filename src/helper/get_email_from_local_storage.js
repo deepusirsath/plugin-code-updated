@@ -12,7 +12,6 @@ let yahooEmailid = null;
  *
  * @example
  * const emails = await getEmailIds();
- * console.log(emails.gmailEmailId); // example@gmail.com
  */
 export const getEmailIds = async () => {
   try {
@@ -49,7 +48,6 @@ export const getEmailIds = async () => {
  *
  * @example
  * const currentEmail = getCurrentEmail();
- * console.log(currentEmail); // Returns active email address
  */
 export const getCurrentEmail = () => {
   return gmailEmailId || outLookEmailId || yahooEmailid;
