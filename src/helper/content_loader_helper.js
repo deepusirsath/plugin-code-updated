@@ -2,6 +2,8 @@
  * Helper functions for loading external HTML content, JS scripts, and CSS files
  */
 
+import { ERROR_MESSAGES } from "/src/constant/error_message.js";
+
 /**
  * Loads HTML content from a specified URL asynchronously
  * @param {string} url - The URL from which to fetch the HTML content
@@ -16,7 +18,7 @@ export const loadHTMLContent = async (url) => {
     const response = await fetch(url);
     return await response.text();
   } catch (error) {
-    console.error("Error loading HTML content:", error);
+    console.error(ERROR_MESSAGES.SOMETHING_WENT_WRONG);
   }
 };
 
@@ -91,17 +93,16 @@ export const loadComponent = async ({ componentName, basePath, targetId }) => {
   loadCSS(`${fileName}.css`);
 };
 
-
 /**
  * Dynamically loads HTML content and CSS file for a component
- * 
+ *
  * @param {Object} config - Configuration object for component loading
  * @param {string} config.componentName - Name of the component (e.g. 'header', 'sidebar')
  * @param {string} config.basePath - Base directory path where component files are located (e.g. 'component', 'pages')
  * @param {string} config.targetId - ID of the HTML element where content will be inserted
- * 
+ *
  * @returns {Promise<void>} Resolves when HTML and CSS are loaded
- * 
+ *
  * @example
  * // Load HTML and CSS for a sidebar component
  * await loadCssAndHtmlFile({
@@ -109,7 +110,7 @@ export const loadComponent = async ({ componentName, basePath, targetId }) => {
  *   basePath: 'component',
  *   targetId: 'sidebar-container'
  * });
- * 
+ *
  * @description
  * This function:
  * 1. Constructs file paths based on component name and base path
@@ -131,5 +132,3 @@ export const loadCssAndHtmlFile = async ({
   // Load CSS file
   loadCSS(`${fileName}.css`);
 };
-
-
