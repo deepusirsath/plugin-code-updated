@@ -32,7 +32,7 @@ export const showCustomAlert = (message, type = "success") => {
       ${currentConfig.icon}
       <p>${message}</p>
       <button id="alertOkButton" style="--btnColor: ${currentConfig.btnColor};">
-        ${currentConfig.buttonText}
+        Close
       </button>
     </div>
   `;

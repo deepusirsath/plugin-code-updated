@@ -68,7 +68,7 @@ const handleEmailPageResponse = async (response) => {
       await loadUnauthenticatedComponents();
     }
   } catch (error) {
-    displayError(error);
+    displayError();
   }
 };
 
@@ -88,10 +88,9 @@ const handleEmailPageResponse = async (response) => {
  */
 const initializePopup = () => {
   document.addEventListener("DOMContentLoaded", () => {
-
-    document.body.style.width = "550px";  // Adjust width as needed
-    document.body.style.height = "590px"; // Adjust height as needed
-    document.body.style.overflow = "hidden"; // Prevent scrollbar flicker
+    document.body.style.width = "550px";
+    document.body.style.height = "590px";
+    document.body.style.overflow = "hidden";
     chrome.runtime.sendMessage(
       { action: "checkEmailPage" },
       handleEmailPageResponse

@@ -59,7 +59,7 @@ const getViewDetailOfSpamMail = async (msg_id) => {
       const response = await postData(`${GET_ACTION_VIEW_DETAIL}`, requestData);
       return response.data;
     } catch (error) {
-      displayError(error);
+      displayError();
     }
   }
 };
@@ -87,7 +87,7 @@ const getAllSpamMail = async (page = 1) => {
       hideLoader();
       return response;
     } catch (error) {
-      displayError(error);
+      displayError();
       hideLoader();
     }
     hideLoader();
@@ -123,7 +123,7 @@ const filterSpamMails = async (searchQuery, page = 1) => {
       return response;
     } catch (error) {
       hideLoader();
-      displayError(error);
+      displayError();
     }
     hideLoader();
   }
@@ -272,7 +272,7 @@ const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
     attachViewButtonListeners();
   } catch (error) {
     hideLoader();
-    displayError(error);
+    displayError();
   }
 };
 

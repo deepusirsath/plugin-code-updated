@@ -17,4 +17,5 @@ export const ERROR_MESSAGES = {
   LICENSE_ID_NOT_CORRECT: "License ID is not correct.",
   LICENSE_ID_ERROR: "Error verifying license. Please try again.",
   LICENSE_ID_NOT_FOUND: "License ID not found.",
+  SOMETHING_WENT_WRONG: "Something went wrong. Please try again.",
 };

@@ -155,7 +155,7 @@ export const createViewDetail = (createViewDetail) => {
   const popup = document.createElement("div");
   popup.className = "popup-test";
   popup.innerHTML = `
-    <div class="popup-content">
+  <div class="popup-content">
       <div class="popup-header">
         <h3>Email Details</h3>
         <button class="close-popup">×</button>
@@ -168,7 +168,7 @@ export const createViewDetail = (createViewDetail) => {
           .join("")
       : "No Remarks"
   }
-</div>
+   </div>
       <div class="popup-body">
         <div class="detail-row">
           <label>Sender:</label>
@@ -193,8 +193,8 @@ export const createViewDetail = (createViewDetail) => {
          </div>
         </div>
       <div id="cdr-files-container"></div>
-      </div>
     </div>
+  </div>
   `;
 
   popup.querySelector(".close-popup").addEventListener("click", () => {

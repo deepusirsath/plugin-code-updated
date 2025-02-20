@@ -169,7 +169,7 @@ const getGraphData = async () => {
       hideLoader();
     } catch (error) {
       hideLoader();
-      displayError(error);
+      displayError();
     }
     hideLoader();
   }
