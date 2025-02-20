@@ -815,8 +815,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
  *
  * If the email ID is not found initially, the function continues searching every 500 milliseconds
  * until the email ID is located or the script is stopped.
- *
- * Console logs are used for debugging to track the search process and storage actions.
  */
 function findOutlookEmailId() {
   const outlookRegex =
