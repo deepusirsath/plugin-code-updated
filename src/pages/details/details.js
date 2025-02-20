@@ -30,7 +30,7 @@ export const getAllDetails = async () => {
     hideLoader();
   } catch (error) {
     hideLoader();
-    displayError(error);
+    displayError();
   }
 };
 

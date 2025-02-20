@@ -1,3 +1,5 @@
+import { ERROR_MESSAGES } from "/src/constant/error_message.js";
+
 let outLookEmailId = null;
 let gmailEmailId = null;
 let yahooEmailid = null;
@@ -31,7 +33,7 @@ export const getEmailIds = async () => {
       yahooEmailid = yahooResult.yahoo_email;
     }
   } catch (error) {
-    console.log("Error fetching email IDs:", error);
+    console.log(ERROR_MESSAGES.EMAIL_ID_NOT_FOUND);
   }
 
   return {

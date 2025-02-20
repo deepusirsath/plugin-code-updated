@@ -131,22 +131,6 @@ export const initializeDisputeForm = (disputeData) => {
    * @fires sendDispute - When dispute count is valid
    * @fires showCustomAlert - When dispute limit is reached
    */
-  // submitButton.addEventListener("click", async () => {
-  //   disableSubmitButton();
-  //   const disputeCount = disputeData.countRaise || 0;
-  //   if (disputeCount < 3 && disputeCount >= 0) {
-  //     const reasonText = reasonTextarea.value.trim();
-  //     const messageId = document.getElementById("messageId").textContent;
-  //     const receiver_email = await chrome.storage.local.get("receiver_email");
-  //     sendDispute(reasonText, messageId, receiver_email?.receiver_email);
-  //   } else {
-  //     disableSubmitButton();
-  //     showCustomAlert(
-  //       "You have reached the maximum limit for disputes. Each email can be disputed a maximum of three times.",
-  //       "limit"
-  //     );
-  //   }
-  // });
   submitButton.addEventListener("click", async () => {
     disableSubmitButton();
     const disputeCount = disputeData.countRaise || 0;
@@ -175,7 +159,7 @@ export const initializeDisputeForm = (disputeData) => {
       disableSubmitButton();
       showCustomAlert(
         "You have reached the maximum limit for disputes. Each email can be disputed a maximum of three times.",
-        "limit"
+        "error"
       );
     }
   });

@@ -1,6 +1,8 @@
+import { ERROR_MESSAGES } from "/src/constant/error_message.js";
 import { postData } from "/src/api/api_method.js";
 import { validateField } from "/src/helper/validation_helper.js";
 import { validationConfig } from "/src/pages/registration/validation-config.js";
+import { showCustomAlert } from "/src/component/custom_alert/custom_alert.js";
 
 // Setup field validators
 ["name", "mobile", "email"].forEach((field) => {
@@ -18,7 +20,7 @@ const validateLicenseId = async (licenseId) => {
   const errorDisplay = document.getElementById("errorDisplay");
 
   if (licenseId.length !== 64) {
-    errorDisplay.textContent = "License ID must be exactly 64 characters long";
+    errorDisplay.textContent = ERROR_MESSAGES.LICENSE_ID_INVALID;
     return false;
   }
 
@@ -32,9 +34,10 @@ const validateLicenseId = async (licenseId) => {
       return true;
     }
 
-    errorDisplay.textContent = response.message || "License ID is not correct";
+    errorDisplay.textContent =
+      response.message || ERROR_MESSAGES.LICENSE_ID_NOT_CORRECT;
   } catch (error) {
-    errorDisplay.textContent = "Error verifying license. Please try again.";
+    errorDisplay.textContent = ERROR_MESSAGES.SOMETHING_WENT_WRONG;
   }
   return false;
 };
@@ -56,7 +59,6 @@ document.getElementById("submit").addEventListener("click", async function () {
     chrome: document.getElementById("chrome").value,
   };
 
-
   try {
     const response = await postData("/register", {
       ...formElements,
@@ -71,21 +73,15 @@ document.getElementById("submit").addEventListener("click", async function () {
     });
 
     if (response.success) {
-      alert("Form submitted successfully");
+      showCustomAlert("Form submitted successfully.", "success");
       chrome.storage.local.set({ registration: true });
       chrome.runtime.sendMessage({ action: "reloadPage" }, function (response) {
         if (response.success) {
           window.close();
-        } else {
-          
-        }
+        } 
       });
     }
-    else {
-      alert(response.message || "Failed to submit form");
-    }
   } catch (error) {
-    console.error("Error submitting form:", error);
-    alert("Error submitting form");
+    showCustomAlert(ERROR_MESSAGES.SOMETHING_WENT_WRONG, "error");
   }
 });

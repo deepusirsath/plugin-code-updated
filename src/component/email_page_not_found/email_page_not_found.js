@@ -1,4 +1,4 @@
-import { EMAIL_SERVICES } from "/src/constant/email_service.js";
+import { EMAIL_SERVICES } from "./email_page_config.js";
 
 /**
  * @description Sets up click event handlers for email service icons
