@@ -293,7 +293,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 const init = () => {
   Promise.all([extractMessageIdAndEml(), findEmailId()])
     .then(() => console.log("Operations completed"))
-    .catch((error) => console.error(ERROR_MESSAGES.FAILED_TO_SEND_EMAIL_CONTENT));
+    .catch((error) =>
+      console.error(ERROR_MESSAGES.FAILED_TO_SEND_EMAIL_CONTENT)
+    );
 };
 
 /**
