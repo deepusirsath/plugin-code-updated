@@ -4,12 +4,17 @@ const importComponent = async (path) => {
   return await import(src);
 };
 
-
 // Initialize UI components
 let showAlert = null;
 let showBlockedPopup = null;
 let showLoadingScreen = null;
 let hideLoadingScreen = null;
+
+const ERROR_MESSAGES = {
+  SOMETHING_WENT_WRONG: "Something went wrong. Please try again.",
+  FAILED_TO_SEND_EMAIL_CONTENT:
+    "Failed to send email content to background script:",
+};
 
 Promise.all([
   importComponent("/src/component/email_status/email_status.js"),
@@ -27,10 +32,7 @@ Promise.all([
 /**
  * Continuously checks for the presence of elements with the class "nH a98 iY" in the DOM.
  * The function attempts to locate these elements up to a maximum of 15 times, with a 1-second interval between attempts.
- *
- * - If the elements are found within the attempts, the `blockEmailBody` function is executed, and the interval is cleared.
- * - If the elements are not found after the maximum attempts, the interval is cleared, and a message is logged to the console.
- *
+ * If the elements are found within the attempts, the `blockEmailBody` function is executed, and the interval is cleared.
  * This function replaces the previous setTimeout-based approach to ensure elements are detected dynamically.
  */
 
@@ -268,7 +270,6 @@ chrome.runtime.onMessage.addListener((request) => {
  */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.client === "gmail") {
-    
     messageReason = message.unsafeReason;
     if (message.action === "blockUrls") {
       hideLoadingScreen();
@@ -292,7 +293,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 const init = () => {
   Promise.all([extractMessageIdAndEml(), findEmailId()])
     .then(() => console.log("Operations completed"))
-    .catch((error) => console.error("Error:", error));
+    .catch((error) => console.error(ERROR_MESSAGES.FAILED_TO_SEND_EMAIL_CONTENT));
 };
 
 /**
@@ -331,14 +332,13 @@ async function extractMessageIdAndEml() {
   if (!messageId) {
     return;
   }
-  
+
   chrome.storage.local.get("messages", function (result) {
     let messages = JSON.parse(result.messages || "{}");
-   
+
     if (messages[messageId]) {
       const status = messages[messageId].status;
       const unsafeReason = messages[messageId].unsafeReason;
-    
 
       if (status === "safe" || status === "Safe") {
         hideLoadingScreen();
@@ -359,8 +359,7 @@ async function extractMessageIdAndEml() {
           messageId: messageId,
         });
       }
-    } 
-    else {
+    } else {
       showLoadingScreen();
       shouldApplyPointerEvents = true;
       blockEmailBody();
@@ -489,7 +488,7 @@ function createUrl(url, messageId) {
       eml_Url,
     });
   } catch (error) {
-    console.error("Error sending email content to background script:", error);
+    console.error(ERROR_MESSAGES.FAILED_TO_SEND_EMAIL_CONTENT);
   }
 }
 
