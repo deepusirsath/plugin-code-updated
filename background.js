@@ -518,9 +518,7 @@ async function sendEmlToServer(messageId, blob = null, client, user_email) {
       },
     });
 
-
     const serverData = await uploadResponse.json();
-    
 
     // Handle the response using the separate handler function
     handleEmailScanResponse(serverData, activeTabId, client);
@@ -553,7 +551,6 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
   const resStatus = serverData.eml_status || serverData.email_status;
   const messId = serverData.messageId || serverData.msg_id;
   let unsafeReason = serverData.unsafe_reasons || " ";
- 
 
   if (typeof resStatus === "undefined" || typeof messId === "undefined") {
     chrome.runtime.sendMessage({
@@ -714,7 +711,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
           tabId,
           { action: "GmailDetectedForExtraction" },
           (response) => {
-            console.log("Response from content script:", response);
+            console.log("Response from content script:");
           }
         );
       }, 1000);
@@ -724,10 +721,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
 /**
  * Listens for messages sent via chrome.runtime.onMessage and processes Gmail data.
- *
  * This event listener listens for messages with the action `"sendGmailData"` and extracts
  * the `messageId`, `emailId`, and `eml_Url` from the received message. It logs the extracted data
- * to the console and then calls the `emlExtractionGmail` function to handle further processing.
  *
  * @param {Object} message - The message object received from the sender.
  * @param {string} message.action - The action type of the received message.
@@ -771,7 +766,6 @@ async function emlExtractionGmail(emlUrl, currentMessageId, emailId) {
       },
     });
     const emailContent = await response.text();
-   
 
     const formattedContent = [
       "MIME-Version: 1.0",
@@ -785,7 +779,6 @@ async function emlExtractionGmail(emlUrl, currentMessageId, emailId) {
     });
 
     if (emlBlob) {
-     
       await sendEmlToServer(currentMessageId, emlBlob, "gmail", emailId);
     }
   } catch (error) {
@@ -800,7 +793,6 @@ async function emlExtractionGmail(emlUrl, currentMessageId, emailId) {
  *
  * This listener waits for a message with the action `"outlookEmlContent"`. When triggered, it:
  * - Extracts the email content, message ID (`dataConvid`), and user email.
- * - Logs the `dataConvid` to the console.
  * - Ensures that `pluginId` is set before sending the email content to the server.
  *
  * @param {Object} message - The message received from another script.
@@ -817,7 +809,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const emailContent = message.emailContent;
     currentMessageId = message.dataConvid;
     user_email = message.userEmailId;
-    
+
     // Ensure pluginId is set
     getExtensionid().then(() => {
       sendEmlToServer(currentMessageId, emailContent, "outlook", user_email);
@@ -826,8 +818,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 /** ________________________________________ Yahoo ______________________________________________*/
-chrome.storage.local.remove("messages", function () {
-});
+chrome.storage.local.remove("messages", function () {});
 
 /**
  * Listens for tab updates and checks if the URL changes.
@@ -884,7 +875,6 @@ async function emlExtractionYahoo(emlUrl, currentMessageId, userEmail) {
   try {
     const response = await fetch(emlUrl);
     const emailContent = await response.text();
-  
 
     // Create properly formatted email content with headers
     const formattedContent = [
@@ -897,7 +887,6 @@ async function emlExtractionYahoo(emlUrl, currentMessageId, userEmail) {
     const emlBlob = new Blob([formattedContent], {
       type: "message/rfc822",
     });
-   
 
     if (emlBlob) {
       await sendEmlToServer(currentMessageId, emlBlob, "yahoo", userEmail);
@@ -932,7 +921,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     currentMessageId = message.lastMessageId;
     let emlUrl = message.url;
 
-    
     emlExtractionYahoo(emlUrl, currentMessageId, userEmail);
   }
 });

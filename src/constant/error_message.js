@@ -21,4 +21,7 @@ export const ERROR_MESSAGES = {
   API_FAILED_MESSAGE:
     "Unable to connect to the service. Please check your internet connection and try again.",
   EMAIL_ID_NOT_FOUND: "Email ID not found.",
+  FAILED_TO_FETCH_EMAIL_DATA: "Failed to fetch email data.",
+  FAILED_TO_UPLOAD_FILE: "Failed to upload file on server.",
+  FAILED_TO_FETCH_USER_DETAILS:'Failed to fetch user details.'
 };
