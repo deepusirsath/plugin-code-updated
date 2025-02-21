@@ -924,6 +924,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     emlExtractionYahoo(emlUrl, currentMessageId, userEmail);
   }
 });
+
 /**
  * Handles reloading dispute status and admin comments for an email
  *
@@ -952,6 +953,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
  * });
  * ```
  */
+
 const handleReload = async (messageIdData, email, client, sendResponse) => {
   try {
     const [disputeStatus, adminComment] = await Promise.all([

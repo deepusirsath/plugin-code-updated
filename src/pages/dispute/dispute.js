@@ -267,7 +267,6 @@ export const checkAdminComment = async (messageId, email) => {
  */
 export const sendDisputeToServer = async (reason, email, messageId) => {
   //add a submission lock to prevent multiple submissions
-
   try {
     const data = await postData(DISPUTES_RAISE, {
       userComment: reason,
