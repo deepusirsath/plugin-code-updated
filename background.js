@@ -72,9 +72,7 @@ chrome.management.onEnabled.addListener(() => {
       }
       return response.json();
     })
-    .then((data) => {
-      console.log("Fetch successful:", data);
-    })
+    .then((data) => {})
     .catch((error) => {
       console.error("There was a problem with the fetch operation:", error);
     });
@@ -196,9 +194,7 @@ async function userDetails() {
     getPlatformInfo(),
     getExtensionid(),
   ])
-    .then(() => {
-      console.log("User details have been fetched and stored.");
-    })
+    .then(() => {})
     .catch((error) => {
       console.log("Error in userDetails:", error);
     });
@@ -585,12 +581,7 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
       if (action) {
         chrome.tabs
           .sendMessage(activeTabId, { action, client, unsafeReason })
-          .then((response) => {
-            console.log(
-              `Message sent to content script for ${action}:`,
-              response
-            );
-          })
+          .then((response) => {})
           .catch((error) => {
             console.error("Error sending message to content script:", error);
           });
@@ -710,9 +701,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         chrome.tabs.sendMessage(
           tabId,
           { action: "GmailDetectedForExtraction" },
-          (response) => {
-            console.log("Response from content script:");
-          }
+          (response) => {}
         );
       }, 1000);
     }
