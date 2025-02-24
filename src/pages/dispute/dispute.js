@@ -6,6 +6,7 @@ import {
 import { postData } from "/src/api/api_method.js";
 import { showCustomAlert } from "/src/component/custom_alert/custom_alert.js";
 import { showLoader, hideLoader } from "/src/component/loader/loader.js";
+import { displayError } from "/src/helper/display_error.js";
 
 /**
  * Initializes and manages a dispute form interface with validation and submission handling
@@ -131,22 +132,6 @@ export const initializeDisputeForm = (disputeData) => {
    * @fires sendDispute - When dispute count is valid
    * @fires showCustomAlert - When dispute limit is reached
    */
-  // submitButton.addEventListener("click", async () => {
-  //   disableSubmitButton();
-  //   const disputeCount = disputeData.countRaise || 0;
-  //   if (disputeCount < 3 && disputeCount >= 0) {
-  //     const reasonText = reasonTextarea.value.trim();
-  //     const messageId = document.getElementById("messageId").textContent;
-  //     const receiver_email = await chrome.storage.local.get("receiver_email");
-  //     sendDispute(reasonText, messageId, receiver_email?.receiver_email);
-  //   } else {
-  //     disableSubmitButton();
-  //     showCustomAlert(
-  //       "You have reached the maximum limit for disputes. Each email can be disputed a maximum of three times.",
-  //       "limit"
-  //     );
-  //   }
-  // });
   submitButton.addEventListener("click", async () => {
     disableSubmitButton();
     const disputeCount = disputeData.countRaise || 0;
@@ -175,7 +160,7 @@ export const initializeDisputeForm = (disputeData) => {
       disableSubmitButton();
       showCustomAlert(
         "You have reached the maximum limit for disputes. Each email can be disputed a maximum of three times.",
-        "limit"
+        "error"
       );
     }
   });
@@ -260,7 +245,6 @@ export const initializeDisputeForm = (disputeData) => {
  * @param {string} messageId - ID of the User's mail
  * @param {string} email - Email address associated with the message
  * @returns {Promise<string|null>} Admin comment if found, null otherwise
- * @throws {Error} Logs error to console and returns null if request fails
  */
 export const checkAdminComment = async (messageId, email) => {
   try {
@@ -270,8 +254,7 @@ export const checkAdminComment = async (messageId, email) => {
     });
     return data?.data[0]?.admin_comment || null;
   } catch (err) {
-    console.error(err);
-    return null;
+    displayError();
   }
 };
 
@@ -281,15 +264,9 @@ export const checkAdminComment = async (messageId, email) => {
  * @param {string} email - User's email address
  * @param {string} messageId - User's email messageId
  * @returns {Promise<Object>} Server response data
- * @throws {Error} Logs error to console if request fails
  */
 export const sendDisputeToServer = async (reason, email, messageId) => {
   //add a submission lock to prevent multiple submissions
-  if (window.isSubmitting) {
-    return;
-  }
-
-  window.isSubmitting = true;
   try {
     const data = await postData(DISPUTES_RAISE, {
       userComment: reason,
@@ -303,7 +280,7 @@ export const sendDisputeToServer = async (reason, email, messageId) => {
 
     return data;
   } catch (error) {
-    console.error("Error sending dispute to server:", error);
+    displayError();
   }
 };
 
@@ -311,7 +288,6 @@ export const sendDisputeToServer = async (reason, email, messageId) => {
  * Retrieves and stores the dispute count for a specific mail
  * @param {string} messageId - The ID of the message to check disputes for
  * @returns {Promise<Object>} Object containing the dispute_count
- * @throws {Error} Logs error to console if request fails
  */
 export const checkDisputeCount = async (messageId) => {
   try {
@@ -325,6 +301,6 @@ export const checkDisputeCount = async (messageId) => {
 
     return { dispute_count };
   } catch (err) {
-    console.error(err);
+    displayError();
   }
 };

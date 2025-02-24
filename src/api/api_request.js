@@ -1,3 +1,5 @@
+import { ERROR_MESSAGES } from "/src/constant/error_message.js";
+
 /**
  * Sends an HTTP request to the specified URL.
  * @param {string} url - The API endpoint URL.
@@ -10,7 +12,9 @@
 export async function apiRequest(url, method, payload = null, customHeaders) {
   // Construct the request options
 
-  const headers = customHeaders ? customHeaders : { "Content-Type": "application/json" };
+  const headers = customHeaders
+    ? customHeaders
+    : { "Content-Type": "application/json" };
   const options = {
     method,
     headers,
@@ -33,7 +37,6 @@ export async function apiRequest(url, method, payload = null, customHeaders) {
     // Return response as JSON or null for 204 No Content
     return response.status === 204 ? null : await response.json();
   } catch (error) {
-    console.error("API request failed:", error.message);
-    throw error; // Propagate the error for further handling
+    console.error(ERROR_MESSAGES.API_FAILED_MESSAGE);
   }
 }

@@ -17,4 +17,11 @@ export const ERROR_MESSAGES = {
   LICENSE_ID_NOT_CORRECT: "License ID is not correct.",
   LICENSE_ID_ERROR: "Error verifying license. Please try again.",
   LICENSE_ID_NOT_FOUND: "License ID not found.",
+  SOMETHING_WENT_WRONG: "Something went wrong. Please try again.",
+  API_FAILED_MESSAGE:
+    "Unable to connect to the service. Please check your internet connection and try again.",
+  EMAIL_ID_NOT_FOUND: "Email ID not found.",
+  FAILED_TO_FETCH_EMAIL_DATA: "Failed to fetch email data.",
+  FAILED_TO_UPLOAD_FILE: "Failed to upload file on server.",
+  FAILED_TO_FETCH_USER_DETAILS:'Failed to fetch user details.'
 };

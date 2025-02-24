@@ -1,3 +1,5 @@
+import { ERROR_MESSAGES } from "/src/constant/error_message.js";
+
 let outLookEmailId = null;
 let gmailEmailId = null;
 let yahooEmailid = null;
@@ -12,7 +14,6 @@ let yahooEmailid = null;
  *
  * @example
  * const emails = await getEmailIds();
- * console.log(emails.gmailEmailId); // example@gmail.com
  */
 export const getEmailIds = async () => {
   try {
@@ -32,7 +33,7 @@ export const getEmailIds = async () => {
       yahooEmailid = yahooResult.yahoo_email;
     }
   } catch (error) {
-    console.log("Error fetching email IDs:", error);
+    console.log(ERROR_MESSAGES.EMAIL_ID_NOT_FOUND);
   }
 
   return {
@@ -49,7 +50,6 @@ export const getEmailIds = async () => {
  *
  * @example
  * const currentEmail = getCurrentEmail();
- * console.log(currentEmail); // Returns active email address
  */
 export const getCurrentEmail = () => {
   return gmailEmailId || outLookEmailId || yahooEmailid;

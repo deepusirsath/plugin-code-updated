@@ -364,7 +364,6 @@ export function showAlert(key, messageReason = " ") {
       break;
 
     default:
-      console.log("Invalid key for showAlert");
       return;
   }
 

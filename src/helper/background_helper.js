@@ -1,38 +1,9 @@
-import { postData } from "/src/api/api_method.js";
 import {
   isGmailPage,
   isGmailMailOpened,
   isOutlookPage,
   isYahooPage,
 } from "/src/helper/mail_services_helper.js";
-
-export const handleEmailCheck = async (
-  client,
-  messageId,
-  email,
-  sendResponse
-) => {
-  try {
-    const data = await postData("/pending-status-check/", {
-      messageId,
-      email,
-    });
-
-    if (data) {
-      sendResponse({
-        IsResponseRecieved: "success",
-        data,
-        client,
-      });
-    }
-  } catch (error) {
-    sendResponse({
-      status: "error",
-      client,
-      error: error.message,
-    });
-  }
-};
 
 export const checkGmailUrl = (url) => {
   if (url && url.includes("mail.google.com")) {

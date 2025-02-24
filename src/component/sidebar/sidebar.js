@@ -5,7 +5,7 @@ import { TARGET_ID } from "/src/constant/target_id.js";
 import { initializeDisputeForm } from "/src/pages/dispute/dispute.js";
 import { showLoader, hideLoader } from "/src/component/loader/loader.js";
 import { setCurrentSearchQuery } from "/src/pages/spam-mail/spam-mail.js";
-import {setCurrentdisputeMailSearchQuery} from "/src/pages/dispute-mail/dispute-mail.js";
+import { setCurrentdisputeMailSearchQuery } from "/src/pages/dispute-mail/dispute-mail.js";
 import {
   loadComponent,
   loadCssAndHtmlFile,
@@ -72,16 +72,16 @@ const handleRegularButton = async (componentName) => {
       })
     );
   } catch (error) {
-    displayError(error);
+    displayError();
   }
 };
 
 /**
  * Handles dispute button click events and manages email service verification and component loading
- * 
+ *
  * @param {string} componentName - Name of the component to be loaded
  * @returns {Promise<void>}
- * 
+ *
  * @description
  * This function performs the following operations:
  * 1. Verifies if the current page is a valid email service page
@@ -90,15 +90,15 @@ const handleRegularButton = async (componentName) => {
  *    - Loads "mail not found" component if dispute data is not found
  *    - Loads specified component with dispute data if available
  *    - Dispatches a custom event with component and dispute data
- * 
+ *
  * Supported email services:
  * - Gmail
  * - Outlook
  * - Yahoo
- * 
+ *
  * @example
  * await handleDisputeButton('dispute');
- * 
+ *
  * @throws {Error} Displays error message if any operation fails
  */
 const handleDisputeButton = async (componentName) => {
@@ -162,7 +162,7 @@ const handleDisputeButton = async (componentName) => {
       }
     );
   } catch (error) {
-    displayError(error);
+    displayError();
   }
 };
 

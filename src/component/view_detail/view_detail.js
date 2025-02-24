@@ -137,7 +137,7 @@ const handleCDRFiles = (createViewDetail) => {
  * - Email details (sender, subject, body)
  * - Attachment list
  * - CDR files download section
- * 
+ *
  * The function:
  * 1. Loads required CSS styles
  * 2. Creates a popup with email information
@@ -152,21 +152,23 @@ export const createViewDetail = (createViewDetail) => {
   const view_detail = `/src/${BASEPATH.COMPONENT}/${COMPONENTS.VIEW_DETAIL}/${COMPONENTS.VIEW_DETAIL}`;
   loadCSS(`${view_detail}.css`);
 
-  
   const popup = document.createElement("div");
   popup.className = "popup-test";
   popup.innerHTML = `
-    <div class="popup-content">
+  <div class="popup-content">
       <div class="popup-header">
         <h3>Email Details</h3>
         <button class="close-popup">×</button>
       </div>
       <div class="remarks-detail">
-  ${createViewDetail?.all_reasons?.length > 0 
-    ? createViewDetail.all_reasons.map(reason => `<div>${reason}</div>`).join('')
-    : "No Remarks"
+  ${
+    createViewDetail?.all_reasons?.length > 0
+      ? createViewDetail.all_reasons
+          .map((reason) => `<div>${reason}</div>`)
+          .join("")
+      : "No Remarks"
   }
-</div>
+   </div>
       <div class="popup-body">
         <div class="detail-row">
           <label>Sender:</label>
@@ -191,8 +193,8 @@ export const createViewDetail = (createViewDetail) => {
          </div>
         </div>
       <div id="cdr-files-container"></div>
-      </div>
     </div>
+  </div>
   `;
 
   popup.querySelector(".close-popup").addEventListener("click", () => {

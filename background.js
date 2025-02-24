@@ -37,13 +37,11 @@ chrome.storage.local.get(null, function (items) {
 
 // Listener for chrome startup
 chrome.runtime.onStartup.addListener(() => {
-  console.log("On startup is running");
   userDetails();
 });
 
 // Listener for chrome installation
 chrome.runtime.onInstalled.addListener(() => {
-  console.log("On Installed is running");
   userDetails();
 });
 
@@ -79,15 +77,13 @@ chrome.management.onEnabled.addListener(() => {
       }
       return response.json();
     })
-    .then((data) => {
-      console.log("Fetch successful:", data);
-    })
+    .then((data) => {})
     .catch((error) => {
       console.error("There was a problem with the fetch operation:", error);
     });
 });
 
-/** ___________________________________________________________Information___________________________________________________________ */ 
+/** ___________________________________________________________Information___________________________________________________________ */
 
 async function getExtensionid() {
   return new Promise((resolve) => {
@@ -186,12 +182,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 /**
  * Asynchronously fetches and stores user details.
- * 
- * This function retrieves multiple pieces of user information concurrently using `Promise.all`. 
- * It fetches the user's IP address, browser information, platform details, and the extension ID. 
+ *
+ * This function retrieves multiple pieces of user information concurrently using `Promise.all`.
+ * It fetches the user's IP address, browser information, platform details, and the extension ID.
  * If all promises resolve successfully, a confirmation message is logged to the console.
  * If any of the promises fail, an error message is logged instead.
- * 
+ *
  * @async
  * @function userDetails
  * @returns {Promise<void>} A promise that resolves once all user details are fetched and processed.
@@ -203,9 +199,7 @@ async function userDetails() {
     getPlatformInfo(),
     getExtensionid(),
   ])
-    .then(() => {
-      console.log("User details have been fetched and stored.");
-    })
+    .then(() => {})
     .catch((error) => {
       console.log("Error in userDetails:", error);
     });
@@ -231,7 +225,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       ["extensionId", "browserInfo", "ipAddress"],
       (data) => {
         if (chrome.runtime.lastError) {
-          console.error(chrome.runtime.lastError);
           sendResponse({ error: chrome.runtime.lastError });
           return;
         }
@@ -401,9 +394,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  * @throws {Error} - Logs errors if the request fails.
  *
  * @description
- * This function queries the currently active tab and sends a POST request 
- * to the server to check the pending dispute status of an email. 
- * If the response contains `eml_status`, it processes the data using 
+ * This function queries the currently active tab and sends a POST request
+ * to the server to check the pending dispute status of an email.
+ * If the response contains `eml_status`, it processes the data using
  * `handleEmailScanResponse` and returns the status.
  */
 async function checkDisputeStatus(messageId, email, sendResponse, client) {
@@ -430,11 +423,11 @@ async function checkDisputeStatus(messageId, email, sendResponse, client) {
 
 /**
  * Listener for messages sent to the extension.
- * 
- * This function listens for messages from other parts of the extension. 
- * If the message contains an action `"dispute"`, it extracts the `messageId`, 
+ *
+ * This function listens for messages from other parts of the extension.
+ * If the message contains an action `"dispute"`, it extracts the `messageId`,
  * `reason`, and `emailId` from the request and sends a dispute to the server.
- * 
+ *
  * @param {Object} request - The message sent to the listener.
  * @param {string} request.action - The action type, expected to be `"dispute"`.
  * @param {string} request.messageId - The unique ID of the email message.
@@ -443,7 +436,7 @@ async function checkDisputeStatus(messageId, email, sendResponse, client) {
  * @param {Object} sender - Information about the sender of the message.
  * @param {Function} sendResponse - Function to send a response back to the sender.
  * @returns {boolean} Returns `true` to indicate an asynchronous response.
- * 
+ *
  * @example
  * chrome.runtime.sendMessage({
  *   action: "dispute",
@@ -482,9 +475,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  * @returns {Promise<void>} Resolves when the email scan response is handled.
  *
  * @description
- * This function collects necessary metadata (such as `messageId`, `macId`, `pluginId`, browser information, 
- * and geolocation data) and constructs a `FormData` object. The email file is appended to the form data 
- * and sent to the server for analysis. Once the server processes the request, the response is handled using 
+ * This function collects necessary metadata (such as `messageId`, `macId`, `pluginId`, browser information,
+ * and geolocation data) and constructs a `FormData` object. The email file is appended to the form data
+ * and sent to the server for analysis. Once the server processes the request, the response is handled using
  * `handleEmailScanResponse()`. If an error occurs during the upload process, it is caught and logged.
  */
 async function sendEmlToServer(messageId, blob = null, client, user_email) {
@@ -492,7 +485,6 @@ async function sendEmlToServer(messageId, blob = null, client, user_email) {
     // if (!pluginId) {
     //   await getExtensionid();
     // }
-    console.log("sendEmlToServer process has started");
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tabs || !tabs.length) {
       throw new Error("No active tab available");
@@ -527,9 +519,7 @@ async function sendEmlToServer(messageId, blob = null, client, user_email) {
       },
     });
 
-    console.log("File successfully uploaded to the server");
     const serverData = await uploadResponse.json();
-    console.log("Server Response:", serverData);
 
     // Handle the response using the separate handler function
     handleEmailScanResponse(serverData, activeTabId, client);
@@ -547,13 +537,13 @@ async function sendEmlToServer(messageId, blob = null, client, user_email) {
  *
  * The function extracts the email's status (`resStatus`) and message ID (`messId`) from the response.
  * If either is missing, it sends an error message to the extension runtime.
- * 
+ *
  * It then updates `chrome.storage.local` with the status and unsafe reason for the given `messId`.
  * If the `currentMessageId` matches `messId`, it determines an action based on `resStatus`:
  * - `"unsafe"` or `"Unsafe"` → `"blockUrls"`
  * - `"safe"` or `"Safe"` → `"unblock"`
  * - `"pending"` or `"Pending"` → `"pending"`
- * 
+ *
  * The function sends this action along with `client` and `unsafeReason` to the content script.
  * If the message ID does not match `currentMessageId`, an error message is sent to the runtime.
  */
@@ -562,7 +552,6 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
   const resStatus = serverData.eml_status || serverData.email_status;
   const messId = serverData.messageId || serverData.msg_id;
   let unsafeReason = serverData.unsafe_reasons || " ";
-  console.log("serverData:", serverData);
 
   if (typeof resStatus === "undefined" || typeof messId === "undefined") {
     chrome.runtime.sendMessage({
@@ -597,15 +586,12 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
       if (action) {
         chrome.tabs
           .sendMessage(activeTabId, { action, client, unsafeReason })
-          .then((response) => {
-            console.log(`Message sent to content script for ${action}:`,response);
-          })
+          .then((response) => {})
           .catch((error) => {
             console.error("Error sending message to content script:", error);
           });
       }
     } else {
-      console.log("Response received for different message ID");
       chrome.runtime.sendMessage({
         action: "erroRecievedFromServer",
         client: client,
@@ -630,7 +616,7 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
  * - "pendingStatusYahoo": Checks the pending response status for a Yahoo email.
  * - "pendingStatusOutlook": Checks the pending response status for an Outlook email.
  *
- * The function updates `currentMessageId` and calls `checkPendingResponseStatus` 
+ * The function updates `currentMessageId` and calls `checkPendingResponseStatus`
  * with the corresponding email provider.
  */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -655,9 +641,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 /**
  * Asynchronously checks the pending response status for a given email message.
  *
- * This function sends a POST request to the pending status check endpoint with 
- * the provided message ID and email. It then retrieves the response data and 
- * processes it using the `handleEmailScanResponse` function. Additionally, it 
+ * This function sends a POST request to the pending status check endpoint with
+ * the provided message ID and email. It then retrieves the response data and
+ * processes it using the `handleEmailScanResponse` function. Additionally, it
  * ensures that an active tab is available before proceeding.
  *
  * @async
@@ -678,7 +664,6 @@ async function checkPendingResponseStatus(messageId, email, client) {
     const activeTabId = tabs && tabs[0] ? tabs[0].id : null;
 
     if (!activeTabId) {
-      console.log("No active tab found");
       return;
     }
     const response = await fetch(url, {
@@ -721,9 +706,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         chrome.tabs.sendMessage(
           tabId,
           { action: "GmailDetectedForExtraction" },
-          (response) => {
-            console.log("Response from content script:", response);
-          }
+          (response) => {}
         );
       }, 1000);
     }
@@ -732,10 +715,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
 /**
  * Listens for messages sent via chrome.runtime.onMessage and processes Gmail data.
- *
  * This event listener listens for messages with the action `"sendGmailData"` and extracts
  * the `messageId`, `emailId`, and `eml_Url` from the received message. It logs the extracted data
- * to the console and then calls the `emlExtractionGmail` function to handle further processing.
  *
  * @param {Object} message - The message object received from the sender.
  * @param {string} message.action - The action type of the received message.
@@ -749,19 +730,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "sendGmailData") {
     currentMessageId = message.messageId;
     const { messageId, emailId, eml_Url } = message;
-    console.log("Received messageId:", message.messageId);
-    console.log("Received emailId:", message.emailId);
-    console.log("Received eml_Url:", message.eml_Url);
     emlExtractionGmail(eml_Url, messageId, emailId);
   }
 });
 
-
 /**
  * Asynchronously fetches and processes an email in EML format from Gmail.
  *
- * This function retrieves the email content from the specified EML URL, formats it as a 
- * valid RFC 822 email message, and converts it into a Blob. The processed email is then 
+ * This function retrieves the email content from the specified EML URL, formats it as a
+ * valid RFC 822 email message, and converts it into a Blob. The processed email is then
  * sent to the server for further handling.
  *
  * @async
@@ -783,7 +760,6 @@ async function emlExtractionGmail(emlUrl, currentMessageId, emailId) {
       },
     });
     const emailContent = await response.text();
-    console.log("Email Content:", emailContent);
 
     const formattedContent = [
       "MIME-Version: 1.0",
@@ -795,79 +771,14 @@ async function emlExtractionGmail(emlUrl, currentMessageId, emailId) {
     const emlBlob = new Blob([formattedContent], {
       type: "message/rfc822",
     });
-    console.log("Email Blob:", emlBlob);
+
     if (emlBlob) {
-      console.log('About to send to server:', {
-        currentMessageId,
-        emailId,
-        blobSize: emlBlob.size
-      });
       await sendEmlToServer(currentMessageId, emlBlob, "gmail", emailId);
-      console.log('Server upload completed');
     }
   } catch (error) {
     console.log("Error fetching email data:", error);
   }
 }
-
-// async function emlExtractionGmail(emlUrl, currentMessageId, emailId) {
-//   // Start performance tracking
-//   const startTime = performance.now();
-
-//   try {
-//     // Step 1: Fetch email content
-//     const fetchStart = performance.now();
-//     const response = await fetch(emlUrl, {
-//       mode: "cors",
-//       credentials: "include", 
-//       headers: {
-//         Accept: "*/*",
-//       },
-//     });
-//     const fetchEnd = performance.now();
-//     console.info(`✓ Email fetch completed in ${(fetchEnd - fetchStart).toFixed(2)}ms`);
-
-//     // Step 2: Extract email text content
-//     const textStart = performance.now();
-//     const emailContent = await response.text();
-//     const textEnd = performance.now();
-//     console.info(`✓ Content extraction completed in ${(textEnd - textStart).toFixed(2)}ms`);
-//     console.debug("📧 Raw email content:", emailContent);
-
-//     // Step 3: Create formatted email blob
-//     const blobStart = performance.now();
-//     const formattedContent = [
-//       "MIME-Version: 1.0",
-//       "Content-Type: message/rfc822",
-//       "",
-//       emailContent,
-//     ].join("\r\n");
-
-//     const emlBlob = new Blob([formattedContent], {
-//       type: "message/rfc822", 
-//     });
-//     const blobEnd = performance.now();
-//     console.info(`✓ Blob creation completed in ${(blobEnd - blobStart).toFixed(2)}ms`);
-//     console.debug("📎 Email blob created:", emlBlob);
-
-//     // Step 4: Upload to server if blob exists
-//     if (emlBlob) {
-//       const serverStart = performance.now();
-//       await sendEmlToServer(currentMessageId, emlBlob, "gmail", emailId);
-//       const serverEnd = performance.now();
-//       console.info(`✓ Server upload completed in ${(serverEnd - serverStart).toFixed(2)}ms`);
-//       console.info("🚀 Email successfully sent to server");
-//     }
-
-//     // Log total execution time
-//     const totalTime = performance.now() - startTime;
-//     console.info(`✨ Total processing completed in ${totalTime.toFixed(2)}ms`);
-
-//   } catch (error) {
-//     console.error("❌ Email extraction failed:", error);
-//   }
-// }
-
 
 /** ________________________________________ OUTLOOK ______________________________________________*/
 
@@ -876,7 +787,6 @@ async function emlExtractionGmail(emlUrl, currentMessageId, emailId) {
  *
  * This listener waits for a message with the action `"outlookEmlContent"`. When triggered, it:
  * - Extracts the email content, message ID (`dataConvid`), and user email.
- * - Logs the `dataConvid` to the console.
  * - Ensures that `pluginId` is set before sending the email content to the server.
  *
  * @param {Object} message - The message received from another script.
@@ -893,7 +803,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const emailContent = message.emailContent;
     currentMessageId = message.dataConvid;
     user_email = message.userEmailId;
-    console.log("Data Convid Id:", currentMessageId);
+
     // Ensure pluginId is set
     getExtensionid().then(() => {
       sendEmlToServer(currentMessageId, emailContent, "outlook", user_email);
@@ -902,9 +812,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 /** ________________________________________ Yahoo ______________________________________________*/
-chrome.storage.local.remove("messages", function () {
-  console.log("Messages cleared from local storage");
-});
+chrome.storage.local.remove("messages", function () {});
 
 /**
  * Listens for tab updates and checks if the URL changes.
@@ -926,80 +834,26 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   }
 });
 
-
-// async function emlExtractionYahoo(emlUrl, currentMessageId, userEmail) {
-//   // Start performance tracking
-//   const startTime = performance.now();
-
-//   try {
-//     // Step 1: Fetch email content
-//     const fetchStart = performance.now();
-//     const response = await fetch(emlUrl);
-//     const fetchEnd = performance.now();
-//     console.info(`✓ Email fetch completed in ${(fetchEnd - fetchStart).toFixed(2)}ms`);
-
-//     // Step 2: Extract email text content
-//     const textStart = performance.now();
-//     const emailContent = await response.text();
-//     const textEnd = performance.now();
-//     console.info(`✓ Content extraction completed in ${(textEnd - textStart).toFixed(2)}ms`);
-//     console.debug("📧 Raw email content:", emailContent);
-
-//     // Step 3: Create formatted email blob
-//     const blobStart = performance.now();
-//     const formattedContent = [
-//       "MIME-Version: 1.0",
-//       "Content-Type: message/rfc822",
-//       "",
-//       emailContent,
-//     ].join("\r\n");
-
-//     const emlBlob = new Blob([formattedContent], {
-//       type: "message/rfc822",
-//     });
-//     const blobEnd = performance.now();
-//     console.info(`✓ Blob creation completed in ${(blobEnd - blobStart).toFixed(2)}ms`);
-//     console.debug("📎 Email blob created:", emlBlob);
-
-//     // Step 4: Upload to server if blob exists
-//     if (emlBlob) {
-//       const serverStart = performance.now();
-//       await sendEmlToServer(currentMessageId, emlBlob, "yahoo", userEmail);
-//       const serverEnd = performance.now();
-//       console.info(`✓ Server upload completed in ${(serverEnd - serverStart).toFixed(2)}ms`);
-//       console.info("🚀 Email successfully sent to server");
-//     }
-
-//     // Log total execution time
-//     const totalTime = performance.now() - startTime;
-//     console.info(`✨ Total processing completed in ${totalTime.toFixed(2)}ms`);
-
-//   } catch (error) {
-//     console.error("❌ Email extraction failed:", error);
-//   }
-// }
-
-
 /**
  * Extracts and processes Yahoo email content for phishing detection
- * 
+ *
  * @async
  * @param {string} emlUrl - The URL to fetch the email content from Yahoo
  * @param {string} currentMessageId - Unique identifier for the current email message
  * @param {string} userEmail - Email address of the user
- * 
+ *
  * @description
  * This function performs the following steps:
  * 1. Fetches raw email content from the provided Yahoo email URL
  * 2. Formats the email content with proper MIME headers
  * 3. Creates a properly formatted email blob
  * 4. Sends the formatted email to server for analysis
- * 
+ *
  * The email content is formatted according to RFC822 standards with:
  * - MIME Version header
  * - Content-Type header
  * - Original email content
- * 
+ *
  * @example
  * ```js
  * await emlExtractionYahoo(
@@ -1008,14 +862,13 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
  *   'user@yahoo.com'
  * );
  * ```
- * 
+ *
  * @throws {Error} Logs error message if email fetching or processing fails
  */
 async function emlExtractionYahoo(emlUrl, currentMessageId, userEmail) {
   try {
     const response = await fetch(emlUrl);
     const emailContent = await response.text();
-    console.log("Email Content:", emailContent);
 
     // Create properly formatted email content with headers
     const formattedContent = [
@@ -1028,7 +881,6 @@ async function emlExtractionYahoo(emlUrl, currentMessageId, userEmail) {
     const emlBlob = new Blob([formattedContent], {
       type: "message/rfc822",
     });
-    console.log("Email Blob:", emlBlob);
 
     if (emlBlob) {
       await sendEmlToServer(currentMessageId, emlBlob, "yahoo", userEmail);
@@ -1040,7 +892,7 @@ async function emlExtractionYahoo(emlUrl, currentMessageId, userEmail) {
 
 /**
  * Message listener for Yahoo email data processing
- * 
+ *
  * Handles incoming messages with "sendYahooData" action to process Yahoo emails.
  * Extracts necessary data and initiates email content processing.
  *
@@ -1051,7 +903,7 @@ async function emlExtractionYahoo(emlUrl, currentMessageId, userEmail) {
  *   @param {string} message.url - URL to fetch email content
  * @param {Object} sender - Information about the message sender
  * @param {Function} sendResponse - Callback function to send response
- * 
+ *
  * Flow:
  * 1. Extracts userEmail, messageId and emlUrl from message
  * 2. Logs extracted data for debugging
@@ -1063,30 +915,28 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     currentMessageId = message.lastMessageId;
     let emlUrl = message.url;
 
-    console.log("User email:", userEmail);
-    console.log("currentMessageId ID:", currentMessageId);
-    console.log("EML URL:", emlUrl);
     emlExtractionYahoo(emlUrl, currentMessageId, userEmail);
   }
 });
+
 /**
  * Handles reloading dispute status and admin comments for an email
- * 
+ *
  * @async
  * @param {string} messageIdData - Unique identifier for the email message
  * @param {string} email - User's email address
  * @param {string} client - Email client type (gmail/yahoo/outlook)
  * @param {Function} sendResponse - Callback function to send response back to caller
- * 
+ *
  * @returns {void} Sends response via callback with:
- * - On success: {disputeStatus, adminComment} 
+ * - On success: {disputeStatus, adminComment}
  * - On error: {error: string}
- * 
+ *
  * Features:
  * - Concurrently fetches dispute status and admin comments using Promise.all
  * - Handles errors gracefully with error message response
  * - Uses checkDisputeStatus and checkAdminComment helper functions
- * 
+ *
  * Example usage:
  * ```js
  * chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -1097,6 +947,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
  * });
  * ```
  */
+
 const handleReload = async (messageIdData, email, client, sendResponse) => {
   try {
     const [disputeStatus, adminComment] = await Promise.all([
@@ -1115,10 +966,10 @@ const handleReload = async (messageIdData, email, client, sendResponse) => {
 
 /**
  * Listens for messages sent from other parts of the extension.
- * 
- * This listener waits for an incoming message with the action `"reload"`, extracts relevant 
+ *
+ * This listener waits for an incoming message with the action `"reload"`, extracts relevant
  * details (message ID, email ID, and client type), and invokes `handleReload` to process them.
- * 
+ *
  * @param {Object} request - The message object sent by another part of the extension.
  * @param {string} request.action - The action type of the message (expects `"reload"`).
  * @param {string} request.messageId - The unique identifier of the email message.
@@ -1126,7 +977,7 @@ const handleReload = async (messageIdData, email, client, sendResponse) => {
  * @param {string} request.client - The email client (e.g., "Outlook", "Yahoo").
  * @param {Object} sender - The sender object containing information about the script that sent the message.
  * @param {Function} sendResponse - A function to send a response back to the sender.
- * 
+ *
  * @returns {boolean} - Returns `true` to indicate that `sendResponse` will be called asynchronously.
  */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -1151,7 +1002,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  * @param {Object} sender - The sender of the message (unused in this function).
  * @param {Function} sendResponse - Callback function to send a response back to the sender.
  *
- * This function checks if the action is `"firstCheckForEmail"`, then makes a POST request 
+ * This function checks if the action is `"firstCheckForEmail"`, then makes a POST request
  * to the pending status check endpoint with the `messageId` and `email` as the request body.
  * The response from the server is sent back to the sender with the status of the request.
  *
