@@ -30,6 +30,11 @@ chrome.storage.local.set({ registration: true });
 
 /** ___________________________________________________________Extension___________________________________________________________ */
 
+chrome.storage.local.get(null, function (items) {
+  console.log("All Local Storage Data:", items);
+});
+
+
 // Listener for chrome startup
 chrome.runtime.onStartup.addListener(() => {
   userDetails();
