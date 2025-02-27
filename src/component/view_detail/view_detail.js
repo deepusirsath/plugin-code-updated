@@ -3,6 +3,26 @@ import { COMPONENTS } from "/src/constant/component.js";
 import { loadCSS } from "/src/helper/content_loader_helper.js";
 
 /**
+ * Common download handler for both CDR files and attachments
+ * @param {Object} file - The file object containing download information
+ * @param {string} file.file_name - Name of the file to be downloaded
+ * @param {string} [file.download_url] - Primary URL for file download
+ * @param {string} [file.file_url] - Fallback URL for file download
+ * @param {boolean} [isCDR=false] - Whether this is a CDR file download
+ */
+const handleFileDownload = (file, isCDR = false) => {
+  if (file.download_url || file.file_url) {
+    chrome.downloads.download({
+      url: file.download_url || file.file_url,
+      filename: isCDR ? `CDR_${file.file_name}` : file.file_name,
+      conflictAction: "uniquify",
+    });
+  } else {
+    alert("Download URL is not available.");
+  }
+};
+
+/**
  * Processes and sanitizes HTML content for safe display
  * @param {string} htmlString - The raw HTML string to process
  * @returns {string} Sanitized HTML content with:
@@ -38,10 +58,6 @@ const extractBodyContent = (htmlString) => {
 /**
  * Creates a container element for CDR download buttons
  * @returns {HTMLDivElement} A div element with class 'cdr-download-container'
- *
- * This function creates a dedicated container for organizing
- * and displaying CDR (Content Disarm and Reconstruction) file
- * download buttons in the view detail popup
  */
 const createDownloadContainer = () => {
   const container = document.createElement("div");
@@ -55,58 +71,21 @@ const createDownloadContainer = () => {
  * @param {string} file.file_name - Name of the file to be downloaded
  * @param {string} [file.download_url] - Primary URL for file download
  * @param {string} [file.file_url] - Fallback URL for file download
- * @returns {HTMLButtonElement} A configured button element with:
- * - CDR-specific styling class
- * - Download tooltip
- * - Click event handler for file download
- * - Button text prefixed with 'CDR_'
+ * @returns {HTMLButtonElement} A configured button element
  */
 const createDownloadButton = (file) => {
   const button = document.createElement("button");
   button.className = "cdr-download-button";
   button.textContent = `CDR_${file.file_name}`;
   button.setAttribute("data-tooltip", `Click to download ${file.file_name}`);
-  button.addEventListener("click", () => handleDownload(file));
+  button.addEventListener("click", () => handleFileDownload(file, true));
   return button;
 };
 
 /**
- * Initiates the download of a CDR processed file using Chrome's download API
- * @param {Object} file - The file object containing download information
- * @param {string} file.file_name - Name of the file to be downloaded
- * @param {string} [file.download_url] - Primary URL for file download
- * @param {string} [file.file_url] - Fallback URL for file download
- *
- * The function:
- * - Uses chrome.downloads.download API to handle file downloads
- * - Prefixes downloaded files with 'CDR_'
- * - Handles URL fallback logic (download_url → file_url)
- * - Shows alert if no download URL is available
- * - Automatically handles filename conflicts with 'uniquify' option
- */
-const handleDownload = (file) => {
-  if (file.download_url || file.file_url) {
-    chrome.downloads.download({
-      url: file.download_url || file.file_url,
-      filename: `CDR_${file.file_name}`,
-      conflictAction: "uniquify",
-    });
-  } else {
-    alert("Download URL is not available.");
-  }
-};
-
-/**
- * Processes CDR files and creates a download interface in the view detail popup
+ * Processes CDR files and creates a download interface
  * @param {Object} createViewDetail - The view detail configuration object
  * @param {Array} [createViewDetail.cdr_files=[]] - Array of CDR processed files
- *
- * The function:
- * - Creates a container for CDR download buttons
- * - Generates download buttons for each CDR file
- * - Appends the download interface to the designated container
- * - Handles empty CDR files array gracefully
- * - Integrates with the existing DOM structure via 'cdr-files-container'
  */
 const handleCDRFiles = (createViewDetail) => {
   const cdrFiles = createViewDetail?.cdr_files || [];
@@ -131,7 +110,8 @@ const handleCDRFiles = (createViewDetail) => {
  * @param {Array<string>} [createViewDetail.all_reasons] - List of security remarks/reasons
  * @param {Array<Object>} [createViewDetail.attachments] - List of email attachments
  * @param {Array<Object>} [createViewDetail.cdr_files] - List of CDR processed files
- * @returns {HTMLDivElement} The created popup element containing:
+ * @returns {HTMLDivElement} The created popup element
+ *
  * - Email header with close button
  * - Security remarks section
  * - Email details (sender, subject, body)
@@ -161,14 +141,14 @@ export const createViewDetail = (createViewDetail) => {
         <button class="close-popup">×</button>
       </div>
       <div class="remarks-detail">
-  ${
-    createViewDetail?.all_reasons?.length > 0
-      ? createViewDetail.all_reasons
-          .map((reason) => `<div>${reason}</div>`)
-          .join("")
-      : "No Remarks"
-  }
-   </div>
+        ${
+          createViewDetail?.all_reasons?.length > 0
+            ? createViewDetail.all_reasons
+                .map((reason) => `<div>${reason}</div>`)
+                .join("")
+            : "No Remarks"
+        }
+      </div>
       <div class="popup-body">
         <div class="detail-row">
           <label>Sender:</label>
@@ -180,25 +160,49 @@ export const createViewDetail = (createViewDetail) => {
         </div>
         <div class="detail-row">
           <label>Body:</label>
-         <div class="email-body">
-         ${extractBodyContent(createViewDetail.body)}
-         ${
-           createViewDetail?.attachments &&
-           createViewDetail?.attachments
-             .map((attachment) => {
-               return `<div><span>${attachment.file_name}</span></div>`;
-             })
-             .join("")
-         }
-         </div>
+          <div class="email-body">
+            ${extractBodyContent(createViewDetail.body)}
+            ${
+              createViewDetail?.attachments &&
+              createViewDetail?.attachments
+                .map((attachment) => {
+                  return `<div class="attachment-row">
+                    <span>${attachment.file_name}</span>
+                    <button class="attachment-download-button" 
+                      data-url="${
+                        attachment.download_url || attachment.file_url
+                      }"
+                      data-filename="${attachment.file_name}">
+                      Download
+                    </button>
+                  </div>`;
+                })
+                .join("")
+            }
+          </div>
         </div>
-      <div id="cdr-files-container"></div>
+        <div id="cdr-files-container"></div>
+      </div>
     </div>
-  </div>
   `;
 
   popup.querySelector(".close-popup").addEventListener("click", () => {
     popup.remove();
+  });
+
+  popup.addEventListener("click", (e) => {
+    if (e.target.classList.contains("attachment-download-button")) {
+      const url = e.target.dataset.url;
+      const filename = e.target.dataset.filename;
+
+      handleFileDownload(
+        {
+          file_name: filename,
+          download_url: url,
+        },
+        false
+      );
+    }
   });
 
   document.body.appendChild(popup);
