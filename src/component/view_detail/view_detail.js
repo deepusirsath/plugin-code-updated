@@ -168,12 +168,7 @@ export const createViewDetail = (createViewDetail) => {
                 .map((attachment) => {
                   return `<div class="attachment-row">
                     <span>${attachment.file_name}</span>
-<<<<<<< HEAD
-                    
-                  </div>`;
-=======
                   </div> `;
->>>>>>> ef13f0c53eaacfbc2b591907b92b0cc06f4bcaac
                 })
                 .join("")
             }
