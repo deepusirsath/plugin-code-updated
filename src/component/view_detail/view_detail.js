@@ -168,13 +168,7 @@ export const createViewDetail = (createViewDetail) => {
                 .map((attachment) => {
                   return `<div class="attachment-row">
                     <span>${attachment.file_name}</span>
-                    <button class="attachment-download-button" 
-                      data-url="${
-                        attachment.download_url || attachment.file_url
-                      }"
-                      data-filename="${attachment.file_name}">
-                      Download
-                    </button>
+                    
                   </div>`;
                 })
                 .join("")
@@ -190,15 +184,30 @@ export const createViewDetail = (createViewDetail) => {
     popup.remove();
   });
 
+  // popup.addEventListener("click", (e) => {
+  //   if (e.target.classList.contains("attachment-download-button")) {
+  //     const url = downloadImg.getAttribute("data-url");
+  //     const filename =  downloadImg.getAttribute("data-filename");
+
+  //     handleFileDownload(
+  //       {
+  //         file_name: filename,
+  //         download_url: url,
+  //       },
+  //       false
+  //     );
+  //   }
+  // });
   popup.addEventListener("click", (e) => {
-    if (e.target.classList.contains("attachment-download-button")) {
-      const url = e.target.dataset.url;
-      const filename = e.target.dataset.filename;
+    const downloadImg = e.target.closest(".download-button");
+    if (downloadImg) {
+      const url = downloadImg.getAttribute("data-url");
+      const filename = downloadImg.getAttribute("data-filename");
 
       handleFileDownload(
         {
-          file_name: filename,
           download_url: url,
+          file_name: filename,
         },
         false
       );

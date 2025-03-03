@@ -71,6 +71,27 @@
   overflow-wrap: break-word;
 }
 
+.attachment-row {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+  gap: 10px;
+}
+
+.download-button-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.download-button {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+
 .remarks-detail {
   padding: 13px 18px;
   color: #d00;

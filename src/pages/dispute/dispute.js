@@ -8,6 +8,9 @@ import { showCustomAlert } from "/src/component/custom_alert/custom_alert.js";
 import { showLoader, hideLoader } from "/src/component/loader/loader.js";
 import { displayError } from "/src/helper/display_error.js";
 
+
+
+let isSubmitting = false;
 /**
  * Initializes and manages a dispute form interface with validation and submission handling
  *
@@ -133,6 +136,12 @@ export const initializeDisputeForm = (disputeData) => {
    * @fires showCustomAlert - When dispute limit is reached
    */
   submitButton.addEventListener("click", async () => {
+      // Prevent multiple submissions
+  if (isSubmitting) return;
+  isSubmitting = true;
+
+
+  try {
     disableSubmitButton();
     const disputeCount = disputeData.countRaise || 0;
     const currentStatus = disputeData.status;
@@ -163,6 +172,10 @@ export const initializeDisputeForm = (disputeData) => {
         "error"
       );
     }
+  }finally {
+    isSubmitting = false;
+    enableSubmitButton();
+  }
   });
 
   /**
@@ -267,6 +280,9 @@ export const checkAdminComment = async (messageId, email) => {
  */
 export const sendDisputeToServer = async (reason, email, messageId) => {
   //add a submission lock to prevent multiple submissions
+  if (isSubmitting) return;
+  isSubmitting = true;
+
   try {
     const data = await postData(DISPUTES_RAISE, {
       userComment: reason,
@@ -281,6 +297,8 @@ export const sendDisputeToServer = async (reason, email, messageId) => {
     return data;
   } catch (error) {
     displayError();
+  }finally {
+    isSubmitting = false;
   }
 };
 
