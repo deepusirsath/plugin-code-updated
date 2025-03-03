@@ -168,18 +168,7 @@ export const createViewDetail = (createViewDetail) => {
                 .map((attachment) => {
                   return `<div class="attachment-row">
                     <span>${attachment.file_name}</span>
-                    <button class="attachment-download-button" 
-                      data-url="${
-                        attachment.download_url || attachment.file_url
-                      }"
-                      data-filename="${attachment.file_name}"
-                    
- title="Download">
-                       <svg class="download-icon" viewBox="0 0 24 24" width="16" height="16">
-                        <path fill="currentColor" d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
-                      </svg>
-                    </button>
-                  </div>`;
+                  </div> `;
                 })
                 .join("")
             }
