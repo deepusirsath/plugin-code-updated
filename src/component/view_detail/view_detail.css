@@ -71,6 +71,7 @@
   overflow-wrap: break-word;
 }
 
+<<<<<<< HEAD
 .attachment-row {
   display: flex;
   align-items: center;
@@ -89,6 +90,14 @@
   width: 20px;
   height: 20px;
   cursor: pointer;
+=======
+.attachment-download-button {
+  position: relative;
+  cursor: pointer;
+  /* padding: 5px 10px; */
+  border: none;
+  background: transparent;
+>>>>>>> ef13f0c53eaacfbc2b591907b92b0cc06f4bcaac
 }
 
 
