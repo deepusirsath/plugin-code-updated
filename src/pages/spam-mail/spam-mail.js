@@ -64,35 +64,59 @@ const getViewDetailOfSpamMail = async (msg_id) => {
   }
 };
 
-/**
- * Retrieves paginated list of all spam mails for the current user
- * @param {number} [page=1] - The page number for pagination
- * @returns {Promise<Object>} Response containing paginated spam mail data
- * @property {Array} response.results - List of spam mails for current page
- * @property {number} response.count - Total number of spam mails
- * @property {string} response.next - URL for next page
- * @property {string} response.previous - URL for previous page
- */
-const getAllSpamMail = async (page = 1) => {
-  const currentEmail = getCurrentEmail();
 
-  if (currentEmail) {
-    showLoader();
-    try {
-      const requestData = {
-        emailId: currentEmail,
-        page: page,
-      };
-      const response = await postData(`${SPAM_MAIL}?page=${page}`, requestData);
+const getAllSpamMail = async (page = 1) => {
+  // Show loader immediately
+  showLoader();
+  
+  // Create a promise that resolves after 1 second minimum
+  const minLoadingTime = new Promise(resolve => setTimeout(resolve, 2000));
+  
+  // Get the current email from chrome.storage
+  const emailPromise = new Promise((resolve) => {
+    chrome.storage.local.get(["currentMailId"], function (result) {
+      if (result.currentMailId) {
+        console.log("Email ID loaded for API call: " + result.currentMailId);
+        resolve(result.currentMailId);
+      } else {
+        console.warn("No email ID available yet. Retrying...");
+        // Wait a moment and try again
+        setTimeout(() => {
+          chrome.storage.local.get(["currentMailId"], function (retryResult) {
+            resolve(retryResult.currentMailId || null);
+          });
+        }, 500);
+      }
+    });
+  });
+  
+  try {
+    // Wait for both the minimum loading time and email retrieval
+    const [_, currentEmail] = await Promise.all([minLoadingTime, emailPromise]);
+    
+    if (!currentEmail) {
+      console.error("Failed to retrieve email ID after retry");
       hideLoader();
-      return response;
-    } catch (error) {
-      displayError();
-      hideLoader();
+      return { results: [], count: 0 };
     }
+    
+    const requestData = {
+      emailId: currentEmail,
+      page: page,
+    };
+    
+    const response = await postData(`${SPAM_MAIL}?page=${page}`, requestData);
     hideLoader();
+    return response;
+  } catch (error) {
+    console.error("Error fetching spam mail:", error);
+    displayError();
+    hideLoader();
+    return { results: [], count: 0 }; // Return empty result set on error
   }
 };
+
+
 
 /**
  * Filters spam mails based on sender's email address with pagination

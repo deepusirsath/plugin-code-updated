@@ -69,35 +69,62 @@ const getViewDetailOfDisputeMail = async (msg_id) => {
   }
 };
 
-/**
- * Retrieves paginated dispute mail data for the current user
- * @function getAllDisputeMail
- * @param {number} [page=1] - The page number to fetch (defaults to 1)
- * @returns {Promise<Object>} Paginated response containing dispute mail data
- */
-const getAllDisputeMail = async (page = 1) => {
-  const currentEmail = getCurrentEmail();
 
-  if (currentEmail) {
-    showLoader();
-    try {
-      const requestData = {
-        emailId: currentEmail,
-        page: page,
-      };
-      const response = await postData(
-        `${GET_DISPUTE_RAISE_DATA}?page=${page}`,
-        requestData
-      );
+const getAllDisputeMail = async (page = 1) => {
+  // Show loader immediately
+  showLoader();
+  
+  // Create a promise that resolves after 1 second minimum
+  const minLoadingTime = new Promise(resolve => setTimeout(resolve, 2000));
+  
+  // Get the current email from chrome.storage
+  const emailPromise = new Promise((resolve) => {
+    chrome.storage.local.get(["currentMailId"], function (result) {
+      if (result.currentMailId) {
+        console.log("Email ID loaded for API call: " + result.currentMailId);
+        resolve(result.currentMailId);
+      } else {
+        console.warn("No email ID available yet. Retrying...");
+        // Wait a moment and try again
+        setTimeout(() => {
+          chrome.storage.local.get(["currentMailId"], function (retryResult) {
+            resolve(retryResult.currentMailId || null);
+          });
+        }, 500);
+      }
+    });
+  });
+  
+  try {
+    // Wait for both the minimum loading time and email retrieval
+    const [_, currentEmail] = await Promise.all([minLoadingTime, emailPromise]);
+    
+    if (!currentEmail) {
+      console.error("Failed to retrieve email ID after retry");
       hideLoader();
-      return response;
-    } catch (error) {
-      hideLoader();
-      displayError();
+      return { results: [], count: 0 };
     }
+    
+    const requestData = {
+      emailId: currentEmail,
+      page: page,
+    };
+    
+    const response = await postData(
+      `${GET_DISPUTE_RAISE_DATA}?page=${page}`,
+      requestData
+    );
     hideLoader();
+    return response;
+  } catch (error) {
+    console.error("Error fetching dispute mail:", error);
+    hideLoader();
+    displayError();
+    return { results: [], count: 0 }; // Return empty result set on error
   }
 };
+
+
 
 /**
  * Filters dispute mails based on sender's email with pagination

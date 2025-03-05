@@ -9,6 +9,8 @@ let showAlert = null;
 let showBlockedPopup = null;
 let showLoadingScreen = null;
 let hideLoadingScreen = null;
+let intervalId = null; 
+
 
 const ERROR_MESSAGES = {
   SOMETHING_WENT_WRONG: "Something went wrong. Please try again.",
@@ -241,41 +243,31 @@ chrome.runtime.onMessage.addListener((request) => {
   }
 });
 
-/**
- * Chrome runtime message listener for handling Gmail security states
- *
- * @param {Object} message - The message object containing:
- *   - client: String identifying the email client ('gmail')
- *   - action: Action to take ('blockUrls'|'unblock'|'pending')
- *   - unsafeReason: Reason message for unsafe URLs
- * @param {Object} sender - Message sender details
- * @param {Function} sendResponse - Callback to send response
- *
- * Features:
- * - Handles 3 security states for Gmail:
- *   1. blockUrls: Blocks unsafe content and shows reason
- *   2. unblock: Unblocks content and shows safe message
- *   3. pending: Shows pending verification state
- * - Controls pointer events access via shouldApplyPointerEvents
- * - Stores unsafe reason message
- * - Triggers appropriate alert type based on action
- * - Applies email body blocking
- * - Sends success response back
- *
- * State Management:
- * - Updates messageReason global variable
- * - Updates shouldApplyPointerEvents boolean
- * - Triggers showAlert with appropriate type
- * - Calls blockEmailBody() to apply restrictions
- */
+let pendingCounter = 0;
+function pendingStatusCallForGmail() {
+  pendingCounter++;
+  console.log("pendingCounter",pendingCounter)
+  console.log("messageId", messageId)
+  chrome.runtime.sendMessage({
+    action: "pendingStatusGmail",
+    emailId: emailId,
+    messageId: messageId,
+  });
+}
+
+// Do not start automatically
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.client === "gmail") {
     messageReason = message.unsafeReason;
+
     if (message.action === "blockUrls") {
+      clearInterval(intervalId);
       hideLoadingScreen();
       shouldApplyPointerEvents = true;
       showAlert("unsafe", messageReason);
     } else if (message.action === "unblock") {
+      clearInterval(intervalId);
       hideLoadingScreen();
       shouldApplyPointerEvents = false;
       showAlert("safe");
@@ -283,12 +275,20 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       hideLoadingScreen();
       shouldApplyPointerEvents = true;
       showAlert("pending");
+      // Clear any existing interval before setting a new one
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+      // Start the interval manually
+      intervalId = setInterval(() => {
+        console.log("pendingStatusCallForGmail()");
+        pendingStatusCallForGmail();
+      }, 5000);
     }
     blockEmailBody();
     sendResponse({ status: "success" });
   }
 });
-
 // Function to initialize the script
 const init = () => {
   Promise.all([extractMessageIdAndEml(), findEmailId()])
@@ -297,6 +297,8 @@ const init = () => {
       console.error(ERROR_MESSAGES.FAILED_TO_SEND_EMAIL_CONTENT)
     );
 };
+
+
 
 /**
  * Asynchronously extracts the message ID from the currently opened email and determines its security status.
@@ -322,6 +324,7 @@ const init = () => {
  * @async
  * @function extractMessageIdAndEml
  */
+
 async function extractMessageIdAndEml() {
   blockEmailBody();
   const node = document.querySelector("[data-legacy-message-id]");
@@ -343,18 +346,22 @@ async function extractMessageIdAndEml() {
       const unsafeReason = messages[messageId].unsafeReason;
 
       if (status === "safe" || status === "Safe") {
+        clearInterval(intervalId);
         hideLoadingScreen();
         showAlert("safe", unsafeReason);
         shouldApplyPointerEvents = false;
         blockEmailBody();
       } else if (status === "unsafe" || status === "Unsafe") {
         hideLoadingScreen();
+        clearInterval(intervalId);
         showAlert("unsafe", unsafeReason);
         shouldApplyPointerEvents = true;
         blockEmailBody();
       } else if (status === "pending" || status === "Pending") {
         shouldApplyPointerEvents = true;
         blockEmailBody();
+        pendingEmailId = emailId;
+        pendingMessageId = messageId;
         chrome.runtime.sendMessage({
           action: "pendingStatusGmail",
           emailId: emailId,
@@ -380,27 +387,58 @@ async function extractMessageIdAndEml() {
                 serverData.eml_status || serverData.email_status;
               const messId = serverData.messageId || serverData.msg_id;
               const unsafeReason = serverData.unsafe_reasons || " ";
+              // if (["safe", "unsafe", "pending"].includes(resStatus)) {
+              //   chrome.storage.local.get("messages", function (result) {
+              //     let messages = JSON.parse(result.messages || "{}");
+              //     messages[messId] = {
+              //       status: resStatus,
+              //       unsafeReason: unsafeReason,
+              //     };
+
+              //     chrome.storage.local.set(
+              //       {
+              //         messages: JSON.stringify(messages),
+              //       },
+              //       () => {
+              //         shouldApplyPointerEvents = resStatus !== "safe";
+              //         blockEmailBody();
+              //         hideLoadingScreen();
+              //         showAlert(resStatus, unsafeReason);
+              //       }
+              //     );
+              //   });
+              // }
               if (["safe", "unsafe", "pending"].includes(resStatus)) {
                 chrome.storage.local.get("messages", function (result) {
-                  let messages = JSON.parse(result.messages || "{}");
-                  messages[messId] = {
-                    status: resStatus,
-                    unsafeReason: unsafeReason,
-                  };
-
-                  chrome.storage.local.set(
-                    {
-                      messages: JSON.stringify(messages),
-                    },
-                    () => {
-                      shouldApplyPointerEvents = resStatus !== "safe";
-                      blockEmailBody();
-                      hideLoadingScreen();
-                      showAlert(resStatus, unsafeReason);
-                    }
-                  );
+                    let messages = JSON.parse(result.messages || "{}");
+                    messages[messId] = {
+                        status: resStatus,
+                        unsafeReason: unsafeReason,
+                    };
+                    chrome.storage.local.set({ messages: JSON.stringify(messages) }, () => {
+                        shouldApplyPointerEvents = resStatus !== "safe";  
+                        if (resStatus === "pending") {
+                            // Handle pending case
+                            hideLoadingScreen();
+                            showAlert("pending");
+                            // Clear previous interval before setting a new one
+                            if (intervalId) {
+                                clearInterval(intervalId);
+                            }
+                            intervalId = setInterval(() => {
+                                console.log("pendingStatusCallForGmail()");
+                                pendingStatusCallForGmail();
+                            }, 5000);
+                        } else {
+                            // Handle safe/unsafe cases
+                            blockEmailBody();
+                            hideLoadingScreen();
+                            showAlert(resStatus, unsafeReason);
+                        }
+                    });
                 });
               }
+            
             } else {
               setTimeout(() => {
                 let newUrl = window.location.href;
@@ -509,6 +547,7 @@ async function findEmailId() {
   const emailMatches = titleContent.match(emailPattern);
   emailId = emailMatches ? emailMatches[emailMatches.length - 1] : null;
   if (emailId) {
+    chrome.storage.local.set({ currentMailId: emailId });
     chrome.storage.local.remove(["yahoo_email", "outlook_email"], () => {
       chrome.storage.local.set({ gmail_email: emailId });
     });
@@ -567,4 +606,29 @@ window.addEventListener("click", (e) => {
       }
     });
   }
+});
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === "ExtractEMailForGmail") {
+    console.log("ExtractEMailForGmailExtractEMailForGmailExtractEMailForGmail");
+    const extractEmail = () => {
+      // setTimeout(() => {
+      const titleText = document.title;
+      const emailMatch = titleText.match(
+        /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/
+      );
+      const emailId = emailMatch ? emailMatch[0] : null;
+      console.log("mail : ", emailId);
+      if (emailId) {
+        chrome.storage.local.set({ currentMailId: emailId });
+      } else {
+        // Retry after 1 second if email not found
+        setTimeout(extractEmail, 200);
+      }
+      // }, 2000); // Initial delay of 2 seconds
+    };
+
+    extractEmail();
+  }
+  sendResponse({ received: true });
 });

@@ -114,7 +114,6 @@ const handleDisputeButton = async (componentName) => {
           hideLoader();
           return;
         }
-
         const openedServices = [
           "OpenedGmail",
           "OpenedOutlook",

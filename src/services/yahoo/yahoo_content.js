@@ -52,6 +52,7 @@ document.addEventListener("visibilitychange", function () {
     });
 
     if (userEmail) {
+      chrome.storage.local.set({ currentMailId: userEmail });
       chrome.storage.local.remove(["gmail_email", "outlook_email"], () => {
         chrome.storage.local.set({ yahoo_email: userEmail }, () => {});
       });
@@ -381,6 +382,7 @@ function extractIdsFromNonceScripts() {
         const unsafeReason = messages[lastMessageId].unsafeReason;
 
         if (status === "safe" || status === "Safe") {
+          clearInterval(intervalId)
           hideLoadingScreen();
           showAlert("safe", unsafeReason);
 
@@ -388,6 +390,7 @@ function extractIdsFromNonceScripts() {
           blockEmailBody();
         } else if (status === "unsafe" || status === "Unsafe") {
           hideLoadingScreen();
+          clearInterval(intervalId);
           showAlert("unsafe", unsafeReason);
 
           shouldApplyPointerEvents = true;
@@ -435,19 +438,34 @@ function extractIdsFromNonceScripts() {
                       status: resStatus,
                       unsafeReason: unsafeReason,
                     };
-
-                    chrome.storage.local.set(
-                      {
-                        messages: JSON.stringify(messages),
-                      },
-                      () => {
+                
+                    chrome.storage.local.set({ messages: JSON.stringify(messages) }, () => {
+                      hideLoadingScreen();
+                      showAlert(resStatus, unsafeReason);
+                
+                      if (resStatus === "pending") {
+                        shouldApplyPointerEvents = true;
+                
+                        // Clear any previous interval before setting a new one
+                        if (intervalId) {
+                          clearInterval(intervalId);
+                        }
+                
+                        intervalId = setInterval(() => {
+                          console.log("pendingStatusCallForYahoo()");
+                          pendingStatusCallForYahoo();
+                        }, 5000);
+                      } else {
+                        // If the status is "safe" or "unsafe", clear the interval (if any)
+                        if (intervalId) {
+                          clearInterval(intervalId);
+                          intervalId = null;
+                        }
                         shouldApplyPointerEvents = resStatus !== "safe";
-                        blockEmailBody();
-
-                        hideLoadingScreen();
-                        showAlert(resStatus, unsafeReason);
                       }
-                    );
+                
+                      blockEmailBody(); // Execute after all conditions
+                    });
                   });
                 }
               } else {
@@ -528,7 +546,54 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  *   - Calls `blockEmailBody()` to apply necessary email body restrictions.
  *   - Sends a success response back to the sender.
  */
+
+let pendingCounter = 0;
+function pendingStatusCallForYahoo() {
+  pendingCounter++;
+  console.log("pendingCounter",pendingCounter)
+  console.log("sendMessageId", sendMessageId)
+  chrome.runtime.sendMessage({
+    action: "pendingStatusYahoo",
+    emailId: sendUserEmail,
+    messageId: sendMessageId,
+  });
+}
+
+
+let intervalId = null;
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.client === "yahoo") {
+    messageReason = message.unsafeReason;
+    if (message.action === "blockUrls") {
+      clearInterval(intervalId);
+      hideLoadingScreen();
+      shouldApplyPointerEvents = true;
+      showAlert("unsafe", messageReason);
+    } else if (message.action === "unblock") {
+      clearInterval(intervalId);
+      hideLoadingScreen();
+      shouldApplyPointerEvents = false;
+      showAlert("safe");
+    } else if (message.action === "pending") {
+      hideLoadingScreen();
+      shouldApplyPointerEvents = true;
+      showAlert("pending");
+      // Clear any existing interval before setting a new one
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+      intervalId = setInterval(() => {
+        console.log("pendingStatusCallForYahoo()");
+        pendingStatusCallForYahoo();
+      }, 5000);
+    }
+    blockEmailBody();
+    sendResponse({ status: "success" });
+  }
+});
+
+/** chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.client === "yahoo") {
     messageReason = message.unsafeReason;
     // Check if the message is for Outlook
@@ -551,7 +616,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     blockEmailBody();
     sendResponse({ status: "success" });
   }
-});
+});*/
 
 /**
  * Listens for click events on the window and checks for the presence of a specific
@@ -568,4 +633,24 @@ window.addEventListener("click", (e) => {
   if (shouldApplyPointerEvents && element) {
     showBlockedPopup();
   }
+});
+
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === "ExtractEMailForYahoo") {
+    console.log("Received message from background script:==========", request);
+    setTimeout(() => {
+      const titleContent = document.title;
+      const emailRegex = /- ([\w.-]+@[\w.-]+) - Yahoo Mail/;
+      const match = titleContent.match(emailRegex);
+      if (match && match[1]) {
+        const email = match[1];
+        console.log("Extracted Email:", email);
+        chrome.storage.local.set({ currentMailId: email });
+      } else {
+        console.log("Email not found in the title");
+      }
+    }, 1000);
+  }
+  sendResponse({ received: true });
 });

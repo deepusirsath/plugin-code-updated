@@ -528,6 +528,7 @@ async function sendEmlToServer(messageId, blob = null, client, user_email) {
   }
 }
 
+
 /**
  * Processes the server response for an email scan and updates local storage.
  *
@@ -677,10 +678,65 @@ async function checkPendingResponseStatus(messageId, email, client) {
     const data = await response.json();
     const serverData = data.data;
 
-    handleEmailScanResponse(serverData, activeTabId, client);
+    handleEmailScanResponseOfPending(serverData, activeTabId, client);
   } catch (error) {
+    chrome.runtime.sendMessage({
+      action: "erroRecievedFromServer",
+      client: client,
+    });
     console.log("Error in checkPendingResponseStatus:", error);
   }
+}
+
+
+function handleEmailScanResponseOfPending(serverData, activeTabId, client) {
+  const resStatus = serverData.eml_status || serverData.email_status;
+  const messId = serverData.messageId || serverData.msg_id;
+  let unsafeReason = serverData.unsafe_reasons || " ";
+
+  if (typeof resStatus === "undefined" || typeof messId === "undefined") {
+    chrome.runtime.sendMessage({
+      action: "erroRecievedFromServer",
+      client: client,
+    });
+  }
+
+  chrome.storage.local.get("messages", function (result) {
+    let messages = result.messages ? JSON.parse(result.messages) : {};
+
+    // Store both status and unsafeReason for each messageId
+    messages[messId] = {
+      status: resStatus,
+      unsafeReason: unsafeReason,
+    };
+
+    chrome.storage.local.set({ messages: JSON.stringify(messages) });
+
+    if (currentMessageId == messId) {
+      const statusActions = {
+        unsafe: "blockUrls",
+        Unsafe: "blockUrls",
+        safe: "unblock",
+        Safe: "unblock",
+      };
+
+      const action = statusActions[resStatus];
+
+      if (action) {
+        chrome.tabs
+          .sendMessage(activeTabId, { action, client, unsafeReason })
+          .then((response) => {})
+          .catch((error) => {
+            console.error("Error sending message to content script:", error);
+          });
+      }
+    } else {
+      chrome.runtime.sendMessage({
+        action: "erroRecievedFromServer",
+        client: client,
+      });
+    }
+  });
 }
 
 /** ________________________________________ Gmail ______________________________________________*/
@@ -870,6 +926,7 @@ async function emlExtractionYahoo(emlUrl, currentMessageId, userEmail) {
     const response = await fetch(emlUrl);
     const emailContent = await response.text();
 
+    // console.log("Yahoo",emailContent)
     // Create properly formatted email content with headers
     const formattedContent = [
       "MIME-Version: 1.0",
@@ -914,7 +971,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     let userEmail = message.userEmail;
     currentMessageId = message.lastMessageId;
     let emlUrl = message.url;
-
+    console.log(userEmail, currentMessageId, emlUrl);
     emlExtractionYahoo(emlUrl, currentMessageId, userEmail);
   }
 });
@@ -1040,5 +1097,29 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
       });
     return true;
+  }
+});
+
+
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.popupOpened) {
+    console.log("Popup opened!+++++++++++++++++++++++++++++");
+    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+      const currentUrl = tabs[0].url;
+      console.log("Popup opened! and current url is ", currentUrl);
+      if (currentUrl.includes("mail.yahoo.com")) {
+        chrome.tabs.sendMessage(tabs[0].id, { action: "ExtractEMailForYahoo" });
+        console.log("Yahoo mail detected with the POPUP opened");
+      }
+      if (currentUrl.includes("mail.google.com")) {
+        chrome.tabs.sendMessage(tabs[0].id, { action: "ExtractEMailForGmail" });
+        console.log("Google mail detected with the POPUP opened");
+      }
+      if (currentUrl.includes("outlook.live.com")) {
+        chrome.tabs.sendMessage(tabs[0].id, { action: "ExtractEMailForOutlook" });
+        console.log("Outlook mail detected with the POPUP opened");
+      }
+    });
   }
 });
