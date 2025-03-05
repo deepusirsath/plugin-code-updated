@@ -151,28 +151,60 @@ function createBarChart(data) {
  * @throws {Error} Displays error message if API call fails
  */
 const getGraphData = async () => {
-  await getEmailIds();
-  const currentEmail = getCurrentEmail();
-  if (currentEmail) {
-    showLoader();
-    try {
-      const requestData = {
-        emailId: currentEmail,
-      };
-      const response = await postData(`${GET_GRAPH_DATA}`, requestData);
-      const chartData = {
-        totalMail: response.data.total_processed_emails,
-        totalSpamMail: response.data.total_spam_emails,
-        totalDisputeMail: response.data.total_disputes,
-      };
-      createBarChart(chartData);
-      hideLoader();
-    } catch (error) {
+  // Show loader immediately
+  showLoader();
+  
+  // Create a promise that resolves after 1 second minimum
+  const minLoadingTime = new Promise(resolve => setTimeout(resolve, 2000));
+  
+  // Get the current email from chrome.storage
+  const emailPromise = new Promise((resolve) => {
+    chrome.storage.local.get(["currentMailId"], function (result) {
+      if (result.currentMailId) {
+        console.log("Email ID loaded for API call: " + result.currentMailId);
+        resolve(result.currentMailId);
+      } else {
+        console.warn("No email ID available yet. Retrying...");
+        // Wait a moment and try again
+        setTimeout(() => {
+          chrome.storage.local.get(["currentMailId"], function (retryResult) {
+            resolve(retryResult.currentMailId || null);
+          });
+        }, 500);
+      }
+    });
+  });
+  
+  try {
+    // Wait for both the minimum loading time and email retrieval
+    const [_, currentEmail] = await Promise.all([minLoadingTime, emailPromise]);
+    
+    if (!currentEmail) {
+      console.error("Failed to retrieve email ID after retry");
       hideLoader();
       displayError();
+      return;
     }
+    
+    const requestData = {
+      emailId: currentEmail,
+    };
+    
+    const response = await postData(`${GET_GRAPH_DATA}`, requestData);
+    const chartData = {
+      totalMail: response.data.total_processed_emails,
+      totalSpamMail: response.data.total_spam_emails,
+      totalDisputeMail: response.data.total_disputes,
+    };
+    createBarChart(chartData);
+    hideLoader();
+  } catch (error) {
+    console.error("Error fetching graph data:", error);
+    hideLoader();
+    displayError();
   }
 };
+
 
 // Add event listener for when this component is loaded
 document.addEventListener("componentLoaded", (event) => {
