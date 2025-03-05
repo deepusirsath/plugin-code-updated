@@ -165,11 +165,21 @@ export const createViewDetail = (createViewDetail) => {
             ${
               createViewDetail?.attachments &&
               createViewDetail?.attachments
-                .map((attachment) => {
-                  return `<div class="attachment-row">
+                .map((attachment) => 
+                   `<div class="attachment-row">
                     <span>${attachment.file_name}</span>
-                  </div> `;
-                })
+                       <div class="download-button-container">
+                      <img 
+                        src="/src/icons/download.png"
+                        alt="download-btn"
+                        class="download-button"
+                        data-url="${attachment.download_url || attachment.file_url}"
+                        data-filename="${attachment.file_name}"
+                        title="Download"
+                      />
+                    </div>
+                  </div> `
+                )
                 .join("")
             }
           </div>
@@ -197,6 +207,8 @@ export const createViewDetail = (createViewDetail) => {
   //     );
   //   }
   // });
+
+
   popup.addEventListener("click", (e) => {
     const downloadImg = e.target.closest(".download-button");
     if (downloadImg) {
@@ -212,6 +224,24 @@ export const createViewDetail = (createViewDetail) => {
       );
     }
   });
+
+
+  //3try
+  // Update the click event listener
+// popup.addEventListener("click", (e) => {
+//   const downloadContainer = e.target.closest(".download-button-container");
+//   if (downloadContainer) {
+//     const url = downloadContainer.dataset.url;
+//     const filename = downloadContainer.dataset.filename;
+    
+//     if (url && filename) {
+//       handleFileDownload({
+//         download_url: url,
+//         file_name: filename
+//       }, false);
+//     }
+//   }
+// });
 
   document.body.appendChild(popup);
   handleCDRFiles(createViewDetail);

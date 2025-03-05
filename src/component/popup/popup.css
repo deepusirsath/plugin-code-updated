@@ -6,7 +6,7 @@ body {
 }
 
 .container {
-  width: 550px;
+  width: 620px;
   height: 590px;
   display: flex;
   transition: all 0.3s ease-in-out;
