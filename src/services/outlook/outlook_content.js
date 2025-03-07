@@ -1093,5 +1093,4 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "ExtractEMailForOutlook") {
     findOutlookEmailId();
   }
-  sendResponse({ received: true });
 });

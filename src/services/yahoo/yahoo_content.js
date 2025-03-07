@@ -382,7 +382,7 @@ function extractIdsFromNonceScripts() {
         const unsafeReason = messages[lastMessageId].unsafeReason;
 
         if (status === "safe" || status === "Safe") {
-          clearInterval(intervalId)
+          clearInterval(intervalId);
           hideLoadingScreen();
           showAlert("safe", unsafeReason);
 
@@ -438,34 +438,37 @@ function extractIdsFromNonceScripts() {
                       status: resStatus,
                       unsafeReason: unsafeReason,
                     };
-                
-                    chrome.storage.local.set({ messages: JSON.stringify(messages) }, () => {
-                      hideLoadingScreen();
-                      showAlert(resStatus, unsafeReason);
-                
-                      if (resStatus === "pending") {
-                        shouldApplyPointerEvents = true;
-                
-                        // Clear any previous interval before setting a new one
-                        if (intervalId) {
-                          clearInterval(intervalId);
+
+                    chrome.storage.local.set(
+                      { messages: JSON.stringify(messages) },
+                      () => {
+                        hideLoadingScreen();
+                        showAlert(resStatus, unsafeReason);
+
+                        if (resStatus === "pending") {
+                          shouldApplyPointerEvents = true;
+
+                          // Clear any previous interval before setting a new one
+                          if (intervalId) {
+                            clearInterval(intervalId);
+                          }
+
+                          intervalId = setInterval(() => {
+                            console.log("pendingStatusCallForYahoo()");
+                            pendingStatusCallForYahoo();
+                          }, 5000);
+                        } else {
+                          // If the status is "safe" or "unsafe", clear the interval (if any)
+                          if (intervalId) {
+                            clearInterval(intervalId);
+                            intervalId = null;
+                          }
+                          shouldApplyPointerEvents = resStatus !== "safe";
                         }
-                
-                        intervalId = setInterval(() => {
-                          console.log("pendingStatusCallForYahoo()");
-                          pendingStatusCallForYahoo();
-                        }, 5000);
-                      } else {
-                        // If the status is "safe" or "unsafe", clear the interval (if any)
-                        if (intervalId) {
-                          clearInterval(intervalId);
-                          intervalId = null;
-                        }
-                        shouldApplyPointerEvents = resStatus !== "safe";
+
+                        blockEmailBody(); // Execute after all conditions
                       }
-                
-                      blockEmailBody(); // Execute after all conditions
-                    });
+                    );
                   });
                 }
               } else {
@@ -550,15 +553,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 let pendingCounter = 0;
 function pendingStatusCallForYahoo() {
   pendingCounter++;
-  console.log("pendingCounter",pendingCounter)
-  console.log("sendMessageId", sendMessageId)
+  console.log("pendingCounter", pendingCounter);
+  console.log("sendMessageId", sendMessageId);
   chrome.runtime.sendMessage({
     action: "pendingStatusYahoo",
     emailId: sendUserEmail,
     messageId: sendMessageId,
   });
 }
-
 
 let intervalId = null;
 
@@ -635,7 +637,6 @@ window.addEventListener("click", (e) => {
   }
 });
 
-
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "ExtractEMailForYahoo") {
     console.log("Received message from background script:==========", request);
@@ -652,5 +653,4 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       }
     }, 1000);
   }
-  sendResponse({ received: true });
 });

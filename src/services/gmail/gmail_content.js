@@ -630,5 +630,4 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     extractEmail();
   }
-  sendResponse({ received: true });
 });
