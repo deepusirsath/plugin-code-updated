@@ -108,7 +108,6 @@ const getAllSpamMail = async (page = 1) => {
     hideLoader();
     return response;
   } catch (error) {
-    console.error("Error fetching spam mail:", error);
     displayError();
     hideLoader();
     return { results: [], count: 0 }; // Return empty result set on error
@@ -229,9 +228,8 @@ const attachViewButtonListeners = () => {
  * @throws {Error} Displays error message if component loading fails
  */
 const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
-  await getEmailIds();
-
   try {
+    await getEmailIds();
     const noDataFoundElement = document.getElementById("noDataFound");
     if (noDataFoundElement) {
       noDataFoundElement.innerHTML = "";
@@ -256,6 +254,10 @@ const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
     }
 
     if (!spamMailResponse.results || spamMailResponse.results.length === 0) {
+      const SearchElement = document.getElementById("search-container");
+      if (SearchElement) {
+        SearchElement.innerHTML = "";
+      }
       await loadComponent({
         componentName: COMPONENTS.NO_DATA_FOUND,
         basePath: BASEPATH.COMPONENT,

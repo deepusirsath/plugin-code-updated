@@ -110,7 +110,6 @@ const getAllDisputeMail = async (page = 1) => {
     hideLoader();
     return response;
   } catch (error) {
-    console.error("Error fetching dispute mail:", error);
     hideLoader();
     displayError();
     return { results: [], count: 0 }; // Return empty result set on error
@@ -257,6 +256,10 @@ const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
       initializeSearchHandlers();
     }
     if (!disputeMailResponse || disputeMailResponse.data === 0) {
+      const SearchElement = document.getElementById("search-container");
+      if (SearchElement) {
+        SearchElement.innerHTML = "";
+      }
       await loadComponent({
         componentName: COMPONENTS.NO_DATA_FOUND,
         basePath: BASEPATH.COMPONENT,
@@ -314,7 +317,6 @@ const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
 
     attachViewButtonListeners();
   } catch (error) {
-    console.log("Error loading dispute mail component:", error);
     hideLoader();
     displayError();
   }
