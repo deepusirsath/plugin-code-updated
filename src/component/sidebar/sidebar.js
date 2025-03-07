@@ -59,6 +59,7 @@ const updateActiveMenuItem = (clickedButton) => {
  * await handleRegularButton('details');
  */
 const handleRegularButton = async (componentName) => {
+  document.getElementById("noDataFound").innerHTML = "";
   try {
     await loadComponent({
       componentName,
@@ -105,6 +106,7 @@ const handleDisputeButton = async (componentName) => {
   const thisOperation = {};
   currentLoadingOperation = thisOperation;
   document.getElementById("data-output").innerHTML = "";
+  document.getElementById("noDataFound").innerHTML = "";
   showLoader();
   try {
     chrome.runtime.sendMessage(
@@ -197,6 +199,7 @@ const handleDisputeButton = async (componentName) => {
  * await handleButtonClick('details', regularButton);
  */
 const handleButtonClick = async (componentName, clickedButton) => {
+  document.getElementById("noDataFound").innerHTML = "";
   currentLoadingOperation = null;
   updateActiveMenuItem(clickedButton);
   if (clickedButton.id === TARGET_ID.DISPUTE_BTN) {

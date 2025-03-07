@@ -69,14 +69,11 @@ const getViewDetailOfDisputeMail = async (msg_id) => {
   }
 };
 
-
 const getAllDisputeMail = async (page = 1) => {
   // Show loader immediately
   showLoader();
-  
   // Create a promise that resolves after 1 second minimum
-  const minLoadingTime = new Promise(resolve => setTimeout(resolve, 2000));
-  
+  const minLoadingTime = new Promise((resolve) => setTimeout(resolve, 2000));
   // Get the current email from chrome.storage
   const emailPromise = new Promise((resolve) => {
     chrome.storage.local.get(["currentMailId"], function (result) {
@@ -94,22 +91,18 @@ const getAllDisputeMail = async (page = 1) => {
       }
     });
   });
-  
   try {
     // Wait for both the minimum loading time and email retrieval
     const [_, currentEmail] = await Promise.all([minLoadingTime, emailPromise]);
-    
     if (!currentEmail) {
       console.error("Failed to retrieve email ID after retry");
       hideLoader();
       return { results: [], count: 0 };
     }
-    
     const requestData = {
       emailId: currentEmail,
       page: page,
     };
-    
     const response = await postData(
       `${GET_DISPUTE_RAISE_DATA}?page=${page}`,
       requestData
@@ -123,8 +116,6 @@ const getAllDisputeMail = async (page = 1) => {
     return { results: [], count: 0 }; // Return empty result set on error
   }
 };
-
-
 
 /**
  * Filters dispute mails based on sender's email with pagination
@@ -238,7 +229,11 @@ const attachViewButtonListeners = () => {
 const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
   try {
     await getEmailIds();
-    document.getElementById("noDataFound").innerHTML = "";
+    const noDataFoundElement = document.getElementById("noDataFound");
+    if (noDataFoundElement) {
+      noDataFoundElement.innerHTML = "";
+    }
+
     const disputeMailResponse =
       searchQuery.length > 0
         ? await filterDisputeMails(page, searchQuery)
@@ -261,20 +256,22 @@ const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
 
       initializeSearchHandlers();
     }
-    if (
-      !disputeMailResponse ||
-      !disputeMailResponse.results ||
-      !disputeMailResponse.results.data ||
-      disputeMailResponse.results.data.length === 0
-    ) {
-      document.getElementById("data-table").innerHTML = "";
-      document.getElementById("pagination").innerHTML = "";
-
+    if (!disputeMailResponse || disputeMailResponse.data === 0) {
       await loadComponent({
         componentName: COMPONENTS.NO_DATA_FOUND,
         basePath: BASEPATH.COMPONENT,
         targetId: "noDataFound",
       });
+
+      const dataTableElement = document.getElementById("data-table");
+      if (dataTableElement) {
+        dataTableElement.innerHTML = "";
+      }
+
+      const paginationElement = document.getElementById("pagination");
+      if (paginationElement) {
+        paginationElement.innerHTML = "";
+      }
 
       handleRefresh(() => {
         const searchInput = document.getElementById("search-input");
@@ -317,6 +314,7 @@ const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
 
     attachViewButtonListeners();
   } catch (error) {
+    console.log("Error loading dispute mail component:", error);
     hideLoader();
     displayError();
   }
