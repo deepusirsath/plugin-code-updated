@@ -78,10 +78,8 @@ const getAllDisputeMail = async (page = 1) => {
   const emailPromise = new Promise((resolve) => {
     chrome.storage.local.get(["currentMailId"], function (result) {
       if (result.currentMailId) {
-        console.log("Email ID loaded for API call: " + result.currentMailId);
         resolve(result.currentMailId);
       } else {
-        console.warn("No email ID available yet. Retrying...");
         // Wait a moment and try again
         setTimeout(() => {
           chrome.storage.local.get(["currentMailId"], function (retryResult) {
@@ -95,7 +93,6 @@ const getAllDisputeMail = async (page = 1) => {
     // Wait for both the minimum loading time and email retrieval
     const [_, currentEmail] = await Promise.all([minLoadingTime, emailPromise]);
     if (!currentEmail) {
-      console.error("Failed to retrieve email ID after retry");
       hideLoader();
       return { results: [], count: 0 };
     }

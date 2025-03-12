@@ -164,11 +164,8 @@ const getGraphData = async () => {
   const emailPromise = new Promise((resolve) => {
     chrome.storage.local.get(["currentMailId"], function (result) {
       if (result.currentMailId) {
-        console.log("Email ID loaded for API call: " + result.currentMailId);
         resolve(result.currentMailId);
       } else {
-        console.warn("No email ID available yet. Retrying...");
-        // Wait a moment and try again
         setTimeout(() => {
           chrome.storage.local.get(["currentMailId"], function (retryResult) {
             resolve(retryResult.currentMailId || null);
@@ -183,7 +180,6 @@ const getGraphData = async () => {
     const [_, currentEmail] = await Promise.all([minLoadingTime, emailPromise]);
     
     if (!currentEmail) {
-      console.error("Failed to retrieve email ID after retry");
       hideLoader();
       displayError();
       return;
@@ -202,7 +198,6 @@ const getGraphData = async () => {
     createBarChart(chartData);
     hideLoader();
   } catch (error) {
-    console.error("Error fetching graph data:", error);
     hideLoader();
     displayError();
   }
