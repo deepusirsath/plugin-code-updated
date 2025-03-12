@@ -42,6 +42,7 @@ chrome.runtime.onStartup.addListener(() => {
 
 // Listener for chrome installation
 chrome.runtime.onInstalled.addListener(() => {
+  console.log("Extension installed");
   userDetails();
 });
 
