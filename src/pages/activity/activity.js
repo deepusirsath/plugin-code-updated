@@ -37,6 +37,9 @@ import { showLoader, hideLoader } from "/src/component/loader/loader.js";
  */
 function createBarChart(data) {
   const dataOutput = document.getElementById("data-output");
+   // Clear existing chart data first
+   dataOutput.innerHTML = '';
+   
   const totalMail = data.totalMail || 0;
   const totalSpamMail = data.totalSpamMail || 0;
   const totalDisputeMail = data.totalDisputeMail || 0;
