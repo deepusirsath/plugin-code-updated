@@ -480,6 +480,7 @@ function extractIdsFromNonceScripts() {
               }
             } else if (response.status === "error") {
               showAlert("inform");
+              hideLoadingScreen();
             }
           }
         );
@@ -527,6 +528,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     request.client === "yahoo"
   ) {
     showAlert("inform");
+    hideLoadingScreen();
   }
 });
 

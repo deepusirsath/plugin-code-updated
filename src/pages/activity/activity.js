@@ -9,7 +9,6 @@ import {
 } from "/src/helper/get_email_from_local_storage.js";
 import { showLoader, hideLoader } from "/src/component/loader/loader.js";
 
-
 /**
  * Calculates a "nice" rounded number that is greater than or equal to the input maximum value.
  * Nice numbers are considered to be 1, 2, 5, or 10 multiplied by powers of 10.
@@ -68,16 +67,10 @@ function formatNumber(num) {
 
 function createBarChart(data) {
   const dataOutput = document.getElementById("data-output");
-<<<<<<< HEAD
-   // Clear existing chart data first
-   dataOutput.innerHTML = '';
-   
-=======
   if (!dataOutput) return;
 
   dataOutput.innerHTML = '';
 
->>>>>>> neeraj
   const totalMail = data.totalMail || 0;
   const totalSpamMail = data.totalSpamMail || 0;
   const totalDisputeMail = data.totalDisputeMail || 0;
