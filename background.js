@@ -787,6 +787,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "sendGmailData") {
     currentMessageId = message.messageId;
     const { messageId, emailId, eml_Url } = message;
+    console.log("recieved the URL")
     emlExtractionGmail(eml_Url, messageId, emailId);
   }
 });
@@ -828,7 +829,7 @@ async function emlExtractionGmail(emlUrl, currentMessageId, emailId) {
     const emlBlob = new Blob([formattedContent], {
       type: "message/rfc822",
     });
-
+    console.log("emailContent", emailContent)
     if (emlBlob) {
       await sendEmlToServer(currentMessageId, emlBlob, "gmail", emailId);
     }
