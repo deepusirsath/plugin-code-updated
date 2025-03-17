@@ -255,6 +255,7 @@ chrome.runtime.onMessage.addListener((request) => {
     request.client === "gmail"
   ) {
     showAlert("inform");
+    hideLoadingScreen();
   }
 });
 
