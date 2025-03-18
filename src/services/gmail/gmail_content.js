@@ -99,20 +99,34 @@ let messageReason = " ";
  * - Validates registration data
  * - Ensures minimum segment length
  */
-
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "GmailDetectedForExtraction") {
     setTimeout(() => {
       let url = window.location.href;
-
-      if (url.includes("?compose=")) {
+      // Extract the part after #
+      const hashParts = url.split('#');
+      if (hashParts.length < 2) return;
+      
+      const afterHash = hashParts[1];
+      
+      // Check if compose appears immediately after folder name
+      if (afterHash.match(/^(inbox|starred|snoozed|imp|label|scheduled|all|spam|trash|category)\/?\?compose=/)) {
         return;
       }
+      
+      // If compose exists but has a long string before it, proceed
+      if (afterHash.includes("?compose=")) {
+        const beforeCompose = afterHash.split("?compose=")[0];
+        if (beforeCompose.length < 30) {
+          console.log("compose found return=================================")
+          return;
+        }
+      }
+      console.log("compose not found ===========================");
       chrome.storage.local.get("registration", (data) => {
         if (chrome.runtime.lastError) {
           return;
         }
-
         if (data.registration) {
           const lastSegment = url.split("/").pop().split("#").pop();
           if (lastSegment.length >= isValidSegmentLength) {
@@ -124,6 +138,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse({ status: "received" });
   }
 });
+
 
 /**
  * Chrome runtime message listener for Gmail-related actions
@@ -326,22 +341,28 @@ const init = () => {
  */
 
 async function extractMessageIdAndEml() {
+  console.log("start the extractMessageIdAndEml")
   blockEmailBody();
   const node = document.querySelector("[data-legacy-message-id]");
+  console.log("node", node)
   if (!node) {
+    console.log("node not found")
     return;
   }
 
   messageId = node.getAttribute("data-legacy-message-id");
+  console.log("messageId", messageId)
 
   if (!messageId) {
+    console.log("messageId not found")
     return;
   }
 
-  chrome.storage.local.get("messages", function (result) {
+chrome.storage.local.get("messages", function (result) {
     let messages = JSON.parse(result.messages || "{}");
 
     if (messages[messageId]) {
+      console.log("found the message Id")
       const status = messages[messageId].status;
       const unsafeReason = messages[messageId].unsafeReason;
 
@@ -369,6 +390,7 @@ async function extractMessageIdAndEml() {
         });
       }
     } else {
+      console.log("messageId not found in messages");
       showLoadingScreen();
       shouldApplyPointerEvents = true;
       blockEmailBody();
@@ -382,32 +404,12 @@ async function extractMessageIdAndEml() {
         (response) => {
           if (response.IsResponseRecieved === "success") {
             if (response.data.code === 200) {
+              console.log("response in else part", response.data)
               const serverData = response.data.data;
               const resStatus =
                 serverData.eml_status || serverData.email_status;
               const messId = serverData.messageId || serverData.msg_id;
               const unsafeReason = serverData.unsafe_reasons || " ";
-              // if (["safe", "unsafe", "pending"].includes(resStatus)) {
-              //   chrome.storage.local.get("messages", function (result) {
-              //     let messages = JSON.parse(result.messages || "{}");
-              //     messages[messId] = {
-              //       status: resStatus,
-              //       unsafeReason: unsafeReason,
-              //     };
-
-              //     chrome.storage.local.set(
-              //       {
-              //         messages: JSON.stringify(messages),
-              //       },
-              //       () => {
-              //         shouldApplyPointerEvents = resStatus !== "safe";
-              //         blockEmailBody();
-              //         hideLoadingScreen();
-              //         showAlert(resStatus, unsafeReason);
-              //       }
-              //     );
-              //   });
-              // }
               if (["safe", "unsafe", "pending"].includes(resStatus)) {
                 chrome.storage.local.get("messages", function (result) {
                     let messages = JSON.parse(result.messages || "{}");
@@ -418,10 +420,8 @@ async function extractMessageIdAndEml() {
                     chrome.storage.local.set({ messages: JSON.stringify(messages) }, () => {
                         shouldApplyPointerEvents = resStatus !== "safe";  
                         if (resStatus === "pending") {
-                            // Handle pending case
                             hideLoadingScreen();
                             showAlert("pending");
-                            // Clear previous interval before setting a new one
                             if (intervalId) {
                                 clearInterval(intervalId);
                             }
@@ -430,7 +430,6 @@ async function extractMessageIdAndEml() {
                                 pendingStatusCallForGmail();
                             }, 5000);
                         } else {
-                            // Handle safe/unsafe cases
                             blockEmailBody();
                             hideLoadingScreen();
                             showAlert(resStatus, unsafeReason);
@@ -441,10 +440,11 @@ async function extractMessageIdAndEml() {
             
             } else {
               setTimeout(() => {
+                console.log("creating the new URL")
                 let newUrl = window.location.href;
-                if (newUrl.includes("?compose=")) {
-                  return;
-                }
+                // if (newUrl.includes("?compose=")) {
+                //   return;
+                // }
                 createUrl(newUrl, messageId);
               }, 300);
             }
@@ -518,8 +518,11 @@ function getBaseUrl(url) {
  */
 
 function createUrl(url, messageId) {
+  console.log("Creatnig the new uRL")
   let prefixUrl = getBaseUrl(url); // Get dynamic base URL
+  console.log("prefixUrl, url", prefixUrl, url)
   let eml_Url = `${prefixUrl}/?view=att&th=${messageId}&attid=0&disp=comp&safe=1&zw`;
+  console.log('eml_Url', eml_Url)
   try {
     chrome.runtime.sendMessage({
       action: "sendGmailData",
@@ -566,13 +569,21 @@ async function findEmailId() {
  * @param {Event} event - The click event triggered by the user.
  */
 
+// document.addEventListener("click", function removeAlertOnClick(event) {
+//   const alertContainer = document.querySelector("div[style*='z-index: 1000']");
+//   if (alertContainer) {
+//     document.body.removeChild(alertContainer);
+//     document.removeEventListener("click", removeAlertOnClick); // Remove listener after execution
+//   }
+// });
 document.addEventListener("click", function removeAlertOnClick(event) {
   const alertContainer = document.querySelector("div[style*='z-index: 1000']");
-  if (alertContainer) {
-    document.body.removeChild(alertContainer);
-    document.removeEventListener("click", removeAlertOnClick); // Remove listener after execution
+  if (alertContainer && alertContainer.parentNode) {
+    alertContainer.parentNode.removeChild(alertContainer);
+    document.removeEventListener("click", removeAlertOnClick);
   }
 });
+
 
 /**
  * Toggles the ability to interact with email body elements.

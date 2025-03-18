@@ -1,3 +1,4 @@
+/* activity.css */
 #dataOutput {
   margin-top: -70px;
   height: 70vh;
@@ -49,22 +50,27 @@
 
 .bar-value {
   font-weight: bold;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
   color: #444;
   font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.bar-container:hover .bar-value {
+  transform: scale(1.1);
+  color: #000;
 }
 
 .bar {
   width: 53px;
   border-radius: 2px 2px 0 0;
   transition: all 0.3s ease;
-  background: #e0e0e0;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
 }
 
 .bar:hover {
-  transform: scale(1.01);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  transform: scale(1.05);
+  filter: brightness(1.1);
 }
 
 .bar-label {
@@ -74,31 +80,76 @@
   color: #555;
   text-align: center;
 }
+/* Update these styles in your activity.css */
 
-.bar:hover + .bar-label {
-  color: #222;
+.tooltip {
+  position: absolute;
+  background: linear-gradient(145deg, #2c3e50, #34495e);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  z-index: 100;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  white-space: nowrap;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  min-width: 200px;
+  text-align: left;
 }
 
-.bar:nth-child(1) {
-  background: linear-gradient(to top, #3498db, #5dade2);
+.tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: #34495e transparent transparent transparent;
 }
 
-.bar:nth-child(2) {
-  background: linear-gradient(to top, #e74c3c, #f1948a);
+.tooltip.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
-.bar:nth-child(3) {
-  background: linear-gradient(to top, #f1c40f, #f9e79f);
+.tooltip-label {
+  font-weight: 600;
+  color: #3498db;
+  display: block;
+  margin-bottom: 5px;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 5px;
 }
 
-.bar:nth-child(1):hover {
-  background: linear-gradient(to top, #2c81b7, #4da6d7);
+.tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  margin: 4px 0;
+  font-size: 13px;
 }
 
-.bar:nth-child(2):hover {
-  background: linear-gradient(to top, #c0392b, #eb7667);
+.tooltip-value {
+  font-weight: 600;
+  color: #2ecc71;
 }
 
-.bar:nth-child(3):hover {
-  background: linear-gradient(to top, #d4ac0d, #f4d03f);
+.chart-container {
+  position: relative;
+  overflow: visible;
+}
+
+.bar-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 10px;
 }
