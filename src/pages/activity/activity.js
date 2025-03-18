@@ -282,7 +282,6 @@ const getGraphData = async () => {
 
     createBarChart(chartData);
   } catch (error) {
-    console.error("Error fetching graph data:", error);
     displayError();
   } finally {
     hideLoader();
