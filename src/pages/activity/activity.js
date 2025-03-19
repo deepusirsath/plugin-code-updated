@@ -9,7 +9,6 @@ import {
 } from "/src/helper/get_email_from_local_storage.js";
 import { showLoader, hideLoader } from "/src/component/loader/loader.js";
 
-
 /**
  * Calculates a "nice" rounded number that is greater than or equal to the input maximum value.
  * Nice numbers are considered to be 1, 2, 5, or 10 multiplied by powers of 10.

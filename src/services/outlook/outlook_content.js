@@ -619,11 +619,13 @@ function setupClickListener(attempts = 500) {
                           }
                         } else if (response.status === "error") {
                           showAlert("inform");
+                          hideLoadingScreen()
                         }
                       }
                     )
                     .catch((error) => {
                       showAlert("inform");
+                      hideLoadingScreen()
                     });
                 }
               });
@@ -645,6 +647,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     request.client === "outlook"
   ) {
     showAlert("inform");
+    hideLoadingScreen();
   }
 });
 
