@@ -18,6 +18,7 @@ export const checkGmailUrl = (url) => {
       "trash",
       "category",
       "label",
+      "search",
     ];
     const regex = new RegExp(keywords.join("|"), "i");
     const match = url.match(regex);
