@@ -64,22 +64,19 @@ const getViewDetailOfSpamMail = async (msg_id) => {
   }
 };
 
-
 const getAllSpamMail = async (page = 1) => {
   // Show loader immediately
   showLoader();
-  
+
   // Create a promise that resolves after 1 second minimum
-  const minLoadingTime = new Promise(resolve => setTimeout(resolve, 100));
-  
+  const minLoadingTime = new Promise((resolve) => setTimeout(resolve, 0));
+
   // Get the current email from chrome.storage
   const emailPromise = new Promise((resolve) => {
     chrome.storage.local.get(["currentMailId"], function (result) {
       if (result.currentMailId) {
-        console.log("Email ID loaded for API call: " + result.currentMailId);
         resolve(result.currentMailId);
       } else {
-        console.warn("No email ID available yet. Retrying...");
         // Wait a moment and try again
         setTimeout(() => {
           chrome.storage.local.get(["currentMailId"], function (retryResult) {
@@ -89,34 +86,30 @@ const getAllSpamMail = async (page = 1) => {
       }
     });
   });
-  
+
   try {
     // Wait for both the minimum loading time and email retrieval
     const [_, currentEmail] = await Promise.all([minLoadingTime, emailPromise]);
-    
+
     if (!currentEmail) {
-      console.error("Failed to retrieve email ID after retry");
       hideLoader();
       return { results: [], count: 0 };
     }
-    
+
     const requestData = {
       emailId: currentEmail,
       page: page,
     };
-    
+
     const response = await postData(`${SPAM_MAIL}?page=${page}`, requestData);
     hideLoader();
     return response;
   } catch (error) {
-    console.error("Error fetching spam mail:", error);
     displayError();
     hideLoader();
     return { results: [], count: 0 }; // Return empty result set on error
   }
 };
-
-
 
 /**
  * Filters spam mails based on sender's email address with pagination
@@ -232,10 +225,12 @@ const attachViewButtonListeners = () => {
  * @throws {Error} Displays error message if component loading fails
  */
 const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
-  await getEmailIds();
-
   try {
-    document.getElementById("noDataFound").innerHTML = "";
+    await getEmailIds();
+    const noDataFoundElement = document.getElementById("noDataFound");
+    if (noDataFoundElement) {
+      noDataFoundElement.innerHTML = "";
+    }
     const spamMailResponse =
       searchQuery.length > 0
         ? await filterSpamMails(searchQuery, page)
@@ -256,13 +251,26 @@ const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
     }
 
     if (!spamMailResponse.results || spamMailResponse.results.length === 0) {
-      document.getElementById("data-table").innerHTML = "";
-      document.getElementById("pagination").innerHTML = "";
+      const SearchElement = document.getElementById("search-container");
+      if (SearchElement) {
+        SearchElement.innerHTML = "";
+      }
       await loadComponent({
         componentName: COMPONENTS.NO_DATA_FOUND,
         basePath: BASEPATH.COMPONENT,
         targetId: "noDataFound",
       });
+
+      const dataTableElement = document.getElementById("data-table");
+      if (dataTableElement) {
+        dataTableElement.innerHTML = "";
+      }
+
+      const paginationElement = document.getElementById("pagination");
+      if (paginationElement) {
+        paginationElement.innerHTML = "";
+      }
+
       handleRefresh(() => {
         const searchInput = document.getElementById("search-input");
         const clearButton = document.getElementById("clearButton");

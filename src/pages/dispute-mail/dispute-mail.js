@@ -73,18 +73,14 @@ const getViewDetailOfDisputeMail = async (msg_id) => {
 const getAllDisputeMail = async (page = 1) => {
   // Show loader immediately
   showLoader();
-  
   // Create a promise that resolves after 1 second minimum
-  const minLoadingTime = new Promise(resolve => setTimeout(resolve, 100));
-  
+  const minLoadingTime = new Promise((resolve) => setTimeout(resolve, 0));
   // Get the current email from chrome.storage
   const emailPromise = new Promise((resolve) => {
     chrome.storage.local.get(["currentMailId"], function (result) {
       if (result.currentMailId) {
-        console.log("Email ID loaded for API call: " + result.currentMailId);
         resolve(result.currentMailId);
       } else {
-        console.warn("No email ID available yet. Retrying...");
         // Wait a moment and try again
         setTimeout(() => {
           chrome.storage.local.get(["currentMailId"], function (retryResult) {
@@ -94,22 +90,18 @@ const getAllDisputeMail = async (page = 1) => {
       }
     });
   });
-  
+
   try {
     // Wait for both the minimum loading time and email retrieval
     const [_, currentEmail] = await Promise.all([minLoadingTime, emailPromise]);
-    
     if (!currentEmail) {
-      console.error("Failed to retrieve email ID after retry");
       hideLoader();
       return { results: [], count: 0 };
     }
-    
     const requestData = {
       emailId: currentEmail,
       page: page,
     };
-    
     const response = await postData(
       `${GET_DISPUTE_RAISE_DATA}?page=${page}`,
       requestData
@@ -117,14 +109,11 @@ const getAllDisputeMail = async (page = 1) => {
     hideLoader();
     return response;
   } catch (error) {
-    console.error("Error fetching dispute mail:", error);
     hideLoader();
     displayError();
     return { results: [], count: 0 }; // Return empty result set on error
   }
 };
-
-
 
 /**
  * Filters dispute mails based on sender's email with pagination
@@ -238,7 +227,11 @@ const attachViewButtonListeners = () => {
 const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
   try {
     await getEmailIds();
-    document.getElementById("noDataFound").innerHTML = "";
+    const noDataFoundElement = document.getElementById("noDataFound");
+    if (noDataFoundElement) {
+      noDataFoundElement.innerHTML = "";
+    }
+
     const disputeMailResponse =
       searchQuery.length > 0
         ? await filterDisputeMails(page, searchQuery)
@@ -261,20 +254,26 @@ const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
 
       initializeSearchHandlers();
     }
-    if (
-      !disputeMailResponse ||
-      !disputeMailResponse.results ||
-      !disputeMailResponse.results.data ||
-      disputeMailResponse.results.data.length === 0
-    ) {
-      document.getElementById("data-table").innerHTML = "";
-      document.getElementById("pagination").innerHTML = "";
-
+    if (!disputeMailResponse || disputeMailResponse.data === 0) {
+      const SearchElement = document.getElementById("search-container");
+      if (SearchElement) {
+        SearchElement.innerHTML = "";
+      }
       await loadComponent({
         componentName: COMPONENTS.NO_DATA_FOUND,
         basePath: BASEPATH.COMPONENT,
         targetId: "noDataFound",
       });
+
+      const dataTableElement = document.getElementById("data-table");
+      if (dataTableElement) {
+        dataTableElement.innerHTML = "";
+      }
+
+      const paginationElement = document.getElementById("pagination");
+      if (paginationElement) {
+        paginationElement.innerHTML = "";
+      }
 
       handleRefresh(() => {
         const searchInput = document.getElementById("search-input");
