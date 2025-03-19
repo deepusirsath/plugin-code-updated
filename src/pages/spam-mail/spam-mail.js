@@ -70,7 +70,7 @@ const getAllSpamMail = async (page = 1) => {
   showLoader();
   
   // Create a promise that resolves after 1 second minimum
-  const minLoadingTime = new Promise(resolve => setTimeout(resolve, 2000));
+  const minLoadingTime = new Promise(resolve => setTimeout(resolve, 100));
   
   // Get the current email from chrome.storage
   const emailPromise = new Promise((resolve) => {

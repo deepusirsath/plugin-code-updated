@@ -60,6 +60,9 @@ const updateActiveMenuItem = (clickedButton) => {
  */
 const handleRegularButton = async (componentName) => {
   try {
+     // Clear existing content first
+    //  document.getElementById(TARGET_ID.DATA_OUTPUT).innerHTML = '';
+
     await loadComponent({
       componentName,
       basePath: BASEPATH.PAGES,
