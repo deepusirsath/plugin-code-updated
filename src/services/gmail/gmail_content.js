@@ -788,7 +788,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const afterHash = hashParts[1];
       
       // Check if compose appears immediately after folder name
-      if (afterHash.match(/^(inbox|starred|snoozed|imp|label|scheduled|all|spam|trash|category)\/?\?compose=/)) {
+      if (afterHash.match(/^(inbox|starred|snoozed|imp|label|search|scheduled|all|spam|trash|category)\/?\?compose=/)) {
         return;
       }
       

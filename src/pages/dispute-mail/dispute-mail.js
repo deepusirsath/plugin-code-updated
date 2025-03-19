@@ -69,7 +69,6 @@ const getViewDetailOfDisputeMail = async (msg_id) => {
   }
 };
 
-
 const getAllDisputeMail = async (page = 1) => {
   // Show loader immediately
   showLoader();
@@ -90,7 +89,6 @@ const getAllDisputeMail = async (page = 1) => {
       }
     });
   });
-
   try {
     // Wait for both the minimum loading time and email retrieval
     const [_, currentEmail] = await Promise.all([minLoadingTime, emailPromise]);

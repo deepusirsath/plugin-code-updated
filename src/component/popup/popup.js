@@ -1,8 +1,3 @@
-chrome.runtime.sendMessage({ popupOpened: true }, ()=>{
-  console.log("popup opened");
-});
-
-
 import { displayError } from "/src/helper/display_error.js";
 import { isEmailPage } from "/src/helper/is_gmail_page_helper.js";
 import { loadCommonComponents } from "/src/routes/common_route.js";

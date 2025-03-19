@@ -8,8 +8,6 @@ import { showCustomAlert } from "/src/component/custom_alert/custom_alert.js";
 import { showLoader, hideLoader } from "/src/component/loader/loader.js";
 import { displayError } from "/src/helper/display_error.js";
 
-
-
 let isSubmitting = false;
 /**
  * Initializes and manages a dispute form interface with validation and submission handling
@@ -135,48 +133,54 @@ export const initializeDisputeForm = (disputeData) => {
    * @fires sendDispute - When dispute count is valid
    * @fires showCustomAlert - When dispute limit is reached
    */
-  
+
   submitButton.addEventListener("click", async () => {
-      // Prevent multiple submissions
-  if (isSubmitting) return;
-  isSubmitting = true;
+    // Prevent multiple submissions
+    if (isSubmitting) return;
+    isSubmitting = true;
 
-
-  try {
-    disableSubmitButton();
-    const disputeCount = disputeData.countRaise || 0;
-    const currentStatus = disputeData.status;
-
-    const existingAlerts = document.querySelectorAll(".custom-alert-overlay");
-    existingAlerts.forEach((alert) => alert.remove());
-
-    // Check if previous dispute is still pending admin response
-    if (currentStatus === "Dispute" && disputeCount < 3) {
-      showCustomAlert(
-        "Please wait for admin response before raising another dispute.",
-        "warning"
-      );
-      enableSubmitButton();
-      return;
-    }
-
-    // Check dispute count limit
-    if (disputeCount < 3 && disputeCount >= 0) {
-      const reasonText = reasonTextarea.value.trim();
-      const messageId = document.getElementById("messageId").textContent;
-      const receiver_email = await chrome.storage.local.get("receiver_email");
-      sendDispute(reasonText, messageId, receiver_email?.receiver_email);
-    } else {
+    try {
       disableSubmitButton();
-      showCustomAlert(
-        "You have reached the maximum limit for disputes. Each email can be disputed a maximum of three times.",
-        "error"
-      );
+      const disputeCount = disputeData.countRaise || 0;
+      const currentStatus = disputeData.status;
+
+      const existingAlerts = document.querySelectorAll(".custom-alert-overlay");
+      existingAlerts.forEach((alert) => alert.remove());
+
+      if (disputeData.status === "pending") {
+        showCustomAlert(
+          "You can not raise dispute on pending email status.",
+          "warning"
+        );
+        return;
+      }
+      // Check if previous dispute is still pending admin response
+      if (currentStatus === "Dispute" && disputeCount < 3) {
+        showCustomAlert(
+          "Please wait for admin response before raising another dispute.",
+          "warning"
+        );
+        enableSubmitButton();
+        return;
+      }
+
+      // Check dispute count limit
+      if (disputeCount < 3 && disputeCount >= 0) {
+        const reasonText = reasonTextarea.value.trim();
+        const messageId = document.getElementById("messageId").textContent;
+        const receiver_email = await chrome.storage.local.get("receiver_email");
+        sendDispute(reasonText, messageId, receiver_email?.receiver_email);
+      } else {
+        disableSubmitButton();
+        showCustomAlert(
+          "You have reached the maximum limit for disputes. Each email can be disputed a maximum of three times.",
+          "error"
+        );
+      }
+    } finally {
+      isSubmitting = false;
+      enableSubmitButton();
     }
-  }finally {
-    isSubmitting = false;
-    enableSubmitButton();
-  }
   });
 
   /**
@@ -298,7 +302,7 @@ export const sendDisputeToServer = async (reason, email, messageId) => {
     return data;
   } catch (error) {
     displayError();
-  }finally {
+  } finally {
     isSubmitting = false;
   }
 };

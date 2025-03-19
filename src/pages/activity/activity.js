@@ -1,5 +1,3 @@
-
-
 // activity.js
 import { COMPONENTS } from "/src/constant/component.js";
 import { GET_GRAPH_DATA } from "/src/routes/api_route.js";
@@ -284,7 +282,6 @@ const getGraphData = async () => {
 
     createBarChart(chartData);
   } catch (error) {
-    console.error("Error fetching graph data:", error);
     displayError();
   } finally {
     hideLoader();
