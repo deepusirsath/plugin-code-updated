@@ -482,13 +482,13 @@ function setupClickListener(attempts = 500) {
                   const unsafeReason = messages[dataConvid].unsafeReason;
 
                   if (status === "safe") {
-                    clearInterval(intervalId)
+                    clearInterval(intervalId);
                     shouldApplyPointerEvents = false;
                     blockEmailBody();
                     hideLoadingScreen();
                     showAlert("safe", unsafeReason);
                   } else if (status === "unsafe") {
-                    clearInterval(intervalId)
+                    clearInterval(intervalId);
                     showAlert("unsafe", unsafeReason);
                     shouldApplyPointerEvents = true;
                     blockEmailBody();
@@ -532,35 +532,6 @@ function setupClickListener(attempts = 500) {
                             const unsafeReason =
                               serverData.unsafe_reasons || " ";
 
-                            // if (["safe", "unsafe", "pending"].includes(resStatus)
-                            // ) {
-                            //   chrome.storage.local.get(
-                            //     "messages",
-                            //     function (result) {
-                            //       let messages = JSON.parse(
-                            //         result.messages || "{}"
-                            //       );
-                            //       messages[messId] = {
-                            //         status: resStatus,
-                            //         unsafeReason: unsafeReason,
-                            //       };
-
-                            //       chrome.storage.local.set(
-                            //         {
-                            //           messages: JSON.stringify(messages),
-                            //         },
-                            //         () => {
-                            //           shouldApplyPointerEvents =
-                            //             resStatus !== "safe";
-                            //           blockEmailBody();
-                            //           showAlert(resStatus, unsafeReason);
-                            //         }
-                            //       );
-                            //     }
-                            //   );
-                            // }
-                            // let intervalId = null; // Track interval state
-
                             if (
                               ["safe", "unsafe", "pending"].includes(resStatus)
                             ) {
@@ -582,8 +553,7 @@ function setupClickListener(attempts = 500) {
                                     () => {
                                       if (resStatus === "pending") {
                                         handlePendingStatus();
-                                      } 
-                                      else {
+                                      } else {
                                         shouldApplyPointerEvents =
                                           resStatus !== "safe";
                                         blockEmailBody();
@@ -619,13 +589,13 @@ function setupClickListener(attempts = 500) {
                           }
                         } else if (response.status === "error") {
                           showAlert("inform");
-                          hideLoadingScreen()
+                          hideLoadingScreen();
                         }
                       }
                     )
                     .catch((error) => {
                       showAlert("inform");
-                      hideLoadingScreen()
+                      hideLoadingScreen();
                     });
                 }
               });
@@ -808,7 +778,6 @@ function pendingStatusCallForOutlook() {
   });
 }
 
-
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.client === "outlook") {
     messageReason = message.unsafeReason;
@@ -839,30 +808,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse({ status: "success" });
   }
 });
-
-// chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-//   if (message.client === "outlook") {
-//     messageReason = message.unsafeReason;
-//     // Check if the message is for Outlook
-
-//     if (message.action === "blockUrls") {
-//       shouldApplyPointerEvents = true;
-//       hideLoadingScreen();
-//       showAlert("unsafe", messageReason);
-//     } else if (message.action === "unblock") {
-//       shouldApplyPointerEvents = false;
-
-//       hideLoadingScreen();
-//       showAlert("safe");
-//     } else if (message.action === "pending") {
-//       shouldApplyPointerEvents = true;
-//       hideLoadingScreen();
-//       showAlert("pending");
-//     }
-//     blockEmailBody();
-//     sendResponse({ status: "success" });
-//   }
-// });
 
 /**
  * Finds and stores the logged-in Outlook email ID from the current Outlook mail page.
