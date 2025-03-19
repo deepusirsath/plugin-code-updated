@@ -245,8 +245,7 @@ function createBarChart(data) {
 const getGraphData = async () => {
   try {
     showLoader();
-    const minLoadingTime = new Promise(resolve => setTimeout(resolve, 2000));
-    
+    const minLoadingTime = new Promise(resolve => setTimeout(resolve, 0));
     const emailPromise = new Promise((resolve) => {
       chrome.storage.local.get(["currentMailId"], function (result) {
         if (result.currentMailId) {

@@ -1,3 +1,341 @@
+// import { BASEPATH } from "/src/constant/basepath.js";
+// import { COMPONENTS } from "/src/constant/component.js";
+// import { displayError } from "/src/helper/display_error.js";
+// import { TARGET_ID } from "/src/constant/target_id.js";
+// import { initializeDisputeForm } from "/src/pages/dispute/dispute.js";
+// import { showLoader, hideLoader } from "/src/component/loader/loader.js";
+// import { setCurrentSearchQuery } from "/src/pages/spam-mail/spam-mail.js";
+// import { setCurrentdisputeMailSearchQuery } from "/src/pages/dispute-mail/dispute-mail.js";
+// import {
+//   loadComponent,
+//   loadCssAndHtmlFile,
+//   loadScript,
+// } from "/src/helper/content_loader_helper.js";
+// import { SIDEBAR_CONFIG } from "./sidebar_config.js";
+
+// let currentLoadingOperation = null;
+// let isNavigating = false;
+
+// /**
+//  * Updates the active state of menu items in the sidebar and resets search-related elements
+//  * @param {HTMLElement} clickedButton - The button element that was clicked in the sidebar
+//  * @description
+//  * - Removes 'active' class from all menu items
+//  * - Adds 'active' class to the clicked menu item's parent
+//  * - Clears any error messages
+//  * - Resets search input value and query state
+//  * - Hides the clear button
+//  * @example
+//  * const button = document.getElementById('menu-button');
+//  * updateActiveMenuItem(button);
+//  */
+// const updateActiveMenuItem = (clickedButton) => {
+//   const searchInput = document.getElementById("search-input");
+//   const clearButton = document.getElementById("clearButton");
+//   const menuItems = document.querySelectorAll(".menu-item");
+
+//   menuItems.forEach((item) => item.classList.remove("active"));
+//   clickedButton.closest(".menu-item").classList.add("active");
+//   document.getElementById("errorDisplay").innerHTML = "";
+
+//   if (searchInput) {
+//     searchInput.value = "";
+//     setCurrentSearchQuery("");
+//     setCurrentdisputeMailSearchQuery("");
+//   }
+
+//   if (clearButton) {
+//     clearButton.style.display = "none";
+//   }
+// };
+
+// /**
+//  * Handles loading of regular (non-dispute) components in the sidebar
+//  * @param {string} componentName - The name of the component to be loaded
+//  * @returns {Promise<void>} A promise that resolves when the component is loaded
+//  * @fires {CustomEvent} componentLoaded - Dispatched with component details after successful loading
+//  * @throws {Error} Caught and handled by displayError if component loading fails
+//  * @example
+//  * // Load a regular component
+//  * await handleRegularButton('details');
+//  */
+// // const handleRegularButton = async (componentName) => {
+// //   document.getElementById("noDataFound").innerHTML = "";
+// //   try {
+// //     await loadComponent({
+// //       componentName,
+// //       basePath: BASEPATH.PAGES,
+// //       targetId: TARGET_ID.DATA_OUTPUT,
+// //     });
+
+// //     document.dispatchEvent(
+// //       new CustomEvent("componentLoaded", {
+// //         detail: { componentName },
+// //       })
+// //     );
+// //   } catch (error) {
+// //     displayError();
+// //   }
+// // };
+
+// const handleRegularButton = async (componentName) => {
+//   console.log(`handleRegularButton called with componentName: ${componentName}`);
+
+//   document.getElementById("noDataFound").innerHTML = "";
+//   console.log("Cleared 'noDataFound' message.");
+
+//   try {
+//     console.log(`Attempting to load component: ${componentName}`);
+//     await loadComponent({
+//       componentName,
+//       basePath: BASEPATH.PAGES,
+//       targetId: TARGET_ID.DATA_OUTPUT,
+//     });
+
+//     console.log(`Component '${componentName}' loaded successfully.`);
+
+//     document.dispatchEvent(
+//       new CustomEvent("componentLoaded", {
+//         detail: { componentName },
+//       })
+//     );
+//     console.log(`Dispatched 'componentLoaded' event for ${componentName}`);
+//   } catch (error) {
+//     console.error(`Error loading component '${componentName}':`, error);
+//     displayError();
+//   }
+// };
+
+
+// /**
+//  * Handles dispute button click events and manages email service verification and component loading
+//  *
+//  * @param {string} componentName - Name of the component to be loaded
+//  * @returns {Promise<void>}
+//  *
+//  * @description
+//  * This function performs the following operations:
+//  * 1. Verifies if the current page is a valid email service page
+//  * 2. Checks for dispute data if email service is valid
+//  * 3. Loads appropriate components based on the response:
+//  *    - Loads "mail not found" component if dispute data is not found
+//  *    - Loads specified component with dispute data if available
+//  *    - Dispatches a custom event with component and dispute data
+//  *
+//  * Supported email services:
+//  * - Gmail
+//  * - Outlook
+//  * - Yahoo
+//  *
+//  * @example
+//  * await handleDisputeButton('dispute');
+//  *
+//  * @throws {Error} Displays error message if any operation fails
+//  */
+
+
+// const handleButtonClick = async (componentName, clickedButton) => {
+//   console.log("Debug: Called with", componentName, clickedButton);
+  
+//   if (isNavigating) {
+//     alert("Navigation already in progress, ignoring new request");
+//     console.warn("Debug: Navigation already in progress, ignoring new request");
+//     return;
+//   }
+  
+//   console.log(`Before setting: isNavigating = ${isNavigating}`);
+//   isNavigating = true; // Lock navigation
+//   console.log(`After setting: isNavigating = ${isNavigating}`);
+// //   alert(`Navigation started: ${isNavigating}`);
+
+//   try {
+//     document.getElementById("noDataFound").innerHTML = "";
+//     document.getElementById("data-output").innerHTML = "";
+//     updateActiveMenuItem(clickedButton);
+
+//     if (clickedButton.id === TARGET_ID.DISPUTE_BTN) {
+//       await handleDisputeButton(componentName);
+//       document.addEventListener("componentLoaded", async (event) => {
+//         if (event.detail.componentName === COMPONENTS.DISPUTE) {
+//           initializeDisputeForm(event.detail.disputeData);
+//         }
+//       });
+//     } else if (
+//       clickedButton.id === TARGET_ID.SPAM_MAIL ||
+//       clickedButton.id === TARGET_ID.DISPUTE_MAIL
+//     ) {
+//       await loadScript(`/src/pages/${componentName}/${componentName}.js`);
+
+//       document.dispatchEvent(
+//         new CustomEvent("componentLoaded", { detail: { componentName } })
+//       );
+//     } else {
+//       await handleRegularButton(componentName);
+//     }
+//   } catch (error) {
+//     console.error("Error during navigation:", error);
+//   } finally {
+//     isNavigating = false; // Ensure reset after completion
+//     console.log(`Finally block executed: isNavigating = ${isNavigating}`);
+//     alert(`Navigation ended: ${isNavigating}`);
+//   }
+// };
+
+// const handleDisputeButton = async (componentName) => {
+//   const thisOperation = {};
+//   currentLoadingOperation = thisOperation;
+//   document.getElementById("data-output").innerHTML = "";
+//   document.getElementById("noDataFound").innerHTML = "";
+//   showLoader();
+
+//   try {
+//     chrome.runtime.sendMessage(
+//       { action: "checkEmailPage" },
+//       async function (response) {
+//         if (currentLoadingOperation !== thisOperation) {
+//           hideLoader();
+//           isNavigating = false; // Reset navigation lock
+//           return;
+//         }
+
+//         if (["OpenedGmail", "OpenedOutlook", "OpenedYahoo", "Gmail"].includes(response)) {
+//           chrome.runtime.sendMessage(
+//             { action: "checkDispute" },
+//             async function (disputeResponse) {
+//               if (disputeResponse?.error === "Not found") {
+//                 await loadCssAndHtmlFile({
+//                   componentName: COMPONENTS.OPENED_MAIL_NOT_FOUND,
+//                   basePath: BASEPATH.COMPONENT,
+//                   targetId: TARGET_ID.DATA_OUTPUT,
+//                 });
+//                 hideLoader();
+//               } else {
+//                 if (currentLoadingOperation !== thisOperation) {
+//                   hideLoader();
+//                   isNavigating = false; // Reset navigation lock
+//                   return;
+//                 }
+
+//                 await loadComponent({
+//                   componentName,
+//                   basePath: BASEPATH.PAGES,
+//                   targetId: TARGET_ID.DATA_OUTPUT,
+//                 });
+//                 hideLoader();
+//                 document.dispatchEvent(
+//                   new CustomEvent("componentLoaded", {
+//                     detail: { componentName, disputeData: disputeResponse },
+//                   })
+//                 );
+//               }
+//               isNavigating = false; // Reset navigation lock after completion
+//               console.log(`Dispute check completed: isNavigating = ${isNavigating}`);
+//             }
+//           );
+//         } else {
+//           await loadCssAndHtmlFile({
+//             componentName: COMPONENTS.OPENED_MAIL_NOT_FOUND,
+//             basePath: BASEPATH.COMPONENT,
+//             targetId: TARGET_ID.DATA_OUTPUT,
+//           });
+//           hideLoader();
+//           isNavigating = false; // Ensure reset
+//           console.log(`Email check failed: isNavigating = ${isNavigating}`);
+//         }
+//       }
+//     );
+//   } catch (error) {
+//     displayError();
+//     isNavigating = false; // Ensure reset on error
+//     console.error("Error in handleDisputeButton:", error);
+//   }
+// };
+
+
+
+
+
+// /**
+//  * Initializes click event listeners for all sidebar navigation buttons
+//  * @description
+//  * This function:
+//  * - Iterates through all entries in SIDEBAR_CONFIG
+//  * - Finds each button by its buttonId
+//  * - Attaches click event listeners to handle navigation
+//  * - Triggers handleButtonClick with component name and button element
+//  *
+//  * @example
+//  * // Initialize all sidebar navigation buttons
+//  * initializeSidebarNavigation();
+//  *
+//  * // SIDEBAR_CONFIG structure example:
+//  * // {
+//  * //   details: { buttonId: 'details-btn', component: 'details' },
+//  * //   dispute: { buttonId: 'dispute-btn', component: 'dispute' }
+//  * // }
+//  */
+// // const initializeSidebarNavigation = () => {
+// //   Object.values(SIDEBAR_CONFIG).forEach(({ buttonId, component }) => {
+// //     const button = document.getElementById(buttonId);
+// //     if (button) {
+// //       button.addEventListener("click", (event) =>
+// //         handleButtonClick(component, event.currentTarget)
+// //       );
+// //     }
+// //   });
+// // };
+
+// // // Initialize sidebar navigation
+// // initializeSidebarNavigation();
+
+// const initializeSidebarNavigation = () => {
+//   console.log("Debug SidebarNavigation: Initializing sidebar navigation");
+
+//   Object.values(SIDEBAR_CONFIG).forEach(({ buttonId, component }) => {
+//     console.log(`Debug SidebarNavigation: Processing buttonId=${buttonId}, component=${component}`);
+
+//     const button = document.getElementById(buttonId);
+    
+//     if (button) {
+//       console.log(`Debug SidebarNavigation: Found button ${buttonId}, adding click event listener`);
+
+//       button.addEventListener("click", (event) => {
+//         console.log(`Debug SidebarNavigation: Button clicked - ID: ${buttonId}, Component: ${component}`);
+//         console.log("Debug SidebarNavigation: Calling handleButtonClick");
+        
+  
+
+//         handleButtonClick(component, event.currentTarget);
+//       });
+//     } else {
+//       console.warn(`Debug SidebarNavigation: WARNING - Button with ID '${buttonId}' not found in the DOM`);
+//     }
+//   });
+
+//   console.log("Debug SidebarNavigation: Sidebar navigation initialized");
+// };
+
+// // Initialize sidebar navigation
+// initializeSidebarNavigation();
+
+
+// /**
+//  * Toggles the sidebar visibility and adjusts the toggle button position
+//  * @description This function handles the sidebar's show/hide functionality by:
+//  * - Toggling the 'active' class on the sidebar element
+//  * - Adjusting the toggle button position with margin
+//  */
+// const toggleSidebar = () => {
+//   const sidebar = document.getElementById("sidebar");
+//   const toggleSlide = document.getElementById("toggleSlide");
+
+//   sidebar.classList.toggle("active");
+//   toggleSlide.style.marginLeft = "-15px";
+// };
+
+// // Attach click event listener to toggle button
+// document.getElementById("toggle-btn").addEventListener("click", toggleSidebar);
+
 import { BASEPATH } from "/src/constant/basepath.js";
 import { COMPONENTS } from "/src/constant/component.js";
 import { displayError } from "/src/helper/display_error.js";
@@ -59,7 +397,6 @@ const updateActiveMenuItem = (clickedButton) => {
  * await handleRegularButton('details');
  */
 const handleRegularButton = async (componentName) => {
-  document.getElementById("noDataFound").innerHTML = "";
   try {
     await loadComponent({
       componentName,
@@ -106,7 +443,6 @@ const handleDisputeButton = async (componentName) => {
   const thisOperation = {};
   currentLoadingOperation = thisOperation;
   document.getElementById("data-output").innerHTML = "";
-  document.getElementById("noDataFound").innerHTML = "";
   showLoader();
   try {
     chrome.runtime.sendMessage(
@@ -199,7 +535,6 @@ const handleDisputeButton = async (componentName) => {
  * await handleButtonClick('details', regularButton);
  */
 const handleButtonClick = async (componentName, clickedButton) => {
-  document.getElementById("noDataFound").innerHTML = "";
   currentLoadingOperation = null;
   updateActiveMenuItem(clickedButton);
   if (clickedButton.id === TARGET_ID.DISPUTE_BTN) {
