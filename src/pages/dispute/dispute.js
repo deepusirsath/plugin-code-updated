@@ -133,7 +133,6 @@ export const initializeDisputeForm = (disputeData) => {
    * @fires sendDispute - When dispute count is valid
    * @fires showCustomAlert - When dispute limit is reached
    */
-
   submitButton.addEventListener("click", async () => {
     // Prevent multiple submissions
     if (isSubmitting) return;

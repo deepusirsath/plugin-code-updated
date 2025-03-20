@@ -73,7 +73,7 @@ const getAllDisputeMail = async (page = 1) => {
   // Show loader immediately
   showLoader();
   // Create a promise that resolves after 1 second minimum
-  const minLoadingTime = new Promise((resolve) => setTimeout(resolve, 0));
+  const minLoadingTime = new Promise((resolve) => setTimeout(resolve, 100));
   // Get the current email from chrome.storage
   const emailPromise = new Promise((resolve) => {
     chrome.storage.local.get(["currentMailId"], function (result) {

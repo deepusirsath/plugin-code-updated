@@ -597,31 +597,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-/** chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.client === "yahoo") {
-    messageReason = message.unsafeReason;
-    // Check if the message is for Outlook
-
-    chrome.storage.local.remove(["gmail_email", "outlook_email"], () => {});
-    if (message.action === "blockUrls") {
-      shouldApplyPointerEvents = true;
-      hideLoadingScreen();
-      showAlert("unsafe", messageReason);
-    } else if (message.action === "unblock") {
-      shouldApplyPointerEvents = false;
-
-      hideLoadingScreen();
-      showAlert("safe");
-    } else if (message.action === "pending") {
-      shouldApplyPointerEvents = true;
-      hideLoadingScreen();
-      showAlert("pending");
-    }
-    blockEmailBody();
-    sendResponse({ status: "success" });
-  }
-});*/
-
 /**
  * Listens for click events on the window and checks for the presence of a specific
  * message group view element in the DOM. If the `shouldApplyPointerEvents` flag
