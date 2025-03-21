@@ -104,11 +104,20 @@ const handleRegularButton = async (componentName) => {
  *
  * @throws {Error} Displays error message if any operation fails
  */
+
 const handleDisputeButton = async (componentName) => {
   const thisOperation = {};
   currentLoadingOperation = thisOperation;
   document.getElementById("data-output").innerHTML = "";
   showLoader();
+  
+  // Create a timeout promise that resolves after 5 seconds
+  const timeoutPromise = new Promise(resolve => {
+    setTimeout(() => {
+      resolve({ timedOut: true });
+    }, 3000);
+  });
+  
   try {
     chrome.runtime.sendMessage(
       { action: "checkEmailPage" },
@@ -117,28 +126,61 @@ const handleDisputeButton = async (componentName) => {
           hideLoader();
           return;
         }
+        
         const openedServices = [
           "OpenedGmail",
           "OpenedOutlook",
           "OpenedYahoo",
           "Gmail",
         ];
+        
         if (openedServices.includes(response)) {
+          console.log("Opened Gmail", response);
+          
+          // Set up a flag to track if the dispute response has been processed
+          let disputeResponseProcessed = false;
+          
+          // Start the timeout
+          timeoutPromise.then(async (result) => {
+            // Only proceed if the operation hasn't been cancelled and the dispute response hasn't been processed yet
+            if (currentLoadingOperation === thisOperation && !disputeResponseProcessed) {
+              console.log("Dispute response timed out after 5 seconds");
+              disputeResponseProcessed = true;
+              
+              await loadCssAndHtmlFile({
+                componentName: COMPONENTS.OPENED_MAIL_NOT_FOUND,
+                basePath: BASEPATH.COMPONENT,
+                targetId: TARGET_ID.DATA_OUTPUT,
+              });
+              hideLoader();
+            }
+          });
+          
           chrome.runtime.sendMessage(
             { action: "checkDispute" },
             async function (disputeResponse) {
+              // If the timeout has already triggered, don't process this response
+              if (disputeResponseProcessed) {
+                return;
+              }
+              
+              console.log("Dispute not found 11111111", disputeResponse);
+              disputeResponseProcessed = true;
+              
+              if (currentLoadingOperation !== thisOperation) {
+                hideLoader();
+                return;
+              }
+              
               if (disputeResponse?.error === "Not found") {
+                console.log("Dispute not found 2222222222222");
+                hideLoader();
                 await loadCssAndHtmlFile({
                   componentName: COMPONENTS.OPENED_MAIL_NOT_FOUND,
                   basePath: BASEPATH.COMPONENT,
                   targetId: TARGET_ID.DATA_OUTPUT,
                 });
-                hideLoader();
               } else if (disputeResponse) {
-                if (currentLoadingOperation !== thisOperation) {
-                  hideLoader();
-                  return;
-                }
                 await loadComponent({
                   componentName,
                   basePath: BASEPATH.PAGES,
@@ -150,10 +192,19 @@ const handleDisputeButton = async (componentName) => {
                     detail: { componentName, disputeData: disputeResponse },
                   })
                 );
+              } else {
+                // Handle case when disputeResponse is falsy but not "Not found"
+                await loadCssAndHtmlFile({
+                  componentName: COMPONENTS.OPENED_MAIL_NOT_FOUND,
+                  basePath: BASEPATH.COMPONENT,
+                  targetId: TARGET_ID.DATA_OUTPUT,
+                });
+                hideLoader();
               }
             }
           );
         } else {
+          console.log("outer idsubf vjdfvdf");
           await loadCssAndHtmlFile({
             componentName: COMPONENTS.OPENED_MAIL_NOT_FOUND,
             basePath: BASEPATH.COMPONENT,
@@ -164,9 +215,81 @@ const handleDisputeButton = async (componentName) => {
       }
     );
   } catch (error) {
+    console.error("Error in handleDisputeButton:", error);
+    hideLoader();
     displayError();
   }
 };
+
+// const handleDisputeButton = async (componentName) => {
+//   const thisOperation = {};
+//   currentLoadingOperation = thisOperation;
+//   document.getElementById("data-output").innerHTML = "";
+//   showLoader();
+//   try {
+//     chrome.runtime.sendMessage(
+//       { action: "checkEmailPage" },
+//       async function (response) {
+//         if (currentLoadingOperation !== thisOperation) {
+//           hideLoader();
+//           return;
+//         }
+//         const openedServices = [
+//           "OpenedGmail",
+//           "OpenedOutlook",
+//           "OpenedYahoo",
+//           "Gmail",
+//         ];
+//         if (openedServices.includes(response)) {
+//           console.log("Opened Gmail", response);
+//           chrome.runtime.sendMessage(
+//             { action: "checkDispute" },
+//             async function (disputeResponse) {
+//               console.log("Dispute not found 11111111", disputeResponse);
+//               if (disputeResponse?.error === "Not found") {
+//                 console.log("Dispute not found 2222222222222");
+//                 hideLoader();
+//                 await loadCssAndHtmlFile({
+//                   componentName: COMPONENTS.OPENED_MAIL_NOT_FOUND,
+//                   basePath: BASEPATH.COMPONENT,
+//                   targetId: TARGET_ID.DATA_OUTPUT,
+//                 });
+                
+//               } 
+//               else if (disputeResponse) {
+//                 if (currentLoadingOperation !== thisOperation) {
+//                   hideLoader();
+//                   return;
+//                 }
+//                 await loadComponent({
+//                   componentName,
+//                   basePath: BASEPATH.PAGES,
+//                   targetId: TARGET_ID.DATA_OUTPUT,
+//                 });
+//                 hideLoader();
+//                 document.dispatchEvent(
+//                   new CustomEvent("componentLoaded", {
+//                     detail: { componentName, disputeData: disputeResponse },
+//                   })
+//                 );
+//               }
+//             }
+//           );
+//         } else {
+//           console.log("outer  idsubf vjdfvdf")
+//           await loadCssAndHtmlFile({
+//             componentName: COMPONENTS.OPENED_MAIL_NOT_FOUND,
+//             basePath: BASEPATH.COMPONENT,
+//             targetId: TARGET_ID.DATA_OUTPUT,
+//           });
+//           hideLoader();
+//         }
+//       }
+//     );
+//   } catch (error) {
+//     displayError();
+//   }
+// };
 
 /**
  * Handles click events for sidebar buttons and manages component loading based on button type

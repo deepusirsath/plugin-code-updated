@@ -179,7 +179,7 @@ export function showLoadingScreen() {
   setTimeout(() => {
     loadingScreen.style.opacity = "0";
     setTimeout(() => loadingScreen.remove(), 500);
-  }, 120000);
+  }, 60000);
 }
 
 let isRemovalInProgress = false;
