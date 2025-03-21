@@ -145,6 +145,29 @@ function fetchLocation() {
   }
 }
 
+
+
+
+let lastUrlPath = location.pathname;
+console.log("Initial URL path:", lastUrlPath);
+new MutationObserver(() => {
+  const currentUrlPath = location.pathname;
+  if (currentUrlPath !== lastUrlPath) {
+    lastUrlPath = currentUrlPath;
+    
+    // Check if the current URL matches any of the target paths
+    const urlRegex = /^\/mail(\/\d+)?(\/junkemail|\/deleteditems|\/archive)?$/;
+    if (urlRegex.test(currentUrlPath)) {
+      console.log("Detected navigation to target Outlook path:", currentUrlPath);
+      // Reset any existing click listeners and set up new ones
+      setupClickListener();
+    }
+  }
+}).observe(document, { subtree: true, childList: true });
+
+
+
+
 /**
  * Listens for messages sent from other parts of the Chrome extension.
  *
@@ -311,17 +334,48 @@ function hideTargetedLoadingScreen(loadingOverlay) {
  * @async
  * @function executeWithLoadingScreenAndExtraction
  */
+
+// Add this flag at the top of the file with other global variables
+let isExtractionInProgress = false;
+
+/**
+ * Executes the email extraction process with a loading screen.
+ * Modified to prevent multiple concurrent executions.
+ */
 async function executeWithLoadingScreenAndExtraction() {
+  // If extraction is already in progress, don't start another one
+  if (isExtractionInProgress) {
+    console.log("Email extraction already in progress, skipping new request");
+    return;
+  }
+ 
+  // Set flag to indicate extraction is in progress
+  isExtractionInProgress = true;
+ 
   blockUserInteraction(); // Disable all user interactions
   showLoadingScreen(); // Show the loading screen indefinitely
 
   try {
     await runEmailExtraction(); // Extract email content
+  } catch (error) {
+    console.error("Error during email extraction:", error);
   } finally {
-    // hideLoadingScreen(); // Hide the loading screen once email content is extracted
+    // Reset flag when extraction is complete (whether successful or not)
+    isExtractionInProgress = false;
     unblockUserInteraction(); // Re-enable user interactions
   }
 }
+// async function executeWithLoadingScreenAndExtraction() {
+//   blockUserInteraction(); // Disable all user interactions
+//   showLoadingScreen(); // Show the loading screen indefinitely
+
+//   try {
+//     await runEmailExtraction(); // Extract email content
+//   } finally {
+//     // hideLoadingScreen(); // Hide the loading screen once email content is extracted
+//     unblockUserInteraction(); // Re-enable user interactions
+//   }
+// }
 
 let lastUrl = location.href;
 new MutationObserver(() => {
@@ -584,7 +638,11 @@ function setupClickListener(attempts = 500) {
                             shouldApplyPointerEvents = true;
                             blockEmailBody();
                             setTimeout(() => {
-                              executeWithLoadingScreenAndExtraction();
+                              if (!isExtractionInProgress) {
+                                executeWithLoadingScreenAndExtraction();
+                              } else {
+                                console.log("Skipping extraction request as one is already in progress");
+                              }
                             }, 100);
                           }
                         } else if (response.status === "error") {
