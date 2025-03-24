@@ -829,10 +829,20 @@ const menuObserver = new MutationObserver((mutations) => {
 });
 
 // Start observing the document body
-menuObserver.observe(document.body, { 
-  childList: true, 
-  subtree: true 
-});
+if (document.body) {
+  menuObserver.observe(document.body, { 
+    childList: true, 
+    subtree: true 
+  });
+} else {
+  document.addEventListener('DOMContentLoaded', () => {
+    menuObserver.observe(document.body, { 
+      childList: true, 
+      subtree: true 
+    });
+  });
+}
+
 
 // Also run a periodic check to catch any menus that might have been missed
 setInterval(checkForContextMenu, 500);
