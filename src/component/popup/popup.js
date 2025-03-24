@@ -65,7 +65,7 @@ const handleEmailPageResponse = async (response) => {
   }
 
   try {
-    const { registration } = await chrome.storage.local.get("registration");
+    const { registration } = await chrome.storage.local.get("auth_token");
 
     if (registration) {
       await handleRegisteredUser();

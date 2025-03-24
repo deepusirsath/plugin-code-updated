@@ -24,7 +24,7 @@ import { loadComponent } from "/src/helper/content_loader_helper.js";
  */
 const UnauthenticatedRoute = [
   {
-    componentName: COMPONENTS.REGISTRATION,
+    componentName: COMPONENTS.TOKEN_EXPIRE,
     basePath: BASEPATH.PAGES,
     targetId: TARGET_ID.DATA_OUTPUT,
   },

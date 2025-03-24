@@ -30,18 +30,32 @@ chrome.storage.local.set({ registration: true });
 
 /** ___________________________________________________________Extension___________________________________________________________ */
 
+async function fetchDeviceDataToSend() {
+  try {
+    const response = await fetch("http://localhost:3000/deviceIdentifiers");
+    if (response.ok) {
+      const data = await response.json();
+      // data.status.isValid
+      chrome.storage.local.set({ auth_token: false });
+    }
+  } catch (error) {
+    console.error("Error fetching device data:", error);
+  }
+}
+
 chrome.storage.local.get(null, function (items) {
   console.log("All Local Storage Data:", items);
 });
 
-
 // Listener for chrome startup
 chrome.runtime.onStartup.addListener(() => {
+  fetchDeviceDataToSend();
   userDetails();
 });
 
 // Listener for chrome installation
 chrome.runtime.onInstalled.addListener(() => {
+  fetchDeviceDataToSend();
   userDetails();
 });
 
@@ -528,7 +542,6 @@ async function sendEmlToServer(messageId, blob = null, client, user_email) {
   }
 }
 
-
 /**
  * Processes the server response for an email scan and updates local storage.
  *
@@ -687,7 +700,6 @@ async function checkPendingResponseStatus(messageId, email, client) {
     console.log("Error in checkPendingResponseStatus:", error);
   }
 }
-
 
 function handleEmailScanResponseOfPending(serverData, activeTabId, client) {
   const resStatus = serverData.eml_status || serverData.email_status;
@@ -1100,12 +1112,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-
-
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.popupOpened) {
     console.log("Popup opened!+++++++++++++++++++++++++++++");
-    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const currentUrl = tabs[0].url;
       console.log("Popup opened! and current url is ", currentUrl);
       if (currentUrl.includes("mail.yahoo.com")) {
@@ -1117,7 +1127,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         console.log("Google mail detected with the POPUP opened");
       }
       if (currentUrl.includes("outlook.live.com")) {
-        chrome.tabs.sendMessage(tabs[0].id, { action: "ExtractEMailForOutlook" });
+        chrome.tabs.sendMessage(tabs[0].id, {
+          action: "ExtractEMailForOutlook",
+        });
         console.log("Outlook mail detected with the POPUP opened");
       }
     });

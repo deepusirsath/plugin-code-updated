@@ -58,6 +58,7 @@
   "host_permissions": [
     "https://mail-attachment.googleusercontent.com/*",
     "https://mail.google.com/*",
-    "https://apis.mail.yahoo.com/*"
+    "https://apis.mail.yahoo.com/*",
+    "http://localhost:3000/deviceIdentifiers"
   ]
 }
