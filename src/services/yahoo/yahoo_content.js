@@ -189,6 +189,16 @@ async function executeExtractionScript() {
     extractionDone = true;
   }, 2500);
 }
+chrome.runtime.onMessage.addListener((request) => {
+  if (
+    request.action === "badRequestServerError" &&
+    request.client === "yahoo"
+  ) {
+    showAlert("badRequest");
+    hideLoadingScreen();
+  }
+})
+
 
 let lastUrl = location.href;
 new MutationObserver(() => {
@@ -454,7 +464,7 @@ function extractIdsFromNonceScripts() {
                           }
 
                           intervalId = setInterval(() => {
-                            console.log("pendingStatusCallForYahoo()");
+                            // console.log("pendingStatusCallForYahoo()");
                             pendingStatusCallForYahoo();
                           }, 5000);
                         } else {
@@ -552,11 +562,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  *   - Sends a success response back to the sender.
  */
 
-let pendingCounter = 0;
+// let pendingCounter = 0;
 function pendingStatusCallForYahoo() {
-  pendingCounter++;
-  console.log("pendingCounter", pendingCounter);
-  console.log("sendMessageId", sendMessageId);
+  // pendingCounter++;
+  // console.log("pendingCounter", pendingCounter);
+  // console.log("sendMessageId", sendMessageId);
   chrome.runtime.sendMessage({
     action: "pendingStatusYahoo",
     emailId: sendUserEmail,
@@ -588,7 +598,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         clearInterval(intervalId);
       }
       intervalId = setInterval(() => {
-        console.log("pendingStatusCallForYahoo()");
+        // console.log("pendingStatusCallForYahoo()");
         pendingStatusCallForYahoo();
       }, 5000);
     }
@@ -616,17 +626,15 @@ window.addEventListener("click", (e) => {
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "ExtractEMailForYahoo") {
-    console.log("Received message from background script:==========", request);
+    // console.log("Received message from background script:==========", request);
     setTimeout(() => {
       const titleContent = document.title;
       const emailRegex = /- ([\w.-]+@[\w.-]+) - Yahoo Mail/;
       const match = titleContent.match(emailRegex);
       if (match && match[1]) {
         const email = match[1];
-        console.log("Extracted Email:", email);
+        // console.log("Extracted Email:", email);
         chrome.storage.local.set({ currentMailId: email });
-      } else {
-        console.log("Email not found in the title");
       }
     }, 1000);
   }

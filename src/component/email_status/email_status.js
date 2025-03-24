@@ -349,6 +349,40 @@ export function showAlert(key, messageReason = " ") {
         </svg>`;
       break;
 
+    case "badRequest":
+      message.innerText =
+        "An error occurred while processing your request. Multiple attempts failed. Check your input and retry. If the problem continues, contact support.";
+
+      alertContainer.style.width = "360px";
+      alertContainer.style.padding = "24px";
+      alertContainer.style.background =
+        "linear-gradient(135deg, #ffffff, #f8f0ff)";
+      alertContainer.style.border = "1px solid rgba(128, 0, 128, 0.2)";
+      alertContainer.style.borderLeft = "6px solid #800080";
+      alertContainer.style.boxShadow =
+        "0 6px 16px rgba(128, 0, 128, 0.08), 0 3px 6px rgba(0, 0, 0, 0.12)";
+      alertContainer.style.borderRadius = "8px";
+
+      iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
+          <defs>
+            <linearGradient id="loadingGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#800080;stop-opacity:0.8" />
+              <stop offset="100%" style="stop-color:#4B0082;stop-opacity:0.8" />
+            </linearGradient>
+          </defs>
+          <g transform="translate(4, 4)">
+            <!-- Loading Bar Background -->
+            <rect x="4" y="18" width="40" height="8" rx="4" fill="#ddd" />
+      
+            <!-- Loading Bar -->
+            <rect x="4" y="18" width="0" height="8" rx="4" fill="url(#loadingGradient)">
+              <animate attributeName="width" values="0;40;0" dur="2s" repeatCount="3" />
+              <animate attributeName="fill" values="url(#loadingGradient); #dc3545" dur="6s" fill="freeze" />
+            </rect>
+          </g>
+        </svg>`;
+      break;
+
     default:
       return;
   }

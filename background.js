@@ -482,6 +482,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  */
 async function sendEmlToServer(messageId, blob = null, client, user_email) {
   try {
+    console.log("send eml to server start")
     // if (!pluginId) {
     //   await getExtensionid();
     // }
@@ -509,7 +510,6 @@ async function sendEmlToServer(messageId, blob = null, client, user_email) {
     formData.append("receiverEmail", user_email);
 
     const url = baseUrl + CHECK_EMAIL;
-
     // Make the server request
     const uploadResponse = await fetch(url, {
       method: "POST",
@@ -518,9 +518,19 @@ async function sendEmlToServer(messageId, blob = null, client, user_email) {
         "Content-Disposition": 'attachment; filename="downloaded.eml"',
       },
     });
-
+    console.log("send successfully")
     const serverData = await uploadResponse.json();
-
+    console.log("serverData", serverData);
+    
+    if (serverData.status === "error" || serverData.message === "Bad Request") {
+      // Send error message to content script
+      chrome.tabs.sendMessage(activeTabId, { 
+        action: "badRequestServerError", 
+        client: client,
+        details: serverData.details || ""
+      });
+      return;
+    }
     // Handle the response using the separate handler function
     handleEmailScanResponse(serverData, activeTabId, client);
   } catch (error) {
@@ -769,6 +779,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   }
 });
 
+
+
 /**
  * Listens for messages sent via chrome.runtime.onMessage and processes Gmail data.
  * This event listener listens for messages with the action `"sendGmailData"` and extracts
@@ -807,6 +819,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
  * @throws Will log an error message if the fetch request fails or any other error occurs during processing.
  */
 async function emlExtractionGmail(emlUrl, currentMessageId, emailId) {
+  console.log("EML URL:", emlUrl);
   try {
     const response = await fetch(emlUrl, {
       mode: "cors",
@@ -816,7 +829,7 @@ async function emlExtractionGmail(emlUrl, currentMessageId, emailId) {
       },
     });
     const emailContent = await response.text();
-
+    console.log("Email Content:", emailContent);
     const formattedContent = [
       "MIME-Version: 1.0",
       "Content-Type: message/rfc822",
