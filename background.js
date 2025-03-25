@@ -41,6 +41,7 @@ async function fetchDeviceDataToSend() {
     const response = await fetch("http://localhost:3000/deviceIdentifiers");
     if (response.ok) {
       const data = await response.json();
+      console.log("Device Data:", data);
       // data.status.isValid
       chrome.storage.local.set({ auth_token: false });
     }
@@ -56,18 +57,20 @@ chrome.storage.local.get(null, function (items) {
 // Listener for chrome startup
 chrome.runtime.onStartup.addListener(async () => {
   const auth_token_data = await chrome.storage.local.get(["auth_token"]);
-  if (auth_token_data.auth_token) {
-    fetchDeviceDataToSend();
-  }
+  fetchDeviceDataToSend();
+  // if (auth_token_data.auth_token) {
+  //   fetchDeviceDataToSend();
+  // }
   userDetails();
 });
 
 // Listener for chrome installation
 chrome.runtime.onInstalled.addListener(async () => {
   const auth_token_data = await chrome.storage.local.get(["auth_token"]);
-  if (auth_token_data.auth_token) {
-    fetchDeviceDataToSend();
-  }
+  fetchDeviceDataToSend();
+  // if (auth_token_data.auth_token) {
+  //   fetchDeviceDataToSend();
+  // }
   userDetails();
 });
 
@@ -508,7 +511,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  */
 async function sendEmlToServer(messageId, blob = null, client, user_email) {
   try {
-    console.log("send eml to server start")
+    console.log("send eml to server start");
     // if (!pluginId) {
     //   await getExtensionid();
     // }
@@ -544,16 +547,16 @@ async function sendEmlToServer(messageId, blob = null, client, user_email) {
         "Content-Disposition": 'attachment; filename="downloaded.eml"',
       },
     });
-    console.log("send successfully")
+    console.log("send successfully");
     const serverData = await uploadResponse.json();
     console.log("serverData", serverData);
-    
+
     if (serverData.status === "error" || serverData.message === "Bad Request") {
       // Send error message to content script
-      chrome.tabs.sendMessage(activeTabId, { 
-        action: "badRequestServerError", 
+      chrome.tabs.sendMessage(activeTabId, {
+        action: "badRequestServerError",
         client: client,
-        details: serverData.details || ""
+        details: serverData.details || "",
       });
       return;
     }
@@ -802,8 +805,6 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     }
   }
 });
-
-
 
 /**
  * Listens for messages sent via chrome.runtime.onMessage and processes Gmail data.
