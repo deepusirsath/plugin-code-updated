@@ -2,6 +2,95 @@ const importComponent = async (path) => {
   const src = chrome.runtime.getURL(path);
   return await import(src);
 };
+// console.log("gmail content script executed")
+
+
+
+// Function to find and block elements with class "brd"
+const findAndBlockBrdElements = () => {
+  const maxAttempts = 150;
+  let attempts = 0;
+
+  const checkBrdElements = setInterval(() => {
+    const brdElements = document.getElementsByClassName("brd");
+    attempts++;
+
+    if (brdElements && brdElements.length > 0) {
+      // console.log(`Found ${brdElements.length} elements with class "brd"`);
+      
+      // Apply multiple blocking techniques to all brd elements
+      Array.from(brdElements).forEach((element) => {
+        // Apply inline styles with !important to override any other styles
+        element.style.cssText = "pointer-events: none !important; cursor: default !important;";
+        
+        // Also apply to child elements
+        const childElements = element.querySelectorAll('*');
+        childElements.forEach(child => {
+          child.style.cssText = "pointer-events: none !important; cursor: default !important;";
+        });
+        
+        // Remove jsaction attributes that might be handling clicks
+        element.removeAttribute('jsaction');
+        
+        // Add our own click handler with capture phase to intercept clicks before other handlers
+        element.addEventListener('click', blockClickHandler, true);
+        
+        // For the specific brc child elements
+        const brcElements = element.getElementsByClassName('brc');
+        Array.from(brcElements).forEach(brc => {
+          brc.style.cssText = "pointer-events: none !important; cursor: default !important;";
+          brc.removeAttribute('jsaction');
+          brc.setAttribute('aria-disabled', 'true');
+          brc.removeAttribute('tabindex');
+        });
+      });
+      
+      clearInterval(checkBrdElements);
+    } else if (attempts >= maxAttempts) {
+      // console.log("Failed to find elements with class 'brd' after maximum attempts");
+      clearInterval(checkBrdElements);
+    }
+  }, 1000);
+};
+// Click handler function to block clicks and show message
+function blockClickHandler(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  
+  // Show message to the user
+  
+  return false;
+}
+
+
+findAndBlockBrdElements();
+
+// Add a global click event listener with capture phase to intercept all clicks
+document.addEventListener('click', (event) => {
+  // Check if the clicked element or any of its parents has the class "brd"
+  let target = event.target;
+  while (target && target !== document) {
+    if (target.classList && target.classList.contains('brd')) {
+      event.preventDefault();
+      event.stopPropagation();
+      return false;
+    }
+    if (target.parentElement && target.parentElement.classList && 
+        target.parentElement.classList.contains('brd')) {
+      event.preventDefault();
+      event.stopPropagation();
+      return false;
+    }
+    target = target.parentElement;
+  }
+}, true);
+
+// Also run the check periodically to catch dynamically added elements
+setInterval(findAndBlockBrdElements, 5000);
+
+
+
+
 
 // Initialize UI components
 let showAlert = null;
@@ -28,6 +117,7 @@ Promise.all([
   showLoadingScreen = loadingScreen.showLoadingScreen;
   hideLoadingScreen = loadingScreen.hideLoadingScreen;
 });
+
 
 /**
  * Continuously checks for the presence of elements with the class "nH a98 iY" in the DOM.
@@ -99,6 +189,7 @@ let messageReason = " ";
  */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "GmailDetectedForExtraction") {
+    // console.log("clearInterval(intervalId);")
     clearInterval(intervalId);
     setTimeout(() => {
       let url = window.location.href;
@@ -121,11 +212,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (afterHash.includes("?compose=")) {
         const beforeCompose = afterHash.split("?compose=")[0];
         if (beforeCompose.length < 30) {
-          console.log("compose found return=================================");
+          // console.log("compose found return=================================");
           return;
         }
       }
-      console.log("compose not found ===========================");
+      // console.log("compose not found ===========================");
       chrome.storage.local.get("registration", (data) => {
         if (chrome.runtime.lastError) {
           return;
@@ -261,6 +352,16 @@ chrome.runtime.onMessage.addListener((request) => {
   }
 });
 
+chrome.runtime.onMessage.addListener((request) => {
+  if (
+    request.action === "badRequestServerError" &&
+    request.client === "gmail"
+  ) {
+    showAlert("badRequest");
+    hideLoadingScreen();
+  }
+})
+
 let pendingCounter = 0;
 function pendingStatusCallForGmail() {
   pendingCounter++;
@@ -297,7 +398,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
       // Start the interval manually
       intervalId = setInterval(() => {
-        console.log("pendingStatusCallForGmail()");
+        // console.log("pendingStatusCallForGmail()");
         pendingStatusCallForGmail();
       }, 5000);
     }
@@ -308,7 +409,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // Function to initialize the script
 const init = () => {
   Promise.all([extractMessageIdAndEml(), findEmailId()])
-    .then(() => console.log("Operations completed"))
+    .then(() => console.log("ok"))
     .catch((error) =>
       console.error(ERROR_MESSAGES.FAILED_TO_SEND_EMAIL_CONTENT)
     );
@@ -340,20 +441,20 @@ const init = () => {
  */
 
 async function extractMessageIdAndEml() {
-  console.log("start the extractMessageIdAndEml");
+  // console.log("start the extractMessageIdAndEml");
   blockEmailBody();
   const node = document.querySelector("[data-legacy-message-id]");
-  console.log("node", node);
+  // console.log("node", node);
   if (!node) {
-    console.log("node not found");
+    // console.log("node not found");
     return;
   }
 
   messageId = node.getAttribute("data-legacy-message-id");
-  console.log("messageId", messageId);
+  // console.log("messageId", messageId);
 
   if (!messageId) {
-    console.log("messageId not found");
+    // console.log("messageId not found");
     return;
   }
 
@@ -361,7 +462,7 @@ async function extractMessageIdAndEml() {
     let messages = JSON.parse(result.messages || "{}");
 
     if (messages[messageId]) {
-      console.log("found the message Id");
+      // console.log("found the message Id");
       const status = messages[messageId].status;
       const unsafeReason = messages[messageId].unsafeReason;
 
@@ -389,7 +490,7 @@ async function extractMessageIdAndEml() {
         });
       }
     } else {
-      console.log("messageId not found in messages");
+      // console.log("messageId not found in messages");
       showLoadingScreen();
       shouldApplyPointerEvents = true;
       blockEmailBody();
@@ -403,7 +504,7 @@ async function extractMessageIdAndEml() {
         (response) => {
           if (response.IsResponseRecieved === "success") {
             if (response.data.code === 200) {
-              console.log("response in else part", response.data);
+              // console.log("response in else part", response.data);
               const serverData = response.data.data;
               const resStatus =
                 serverData.eml_status || serverData.email_status;
@@ -427,7 +528,7 @@ async function extractMessageIdAndEml() {
                           clearInterval(intervalId);
                         }
                         intervalId = setInterval(() => {
-                          console.log("pendingStatusCallForGmail()");
+                          // console.log("pendingStatusCallForGmail()");
                           pendingStatusCallForGmail();
                         }, 5000);
                       } else {
@@ -441,7 +542,7 @@ async function extractMessageIdAndEml() {
               }
             } else {
               setTimeout(() => {
-                console.log("creating the new URL");
+                // console.log("creating the new URL");
                 let newUrl = window.location.href;
                 // if (newUrl.includes("?compose=")) {
                 //   return;
@@ -519,11 +620,11 @@ function getBaseUrl(url) {
  */
 
 function createUrl(url, messageId) {
-  console.log("Creatnig the new uRL");
+  // console.log("Creatnig the new uRL");
   let prefixUrl = getBaseUrl(url); // Get dynamic base URL
-  console.log("prefixUrl, url", prefixUrl, url);
+  // console.log("prefixUrl, url", prefixUrl, url);
   let eml_Url = `${prefixUrl}/?view=att&th=${messageId}&attid=0&disp=comp&safe=1&zw`;
-  console.log("eml_Url", eml_Url);
+  // console.log("eml_Url", eml_Url);
   try {
     chrome.runtime.sendMessage({
       action: "sendGmailData",
@@ -621,7 +722,7 @@ window.addEventListener("click", (e) => {
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "ExtractEMailForGmail") {
-    console.log("ExtractEMailForGmailExtractEMailForGmailExtractEMailForGmail");
+    // console.log("ExtractEMailForGmailExtractEMailForGmailExtractEMailForGmail");
     const extractEmail = () => {
       // setTimeout(() => {
       const titleText = document.title;
@@ -629,7 +730,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/
       );
       const emailId = emailMatch ? emailMatch[0] : null;
-      console.log("mail : ", emailId);
+      // console.log("mail : ", emailId);
       if (emailId) {
         chrome.storage.local.set({ currentMailId: emailId });
       } else {
@@ -642,3 +743,106 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     extractEmail();
   }
 });
+
+
+
+
+// Function to disable "Open in new window" menu option using the exact DOM structure
+const disableOpenInNewWindow = () => {
+  // Look for menu items with role="menuitem"
+  const menuItems = document.querySelectorAll('div.J-N[role="menuitem"]');
+  
+  menuItems.forEach(menuItem => {
+    // Check if this menu item contains "Open in new window" text
+    if (menuItem.textContent && menuItem.textContent.includes('Open in new window')) {
+      // console.log('Found "Open in new window" menu item:', menuItem);
+      
+      // Disable the entire menu item
+      menuItem.style.pointerEvents = 'none';
+      menuItem.style.opacity = '0.5';
+      menuItem.style.cursor = 'default';
+      
+      // Also disable the inner J-N-Jz element
+      const innerElement = menuItem.querySelector('.J-N-Jz');
+      if (innerElement) {
+        innerElement.style.pointerEvents = 'none';
+        innerElement.style.cursor = 'default';
+      }
+      
+      // And the icon element
+      const iconElement = menuItem.querySelector('.J-N-JX');
+      if (iconElement) {
+        iconElement.style.pointerEvents = 'none';
+      }
+      
+      // Prevent the default action by adding a click handler
+      menuItem.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }, true);
+      
+      // Mark as processed
+      menuItem.setAttribute('data-disabled-by-extension', 'true');
+    }
+  });
+};
+
+// Create a function to check for context menu appearance
+const checkForContextMenu = () => {
+  // Check if any context menu is currently visible
+  const visibleMenus = document.querySelectorAll('.J-M');
+  if (visibleMenus.length > 0) {
+    // If a menu is visible, check for the "Open in new window" option
+    disableOpenInNewWindow();
+  }
+};
+
+// Run the check when right-click happens
+document.addEventListener('contextmenu', () => {
+  // Run multiple checks with different timing to catch the menu at different stages
+  setTimeout(checkForContextMenu, 0);
+  setTimeout(checkForContextMenu, 50);
+  setTimeout(checkForContextMenu, 100);
+  setTimeout(checkForContextMenu, 200);
+}, true);
+
+// Create a mutation observer to watch for menu appearances
+const menuObserver = new MutationObserver((mutations) => {
+  for (const mutation of mutations) {
+    if (mutation.addedNodes.length) {
+      // Check if any added nodes are or contain menu items
+      const hasMenuItems = Array.from(mutation.addedNodes).some(node => {
+        if (node.nodeType !== Node.ELEMENT_NODE) return false;
+        
+        // Check if this is a menu item or contains menu items
+        return node.classList?.contains('J-M') || 
+               node.classList?.contains('J-N') ||
+               node.querySelector?.('.J-M, .J-N[role="menuitem"]');
+      });
+      
+      if (hasMenuItems) {
+        disableOpenInNewWindow();
+      }
+    }
+  }
+});
+
+// Start observing the document body
+if (document.body) {
+  menuObserver.observe(document.body, { 
+    childList: true, 
+    subtree: true 
+  });
+} else {
+  document.addEventListener('DOMContentLoaded', () => {
+    menuObserver.observe(document.body, { 
+      childList: true, 
+      subtree: true 
+    });
+  });
+}
+
+
+// Also run a periodic check to catch any menus that might have been missed
+setInterval(checkForContextMenu, 500);

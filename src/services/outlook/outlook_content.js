@@ -149,7 +149,7 @@ function fetchLocation() {
 
 
 let lastUrlPath = location.pathname;
-console.log("Initial URL path:", lastUrlPath);
+// console.log("Initial URL path:", lastUrlPath);
 new MutationObserver(() => {
   const currentUrlPath = location.pathname;
   if (currentUrlPath !== lastUrlPath) {
@@ -158,7 +158,7 @@ new MutationObserver(() => {
     // Check if the current URL matches any of the target paths
     const urlRegex = /^\/mail(\/\d+)?(\/junkemail|\/deleteditems|\/archive)?$/;
     if (urlRegex.test(currentUrlPath)) {
-      console.log("Detected navigation to target Outlook path:", currentUrlPath);
+      // console.log("Detected navigation to target Outlook path:", currentUrlPath);
       // Reset any existing click listeners and set up new ones
       setupClickListener();
     }
@@ -166,7 +166,15 @@ new MutationObserver(() => {
 }).observe(document, { subtree: true, childList: true });
 
 
-
+chrome.runtime.onMessage.addListener((request) => {
+  if (
+    request.action === "badRequestServerError" &&
+    request.client === "outlook"
+  ) {
+    showAlert("badRequest");
+    hideLoadingScreen();
+  }
+})
 
 /**
  * Listens for messages sent from other parts of the Chrome extension.
@@ -345,7 +353,7 @@ let isExtractionInProgress = false;
 async function executeWithLoadingScreenAndExtraction() {
   // If extraction is already in progress, don't start another one
   if (isExtractionInProgress) {
-    console.log("Email extraction already in progress, skipping new request");
+    // console.log("Email extraction already in progress, skipping new request");
     return;
   }
  
@@ -630,7 +638,7 @@ function setupClickListener(attempts = 500) {
                               }
 
                               intervalId = setInterval(() => {
-                                console.log("pendingStatusCallForOutlook()");
+                                // console.log("pendingStatusCallForOutlook()");
                                 pendingStatusCallForOutlook();
                               }, 5000);
                             }
@@ -641,7 +649,7 @@ function setupClickListener(attempts = 500) {
                               if (!isExtractionInProgress) {
                                 executeWithLoadingScreenAndExtraction();
                               } else {
-                                console.log("Skipping extraction request as one is already in progress");
+                                // console.log("Skipping extraction request as one is already in progress");
                               }
                             }, 100);
                           }
@@ -824,11 +832,11 @@ async function runEmailExtraction() {
  * After processing the message, it calls `blockEmailBody()` to apply the necessary UI restrictions.
  * A success response is sent back to acknowledge message handling.
  */
-let pendingCounter = 0;
+// let pendingCounter = 0;
 function pendingStatusCallForOutlook() {
   pendingCounter++;
-  console.log("pendingCounter", pendingCounter);
-  console.log("dataConvid", dataConvid);
+  // console.log("pendingCounter", pendingCounter);
+  // console.log("dataConvid", dataConvid);
   chrome.runtime.sendMessage({
     action: "pendingStatusOutlook",
     emailId: userEmailId,
@@ -858,7 +866,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         clearInterval(intervalId);
       }
       intervalId = setInterval(() => {
-        console.log("pendingStatusCallForOutlook()");
+        // console.log("pendingStatusCallForOutlook()");
         pendingStatusCallForOutlook();
       }, 5000);
     }
@@ -1100,3 +1108,189 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     findOutlookEmailId();
   }
 });
+
+
+
+// Store original prototype methods that we'll override
+const originalCreateElement = document.createElement;
+const originalAppendChild = Node.prototype.appendChild;
+const originalInsertBefore = Node.prototype.insertBefore;
+const originalSetAttribute = Element.prototype.setAttribute;
+
+// Function to check and disable menu items
+const checkAndDisableMenuItem = (element) => {
+  // Skip if not an element
+  if (!element || element.nodeType !== Node.ELEMENT_NODE) return;
+  
+  // Check if this is a menu item we want to disable
+  if (element.getAttribute && element.getAttribute('role') === 'menuitem') {
+    // Wait for the text content to be set
+    setTimeout(() => {
+      if (element.textContent && 
+          (element.textContent.includes('Open in new window') || 
+           element.textContent.includes('Open in new tab'))) {
+        
+        // console.log('Intercepted menu item:', element.textContent);
+        
+        // Disable the element
+        element.style.pointerEvents = 'none';
+        element.style.opacity = '0.5';
+        element.style.cursor = 'default';
+        element.setAttribute('aria-disabled', 'true');
+        element.removeAttribute('tabindex');
+        
+        // Mark as processed
+        element.setAttribute('data-disabled-by-extension', 'true');
+        
+        // Disable all children
+        const children = element.querySelectorAll('*');
+        children.forEach(child => {
+          child.style.pointerEvents = 'none';
+          child.style.cursor = 'default';
+        });
+        
+        // Add a click interceptor
+        element.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }, true);
+      }
+    }, 0);
+  }
+  
+  // Also check children recursively
+  if (element.children && element.children.length) {
+    Array.from(element.children).forEach(checkAndDisableMenuItem);
+  }
+};
+
+// Override createElement to intercept menu creation
+document.createElement = function(tagName, options) {
+  const element = originalCreateElement.call(document, tagName, options);
+  
+  // Add a mutation observer to this element to catch when it becomes a menu item
+  const observer = new MutationObserver((mutations) => {
+    if (element.getAttribute('role') === 'menuitem' || 
+        element.getAttribute('role') === 'menu') {
+      checkAndDisableMenuItem(element);
+    }
+  });
+  
+  observer.observe(element, { 
+    attributes: true, 
+    childList: true,
+    subtree: true,
+    attributeFilter: ['role', 'class']
+  });
+  
+  return element;
+};
+
+// Override appendChild to intercept menu items being added to the DOM
+Node.prototype.appendChild = function(child) {
+  const result = originalAppendChild.call(this, child);
+  
+  // Check if this is a menu or menu item
+  if (this.getAttribute && 
+      (this.getAttribute('role') === 'menu' || 
+       child.getAttribute && child.getAttribute('role') === 'menuitem')) {
+    checkAndDisableMenuItem(child);
+  }
+  
+  // Also check if this is a Gmail menu
+  if ((this.classList && this.classList.contains('J-M')) || 
+      (child.classList && child.classList.contains('J-N'))) {
+    checkAndDisableMenuItem(child);
+  }
+  
+  return result;
+};
+
+// Override insertBefore to intercept menu items being added to the DOM
+Node.prototype.insertBefore = function(newNode, referenceNode) {
+  const result = originalInsertBefore.call(this, newNode, referenceNode);
+  
+  // Check if this is a menu or menu item
+  if (this.getAttribute && 
+      (this.getAttribute('role') === 'menu' || 
+       newNode.getAttribute && newNode.getAttribute('role') === 'menuitem')) {
+    checkAndDisableMenuItem(newNode);
+  }
+  
+  // Also check if this is a Gmail menu
+  if ((this.classList && this.classList.contains('J-M')) || 
+      (newNode.classList && newNode.classList.contains('J-N'))) {
+    checkAndDisableMenuItem(newNode);
+  }
+  
+  return result;
+};
+
+// Override setAttribute to catch when elements become menu items
+Element.prototype.setAttribute = function(name, value) {
+  const result = originalSetAttribute.call(this, name, value);
+  
+  // Check if this element is becoming a menu item
+  if (name === 'role' && (value === 'menuitem' || value === 'menu')) {
+    checkAndDisableMenuItem(this);
+  }
+  
+  return result;
+};
+
+// Function to scan the entire document for menu items
+const scanForMenuItems = () => {
+  // Look for all menu items
+  const menuItems = document.querySelectorAll('[role="menuitem"]');
+  
+  menuItems.forEach(item => {
+    if (item.textContent && 
+        (item.textContent.includes('Open in new window') || 
+         item.textContent.includes('Open in new tab')) &&
+        !item.hasAttribute('data-disabled-by-extension')) {
+      
+      // console.log('Found menu item in scan:', item.textContent);
+      
+      // Disable the element
+      item.style.pointerEvents = 'none';
+      item.style.opacity = '0.5';
+      item.style.cursor = 'default';
+      item.setAttribute('aria-disabled', 'true');
+      item.removeAttribute('tabindex');
+      
+      // Mark as processed
+      item.setAttribute('data-disabled-by-extension', 'true');
+      
+      // Disable all children
+      const children = item.querySelectorAll('*');
+      children.forEach(child => {
+        child.style.pointerEvents = 'none';
+        child.style.cursor = 'default';
+      });
+      
+      // Add a click interceptor
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }, true);
+    }
+  });
+};
+
+// Run an initial scan
+scanForMenuItems();
+
+// Run periodic scans
+setInterval(scanForMenuItems, 500);
+
+// Also listen for context menu events
+document.addEventListener('contextmenu', () => {
+  // Run multiple scans after a context menu event
+  for (let i = 0; i < 10; i++) {
+    setTimeout(scanForMenuItems, i * 50);
+  }
+}, true);
+
+
