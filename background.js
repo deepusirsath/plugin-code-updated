@@ -30,6 +30,12 @@ chrome.storage.local.set({ registration: true });
 
 /** ___________________________________________________________Extension___________________________________________________________ */
 
+// setInterval(() => {
+//   chrome.storage.local.remove("auth_token", () => {
+//     console.log("auth_token removed from storage");
+//   });
+// }, 21600000); // 6 hours in milliseconds
+
 async function fetchDeviceDataToSend() {
   try {
     const response = await fetch("http://localhost:3000/deviceIdentifiers");
@@ -48,14 +54,20 @@ chrome.storage.local.get(null, function (items) {
 });
 
 // Listener for chrome startup
-chrome.runtime.onStartup.addListener(() => {
-  fetchDeviceDataToSend();
+chrome.runtime.onStartup.addListener(async () => {
+  const auth_token_data = await chrome.storage.local.get(["auth_token"]);
+  if (auth_token_data.auth_token) {
+    fetchDeviceDataToSend();
+  }
   userDetails();
 });
 
 // Listener for chrome installation
-chrome.runtime.onInstalled.addListener(() => {
-  fetchDeviceDataToSend();
+chrome.runtime.onInstalled.addListener(async () => {
+  const auth_token_data = await chrome.storage.local.get(["auth_token"]);
+  if (auth_token_data.auth_token) {
+    fetchDeviceDataToSend();
+  }
   userDetails();
 });
 
