@@ -1,7 +1,6 @@
-chrome.runtime.sendMessage({ popupOpened: true }, ()=>{
+chrome.runtime.sendMessage({ popupOpened: true }, () => {
   console.log("popup opened");
 });
-
 
 import { displayError } from "/src/helper/display_error.js";
 import { isEmailPage } from "/src/helper/is_gmail_page_helper.js";
@@ -57,7 +56,7 @@ const handleRegisteredUser = async () => {
  * @throws {Error} Handled by displayError if storage access fails
  */
 const handleEmailPageResponse = async (response) => {
-  loadCommonComponents();
+  await loadCommonComponents();
 
   if (!isEmailPage(response)) {
     await loadNotEmailPageComponents();
@@ -65,9 +64,9 @@ const handleEmailPageResponse = async (response) => {
   }
 
   try {
-    const { registration } = await chrome.storage.local.get("auth_token");
+    const { auth_token } = await chrome.storage.local.get("auth_token");
 
-    if (registration) {
+    if (auth_token) {
       await handleRegisteredUser();
     } else {
       await loadUnauthenticatedComponents();

@@ -44,9 +44,9 @@ export const initializeDisputeForm = (disputeData) => {
   const MAX_WORD_COUNT = 500;
   const MIN_WORD_COUNT = 5;
 
-    // Remove any existing word counters first to prevent duplicates
-    const existingCounters = document.querySelectorAll(".word-counter");
-    existingCounters.forEach(counter => counter.remove());
+  // Remove any existing word counters first to prevent duplicates
+  const existingCounters = document.querySelectorAll(".word-counter");
+  existingCounters.forEach((counter) => counter.remove());
 
   // Create word counter element
   const wordCounterElement = document.createElement("div");
@@ -124,11 +124,11 @@ export const initializeDisputeForm = (disputeData) => {
 
     // Change color based on word count
     if (wordCount > MAX_WORD_COUNT) {
-      wordCounterElement.style.color = "#ff4757"; 
+      wordCounterElement.style.color = "#ff4757";
     } else if (wordCount < MIN_WORD_COUNT) {
-      wordCounterElement.style.color = "#666"; 
+      wordCounterElement.style.color = "#666";
     } else {
-      wordCounterElement.style.color = "#4CAF50"; 
+      wordCounterElement.style.color = "#4CAF50";
     }
   };
 
@@ -163,7 +163,6 @@ export const initializeDisputeForm = (disputeData) => {
 
   // Initialize word counter with current content
   checkWordCount();
-
 
   /**
    * Handles the dispute form submission process
@@ -364,8 +363,9 @@ export const sendDisputeToServer = async (reason, email, messageId) => {
  * @returns {Promise<Object>} Object containing the dispute_count
  */
 export const checkDisputeCount = async (messageId) => {
+  const refresh_token = await chrome.storage.local.get(["refresh_token"]);
   try {
-    const data = await postData(PLUGIN_COUNTER, { messageId });
+    const data = await postData(PLUGIN_COUNTER, { messageId }, refresh_token);
     const dispute_count = data.counter || 0;
     if (dispute_count) {
       chrome.storage.local.set({
