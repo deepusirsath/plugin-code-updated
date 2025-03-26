@@ -41,6 +41,33 @@ export const initializeDisputeForm = (disputeData) => {
   const submitButton = document.getElementById("submit");
   const reloadIcon = document.getElementById("reload");
 
+  const MAX_WORD_COUNT = 500;
+  const MIN_WORD_COUNT = 5;
+
+    // Remove any existing word counters first to prevent duplicates
+    const existingCounters = document.querySelectorAll(".word-counter");
+    existingCounters.forEach(counter => counter.remove());
+
+  // Create word counter element
+  const wordCounterElement = document.createElement("div");
+  wordCounterElement.className = "word-counter";
+  wordCounterElement.textContent = "0 / 600 words";
+
+  // Style the word counter
+  Object.assign(wordCounterElement.style, {
+    fontSize: "11px",
+    color: "#666",
+    textAlign: "right",
+    marginTop: "2px",
+    marginBottom: "15px",
+  });
+
+  // Insert word counter after textarea
+  reasonTextarea.parentNode.insertBefore(
+    wordCounterElement,
+    reasonTextarea.nextSibling
+  );
+
   document.getElementById("messageId").innerHTML = disputeData.messageId;
   document.querySelector(".status").textContent = disputeData.status;
   document.getElementById("emailId").textContent = disputeData.senderEmail;
@@ -91,11 +118,32 @@ export const initializeDisputeForm = (disputeData) => {
    * Enables or disables the submit button based on the result.
    * @param {number} count - The minimum word count required to enable the button.
    */
-  const checkWordCount = (count) => {
+
+  const updateWordCounter = (wordCount) => {
+    wordCounterElement.textContent = `${wordCount} / ${MAX_WORD_COUNT} words`;
+
+    // Change color based on word count
+    if (wordCount > MAX_WORD_COUNT) {
+      wordCounterElement.style.color = "#ff4757"; 
+    } else if (wordCount < MIN_WORD_COUNT) {
+      wordCounterElement.style.color = "#666"; 
+    } else {
+      wordCounterElement.style.color = "#4CAF50"; 
+    }
+  };
+
+  /**
+   * Checks if the word count in the reason textarea meets the required count.
+   * Enables or disables the submit button based on the result.
+   */
+  const checkWordCount = () => {
     const reasonText = reasonTextarea.value;
     const wordCount = getWordCount(reasonText);
 
-    if (wordCount >= count) {
+    // Update word counter display
+    updateWordCounter(wordCount);
+
+    if (wordCount >= MIN_WORD_COUNT && wordCount <= MAX_WORD_COUNT) {
       enableSubmitButton();
     } else {
       disableSubmitButton();
@@ -110,8 +158,12 @@ export const initializeDisputeForm = (disputeData) => {
    */
   reasonTextarea.addEventListener("input", (event) => {
     event.preventDefault();
-    checkWordCount(5);
+    checkWordCount();
   });
+
+  // Initialize word counter with current content
+  checkWordCount();
+
 
   /**
    * Handles the dispute form submission process
