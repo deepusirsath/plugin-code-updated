@@ -1,4 +1,14 @@
+let hideLoadingScreen = null;
+Promise.all([
+  importComponent(
+    "/src/component/outlook_loading_screen/outlook_loading_screen.js"
+  ),
+]).then(([loadingScreen]) => {
+  hideLoadingScreen = loadingScreen.hideLoadingScreen;
+});
+
 export function showAlert(key, messageReason = " ") {
+  hideLoadingScreen();
   // Check if the pending alert already exists using a unique class
   if (key === "pending") {
     const pendingAlert = document.querySelector(".pending-alert");
@@ -383,6 +393,56 @@ export function showAlert(key, messageReason = " ") {
         </svg>`;
       break;
 
+    case "networkError":
+      message.innerText =
+        "Network issue. Please try reloading the page or checking your connection.";
+      alertContainer.style.width = "360px";
+      alertContainer.style.padding = "24px";
+      alertContainer.style.background =
+        "linear-gradient(135deg, #ffffff, #f5f5f5)";
+      alertContainer.style.border = "1px solid rgba(108, 117, 125, 0.2)";
+      alertContainer.style.borderLeft = "6px solid #6c757d";
+      alertContainer.style.boxShadow =
+        "0 6px 16px rgba(108, 117, 125, 0.08), 0 3px 6px rgba(0, 0, 0, 0.12)";
+      alertContainer.style.borderRadius = "8px";
+
+      iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
+          <defs>
+            <linearGradient id="networkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#6c757d;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#495057;stop-opacity:1" />
+            </linearGradient>
+            <filter id="shadow-network">
+              <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#6c757d" flood-opacity="0.15"/>
+            </filter>
+          </defs>
+          
+          <!-- Simplified Wi-Fi Signal with Connection Issues -->
+          <g filter="url(#shadow-network)" transform="translate(24,32)">
+            <!-- Signal arcs with staggered animation -->
+            <path d="M-16,0 A16,16 0 0 1 16,0" fill="none" stroke="url(#networkGradient)" stroke-width="3" stroke-linecap="round" stroke-dasharray="0 100" opacity="0.7">
+              <animate attributeName="stroke-dasharray" values="0 100;50 50;0 100" dur="2s" repeatCount="indefinite"/>
+            </path>
+            <path d="M-12,6 A12,12 0 0 1 12,6" fill="none" stroke="url(#networkGradient)" stroke-width="3" stroke-linecap="round" stroke-dasharray="0 100" opacity="0.7">
+              <animate attributeName="stroke-dasharray" values="0 100;50 50;0 100" dur="2s" begin="0.2s" repeatCount="indefinite"/>
+            </path>
+            <path d="M-8,12 A8,8 0 0 1 8,12" fill="none" stroke="url(#networkGradient)" stroke-width="3" stroke-linecap="round" stroke-dasharray="0 100" opacity="0.7">
+              <animate attributeName="stroke-dasharray" values="0 100;50 50;0 100" dur="2s" begin="0.4s" repeatCount="indefinite"/>
+            </path>
+            
+            <!-- Connection dot with pulsing animation -->
+            <circle cx="0" cy="18" r="3" fill="#e74c3c">
+              <animate attributeName="r" values="2;3;2" dur="1.5s" repeatCount="indefinite"/>
+              <animate attributeName="fill-opacity" values="0.7;1;0.7" dur="1.5s" repeatCount="indefinite"/>
+            </circle>
+            
+            <!-- Brief connection lines that appear/disappear -->
+            <line x1="-4" y1="18" x2="4" y2="18" stroke="#e74c3c" stroke-width="2" stroke-linecap="round" stroke-dasharray="8 0">
+              <animate attributeName="stroke-dasharray" values="0 8;8 0;0 8" dur="3s" repeatCount="indefinite"/>
+            </line>
+          </g>
+        </svg>`;
+      break;
     default:
       return;
   }
