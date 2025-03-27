@@ -1,4 +1,8 @@
 import { ERROR_MESSAGES } from "/src/constant/error_message.js";
+import { BASEPATH } from "/src/constant/basepath.js";
+import { COMPONENTS } from "/src/constant/component.js";
+import { TARGET_ID } from "/src/constant/target_id.js";
+import { loadComponent } from "/src/helper/content_loader_helper.js";
 
 /**
  * Sends an HTTP request to the specified URL.
@@ -12,9 +16,13 @@ import { ERROR_MESSAGES } from "/src/constant/error_message.js";
 export async function apiRequest(url, method, payload = null, customHeaders) {
   // Construct the request options
 
-  const headers = customHeaders
-    ? customHeaders
-    : { "Content-Type": "application/json" };
+  const { access_token } = await chrome.storage.local.get(["access_token"]);
+
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: access_token ? `Bearer ${access_token}` : "",
+    ...customHeaders,
+  };
   const options = {
     method,
     headers,
@@ -27,6 +35,14 @@ export async function apiRequest(url, method, payload = null, customHeaders) {
 
   try {
     const response = await fetch(url, options);
+
+    if (response.status === 401) {
+      loadComponent({
+        componentName: COMPONENTS.TOKEN_EXPIRE,
+        basePath: BASEPATH.PAGES,
+        targetId: TARGET_ID.DATA_OUTPUT,
+      });
+    }
 
     // Check for HTTP errors
     if (!response.ok) {

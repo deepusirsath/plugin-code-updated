@@ -35,7 +35,9 @@ async function fetchDeviceDataToSend() {
     const response = await fetch("http://localhost:3000/deviceIdentifiers");
     if (response.ok) {
       const data = await response.json();
-      chrome.storage.local.set({ auth_token: data.licenseStatus.access_token });
+      chrome.storage.local.set({
+        access_token: data.licenseStatus.access_token,
+      });
       chrome.storage.local.set({
         refresh_token: data.licenseStatus.refresh_token,
       });
@@ -51,8 +53,8 @@ chrome.storage.local.get(null, function (items) {
 
 // Listener for chrome startup
 chrome.runtime.onStartup.addListener(async () => {
-  const auth_token_data = await chrome.storage.local.get(["auth_token"]);
-  if (!auth_token_data?.auth_token) {
+  const access_token_data = await chrome.storage.local.get(["access_token"]);
+  if (!access_token_data?.access_token) {
     fetchDeviceDataToSend();
   }
   userDetails();
@@ -60,8 +62,8 @@ chrome.runtime.onStartup.addListener(async () => {
 
 // Listener for chrome installation
 chrome.runtime.onInstalled.addListener(async () => {
-  const auth_token_data = await chrome.storage.local.get(["auth_token"]);
-  if (!auth_token_data?.auth_token) {
+  const access_token_data = await chrome.storage.local.get(["access_token"]);
+  if (!access_token_data?.access_token) {
     fetchDeviceDataToSend();
   }
   userDetails();

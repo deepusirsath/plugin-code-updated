@@ -363,9 +363,8 @@ export const sendDisputeToServer = async (reason, email, messageId) => {
  * @returns {Promise<Object>} Object containing the dispute_count
  */
 export const checkDisputeCount = async (messageId) => {
-  const refresh_token = await chrome.storage.local.get(["refresh_token"]);
   try {
-    const data = await postData(PLUGIN_COUNTER, { messageId }, refresh_token);
+    const data = await postData(PLUGIN_COUNTER, { messageId });
     const dispute_count = data.counter || 0;
     if (dispute_count) {
       chrome.storage.local.set({

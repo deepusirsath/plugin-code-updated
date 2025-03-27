@@ -64,9 +64,9 @@ const handleEmailPageResponse = async (response) => {
   }
 
   try {
-    const { auth_token } = await chrome.storage.local.get("auth_token");
+    const { access_token } = await chrome.storage.local.get("access_token");
 
-    if (auth_token) {
+    if (access_token) {
       await handleRegisteredUser();
     } else {
       await loadUnauthenticatedComponents();

@@ -6,7 +6,7 @@
 // beta - http://192.168.0.2:5050/plugin
 
 const config = {
-  BASE_URL: "http://43.204.32.124:8006/plugin",
+  BASE_URL: "http://192.168.0.127:8081/plugin",
 };
 
 export default config;
