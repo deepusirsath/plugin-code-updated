@@ -12,6 +12,7 @@ import {
   loadScript,
 } from "/src/helper/content_loader_helper.js";
 import { SIDEBAR_CONFIG } from "./sidebar_config.js";
+import { loadUnauthenticatedComponents } from "/src/routes/unauthenticated_route.js";
 
 let currentLoadingOperation = null;
 
@@ -103,6 +104,22 @@ const handleRegularButton = async (componentName) => {
  */
 
 const handleDisputeButton = async (componentName) => {
+  const { access_token } = await chrome.storage.local.get("access_token");
+
+  if (!access_token) {
+    const dataOutputElement = document.getElementById(TARGET_ID.DATA_OUTPUT);
+    if (dataOutputElement) {
+      dataOutputElement.innerHTML = "";
+    }
+
+    const sidebarElement = document.getElementById(TARGET_ID.SIDEBAR);
+
+    if (sidebarElement) {
+      sidebarElement.style.display = "none";
+    }
+    await loadUnauthenticatedComponents();
+    return;
+  }
   const thisOperation = {};
   currentLoadingOperation = thisOperation;
   document.getElementById("data-output").innerHTML = "";

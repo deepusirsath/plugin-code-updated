@@ -393,7 +393,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 });
               }
             } catch (error) {
-              sendResponse({ error: "Error fetching combined data" });
+              sendResponse({ error });
             }
           }
 

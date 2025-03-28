@@ -46,4 +46,5 @@ const getAccessToken = async () => {
   }
 };
 
-refreshTokenButton.addEventListener("click", getAccessToken);
+refreshTokenButton &&
+  refreshTokenButton.addEventListener("click", getAccessToken);

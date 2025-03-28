@@ -23,6 +23,7 @@ export async function apiRequest(url, method, payload = null, customHeaders) {
     Authorization: access_token ? `Bearer ${access_token}` : "",
     ...customHeaders,
   };
+  
   const options = {
     method,
     headers,
