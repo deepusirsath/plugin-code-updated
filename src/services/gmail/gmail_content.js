@@ -224,6 +224,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (data.registration) {
           const lastSegment = url.split("/").pop().split("#").pop();
           if (lastSegment.length >= isValidSegmentLength) {
+            console.log("init called")
             init();
           }
         }
@@ -318,12 +319,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     request.action === "EmailNotFoundInPendingRequest" &&
     request.client === "gmail"
   ) {
-    const { messageId } = request;
-    let new2Url = window.location.href;
-    if (new2Url.includes("?compose=")) {
-      return;
-    }
-    createUrl(new2Url, messageId);
+    console.log("EmailNotFoundInPendingRequest")
+    init();
   }
 });
 
@@ -351,6 +348,10 @@ chrome.runtime.onMessage.addListener((request) => {
     hideLoadingScreen();
   }
 });
+window.addEventListener('offline', function() {
+  showAlert("networkError");
+  hideLoadingScreen();
+});
 
 chrome.runtime.onMessage.addListener((request) => {
   if (
@@ -362,9 +363,7 @@ chrome.runtime.onMessage.addListener((request) => {
   }
 })
 
-let pendingCounter = 0;
 function pendingStatusCallForGmail() {
-  pendingCounter++;
   chrome.runtime.sendMessage({
     action: "pendingStatusGmail",
     emailId: emailId,

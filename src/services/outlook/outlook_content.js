@@ -677,6 +677,11 @@ function setupClickListener(attempts = 500) {
   }
 }
 
+window.addEventListener('offline', function() {
+  showAlert("networkError");
+  hideLoadingScreen();
+});
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (
     request.action === "erroRecievedFromServer" &&
@@ -832,11 +837,7 @@ async function runEmailExtraction() {
  * After processing the message, it calls `blockEmailBody()` to apply the necessary UI restrictions.
  * A success response is sent back to acknowledge message handling.
  */
-// let pendingCounter = 0;
 function pendingStatusCallForOutlook() {
-  pendingCounter++;
-  // console.log("pendingCounter", pendingCounter);
-  // console.log("dataConvid", dataConvid);
   chrome.runtime.sendMessage({
     action: "pendingStatusOutlook",
     emailId: userEmailId,

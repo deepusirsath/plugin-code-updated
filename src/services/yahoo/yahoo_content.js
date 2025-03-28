@@ -522,7 +522,10 @@ function createUrl(selectedMailboxId, lastMessageId, userEmail) {
     console.error(ERROR_MESSAGES.FAILED_TO_SEND_EMAIL_CONTENT);
   }
 }
-
+window.addEventListener('offline', function() {
+  showAlert("networkError");
+  hideLoadingScreen();
+});
 /**
  * Listens for messages sent from the background script or other parts of the extension.
  * Specifically, it handles error messages received from the server for Yahoo clients.
@@ -562,11 +565,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  *   - Sends a success response back to the sender.
  */
 
-// let pendingCounter = 0;
 function pendingStatusCallForYahoo() {
-  // pendingCounter++;
-  // console.log("pendingCounter", pendingCounter);
-  // console.log("sendMessageId", sendMessageId);
   chrome.runtime.sendMessage({
     action: "pendingStatusYahoo",
     emailId: sendUserEmail,
