@@ -37,6 +37,16 @@ export async function apiRequest(url, method, payload = null, customHeaders) {
     const response = await fetch(url, options);
 
     if (response.status === 401) {
+      const dataOutputElement = document.getElementById(TARGET_ID.DATA_OUTPUT);
+      if (dataOutputElement) {
+        dataOutputElement.innerHTML = "";
+      }
+
+      const sidebarElement = document.getElementById("sidebar-container");
+      if (sidebarElement) {
+        sidebarElement.style.display = "none";
+      }
+
       loadComponent({
         componentName: COMPONENTS.TOKEN_EXPIRE,
         basePath: BASEPATH.PAGES,

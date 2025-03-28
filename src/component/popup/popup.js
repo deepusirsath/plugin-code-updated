@@ -69,6 +69,7 @@ const handleEmailPageResponse = async (response) => {
     if (access_token) {
       await handleRegisteredUser();
     } else {
+      
       await loadUnauthenticatedComponents();
     }
   } catch (error) {
