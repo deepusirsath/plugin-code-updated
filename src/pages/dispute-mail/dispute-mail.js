@@ -62,6 +62,10 @@ const getViewDetailOfDisputeMail = async (msg_id) => {
         email: currentEmail,
       };
       const response = await postData(`${GET_ACTION_VIEW_DETAIL}`, requestData);
+      if (response && response.tokenExpired) {
+        hideLoader();
+        return response;
+      }
       return response.data;
     } catch (error) {
       displayError();
@@ -104,6 +108,10 @@ const getAllDisputeMail = async (page = 1) => {
       `${GET_DISPUTE_RAISE_DATA}?page=${page}`,
       requestData
     );
+    if (response && response.tokenExpired) {
+      hideLoader();
+      return response;
+    }
     hideLoader();
     return response;
   } catch (error) {
@@ -135,6 +143,10 @@ const filterDisputeMails = async (page = 1, searchQuery) => {
         `${FILTER_DISPUTE_MAIL}?page=${page}`,
         requestData
       );
+      if (response && response.tokenExpired) {
+        hideLoader();
+        return response;
+      }
       hideLoader();
       return response;
     } catch (error) {
@@ -234,6 +246,11 @@ const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
       searchQuery.length > 0
         ? await filterDisputeMails(page, searchQuery)
         : await getAllDisputeMail(page);
+
+    if (disputeMailResponse && disputeMailResponse.tokenExpired) {
+      return; // Token expired, the apiRequest function already handled it
+    }
+
     if (
       disputeMailResponse &&
       disputeMailResponse.results &&
@@ -251,12 +268,35 @@ const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
       globalTable.setHeaders(headers);
 
       initializeSearchHandlers();
-    }
-    if (!disputeMailResponse || disputeMailResponse.data === 0) {
+
+      const formattedData = disputeMailResponse.results.data.map((item) => [
+        item.sender_email,
+        createStatusChip(
+          item.status === 1
+            ? MAIL_STATUS.SAFE
+            : item.status === 2
+            ? MAIL_STATUS.UNSAFE
+            : MAIL_STATUS.PENDING
+        ).outerHTML,
+        createViewButton(item.msg_id, item.status).outerHTML,
+      ]);
+
+      globalTable.setData(formattedData, {
+        totalItems: disputeMailResponse.count,
+        currentPage: page,
+        hasNext: !!disputeMailResponse.next,
+        hasPrevious: !!disputeMailResponse.previous,
+        onPageChange: (newPage) =>
+          loadDisputeMailComponent(newPage, currentSearchQuery),
+      });
+
+      attachViewButtonListeners();
+    } else {
       const SearchElement = document.getElementById("search-container");
       if (SearchElement) {
         SearchElement.innerHTML = "";
       }
+
       await loadComponent({
         componentName: COMPONENTS.NO_DATA_FOUND,
         basePath: BASEPATH.COMPONENT,
@@ -288,31 +328,7 @@ const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
 
         loadDisputeMailComponent(1);
       });
-      return;
     }
-
-    const formattedData = disputeMailResponse?.results?.data?.map((item) => [
-      item.sender_email,
-      createStatusChip(
-        item.status === 1
-          ? MAIL_STATUS.SAFE
-          : item.status === 2
-          ? MAIL_STATUS.UNSAFE
-          : MAIL_STATUS.PENDING
-      ).outerHTML,
-      createViewButton(item.msg_id, item.status).outerHTML,
-    ]);
-
-    globalTable.setData(formattedData, {
-      totalItems: disputeMailResponse.count,
-      currentPage: page,
-      hasNext: !!disputeMailResponse.next,
-      hasPrevious: !!disputeMailResponse.previous,
-      onPageChange: (newPage) =>
-        loadDisputeMailComponent(newPage, currentSearchQuery),
-    });
-
-    attachViewButtonListeners();
   } catch (error) {
     hideLoader();
     displayError();

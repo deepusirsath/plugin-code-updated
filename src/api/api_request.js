@@ -37,12 +37,14 @@ export async function apiRequest(url, method, payload = null, customHeaders) {
     const response = await fetch(url, options);
 
     if (response.status === 401) {
+      await chrome.storage.local.remove("access_token");
       const dataOutputElement = document.getElementById(TARGET_ID.DATA_OUTPUT);
       if (dataOutputElement) {
         dataOutputElement.innerHTML = "";
       }
 
-      const sidebarElement = document.getElementById("sidebar-container");
+      const sidebarElement = document.getElementById(TARGET_ID.SIDEBAR);
+     
       if (sidebarElement) {
         sidebarElement.style.display = "none";
       }
@@ -52,6 +54,9 @@ export async function apiRequest(url, method, payload = null, customHeaders) {
         basePath: BASEPATH.PAGES,
         targetId: TARGET_ID.DATA_OUTPUT,
       });
+
+      // Return a special object to indicate token expiry instead of throwing an error
+      return { tokenExpired: true };
     }
 
     // Check for HTTP errors
@@ -64,5 +69,6 @@ export async function apiRequest(url, method, payload = null, customHeaders) {
     return response.status === 204 ? null : await response.json();
   } catch (error) {
     console.error(ERROR_MESSAGES.API_FAILED_MESSAGE);
+    throw error;
   }
 }

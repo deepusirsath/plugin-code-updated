@@ -25,7 +25,7 @@ import { loadUnauthenticatedComponents } from "/src/routes/unauthenticated_route
  * @async
  * @returns {Promise<void>}
  */
-const handleRegisteredUser = async () => {
+export const handleRegisteredUser = async () => {
   await loadAuthenticatedComponents();
   const detailsBtn = document.getElementById("details-btn");
 
@@ -42,13 +42,14 @@ const handleRegisteredUser = async () => {
  * The function determines which components to load based on:
  * 1. Whether current page is an email page
  * 2. User's registration status
+ * 3. Token expiration status
  *
  * Flow:
  * - For non-email pages: loads not-email-page components
  * - For email pages:
  *   - Checks registration status in chrome.storage
- *   - Loads authenticated components for registered users
- *   - Loads unauthenticated components for unregistered users
+ *   - Checks if token is expired
+ *   - Loads appropriate components based on conditions
  *
  * @async
  * @param {Object} response - Response object from email page check
@@ -56,6 +57,13 @@ const handleRegisteredUser = async () => {
  * @throws {Error} Handled by displayError if storage access fails
  */
 const handleEmailPageResponse = async (response) => {
+  const { access_token } = await chrome.storage.local.get("access_token");
+
+  if (!access_token) {
+    await loadUnauthenticatedComponents();
+    return;
+  }
+
   await loadCommonComponents();
 
   if (!isEmailPage(response)) {
@@ -64,13 +72,8 @@ const handleEmailPageResponse = async (response) => {
   }
 
   try {
-    const { access_token } = await chrome.storage.local.get("access_token");
-
     if (access_token) {
       await handleRegisteredUser();
-    } else {
-      
-      await loadUnauthenticatedComponents();
     }
   } catch (error) {
     displayError();

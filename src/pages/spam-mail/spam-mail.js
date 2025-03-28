@@ -57,6 +57,12 @@ const getViewDetailOfSpamMail = async (msg_id) => {
         email: currentEmail,
       };
       const response = await postData(`${GET_ACTION_VIEW_DETAIL}`, requestData);
+
+      if (response && response.tokenExpired) {
+        hideLoader();
+        return response;
+      }
+
       return response.data;
     } catch (error) {
       displayError();
@@ -101,11 +107,16 @@ const getAllSpamMail = async (page = 1) => {
     };
 
     const response = await postData(`${SPAM_MAIL}?page=${page}`, requestData);
+
+    if (response && response.tokenExpired) {
+      hideLoader();
+      return response;
+    }
+
     hideLoader();
     return response;
   } catch (error) {
     displayError();
-    hideLoader();
     return { results: [], count: 0 }; // Return empty result set on error
   }
 };
@@ -135,13 +146,15 @@ const filterSpamMails = async (searchQuery, page = 1) => {
         `${FILTER_SPAM_MAIL}?page=${page}`,
         requestData
       );
+      if (response && response.tokenExpired) {
+        hideLoader();
+        return response;
+      }
       hideLoader();
       return response;
     } catch (error) {
       hideLoader();
-      displayError();
     }
-    hideLoader();
   }
 };
 
@@ -234,6 +247,10 @@ const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
       searchQuery.length > 0
         ? await filterSpamMails(searchQuery, page)
         : await getAllSpamMail(page);
+
+    if (spamMailResponse && spamMailResponse.tokenExpired) {
+      return;
+    }
 
     if (spamMailResponse) {
       await loadComponent({
