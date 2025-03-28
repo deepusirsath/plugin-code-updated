@@ -36,13 +36,13 @@ async function fetchDeviceDataToSend() {
     if (response.ok) {
       const data = await response.json();
       await chrome.storage.local.set({
-        access_token: data.licenseStatus.access_token,
+        access_token: data?.licenseStatus?.access_token,
       });
       await chrome.storage.local.set({
-        refresh_token: data.licenseStatus.refresh_token,
+        refresh_token: data?.licenseStatus?.refresh_token,
       });
       await chrome.storage.local.set({
-        mac_address: data.deviceDetails.macAdress,
+        mac_address: data?.deviceDetails?.macAdress,
       });
     }
   } catch (error) {
