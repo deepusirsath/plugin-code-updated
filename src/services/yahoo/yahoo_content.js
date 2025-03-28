@@ -489,7 +489,7 @@ function extractIdsFromNonceScripts() {
                 }, 100);
               }
             } else if (response.status === "error") {
-              showAlert("networkError");
+              showAlert("inform");
               hideLoadingScreen();
             }
           }
