@@ -50,21 +50,21 @@ export const setCurrentdisputeMailSearchQuery = (value) => {
 const showPopup = async (msg_id) => {
   // Prevent multiple popups
   if (isPopupOpen) {
-    console.log("Popup already open, ignoring click");
+    // console.log("Popup already open, ignoring click");
     return;
   }
   
   isPopupOpen = true;
-  console.log("Opening popup for message ID:", msg_id);
+  // console.log("Opening popup for message ID:", msg_id);
   
   try {
     const viewDetailData = await getViewDetailOfDisputeMail(msg_id);
-    console.log("View detail data received:", viewDetailData);
+    // console.log("View detail data received:", viewDetailData);
     
     createViewDetail(viewDetailData);
-    console.log("View detail popup created successfully");
+    // console.log("View detail popup created successfully");
   } catch (error) {
-    console.error("Error showing popup:", error);
+    // console.error("Error showing popup:", error);
   } finally {
     // Add this to the createViewDetail function or ensure it's called when popup closes
     setTimeout(() => {
@@ -99,10 +99,10 @@ const showPopup = async (msg_id) => {
 
 
 const getViewDetailOfDisputeMail = async (msg_id) => {
-  console.log("Getting view detail for spam mail with ID:", msg_id);
+  // console.log("Getting view detail for spam mail with ID:", msg_id);
   
   const currentEmail = getCurrentEmail();
-  console.log("Current email address:", currentEmail);
+  // console.log("Current email address:", currentEmail);
 
   if (currentEmail) {
     try {
@@ -110,10 +110,10 @@ const getViewDetailOfDisputeMail = async (msg_id) => {
         messageId: msg_id,
         email: currentEmail,
       };
-      console.log("Sending request with data:", requestData);
+      // console.log("Sending request with data:", requestData);
       
       const response = await postData(`${GET_ACTION_VIEW_DETAIL}`, requestData);
-      console.log("Received response:", response);
+      // console.log("Received response:", response);
       
       return response.data;
     } catch (error) {
@@ -263,7 +263,7 @@ const initializeSearchHandlers = () => {
 
 
 const attachViewButtonListeners = () => {
-  console.log("Attaching view button listeners");
+  // console.log("Attaching view button listeners");
   // First, remove any existing event listeners
   document.querySelectorAll(".view-button").forEach((button) => {
     // Clone the button to remove all event listeners
@@ -273,17 +273,17 @@ const attachViewButtonListeners = () => {
   
   // Now attach fresh event listeners
   const buttons = document.querySelectorAll(".view-button");
-  console.log(`Found ${buttons.length} view buttons to attach listeners to`);
+  // console.log(`Found ${buttons.length} view buttons to attach listeners to`);
   
   buttons.forEach((button) => {
-    console.log(`Attaching listener to button with msg_id: ${button.dataset.msg_id}`);
+    // console.log(`Attaching listener to button with msg_id: ${button.dataset.msg_id}`);
     button.addEventListener("click", () => {
-      console.log(`View button clicked for msg_id: ${button.dataset.msg_id}`);
+      // console.log(`View button clicked for msg_id: ${button.dataset.msg_id}`);
       showPopup(button.dataset.msg_id);
     });
   });
   
-  console.log("Finished attaching all view button listeners");
+  // console.log("Finished attaching all view button listeners");
 };
 
 /**

@@ -30,10 +30,10 @@ import { loadCSS } from "/src/helper/content_loader_helper.js";
 //   return button;
 // };
 export const createViewButton = (sender, status) => {
-  console.log("Creating view button:", { sender, status });
+  // console.log("Creating view button:", { sender, status });
   
   const view_button = `/src/${BASEPATH.COMPONENT}/${COMPONENTS.VIEW_BUTTON}/${COMPONENTS.VIEW_BUTTON}`;
-  console.log("View button path:", view_button);
+  // console.log("View button path:", view_button);
   
   loadCSS(`${view_button}.css`);
   
@@ -42,7 +42,7 @@ export const createViewButton = (sender, status) => {
   button.textContent = "View";
   button.dataset.msg_id = sender;
   
-  console.log("Button created:", button);
+  // console.log("Button created:", button);
   
   return button;
 };
