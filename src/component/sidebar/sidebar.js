@@ -293,7 +293,7 @@ const handleButtonClick = async (componentName, clickedButton) => {
  * //   dispute: { buttonId: 'dispute-btn', component: 'dispute' }
  * // }
  */
-const initializeSidebarNavigation = () => {
+export const initializeSidebarNavigation = () => {
   Object.values(SIDEBAR_CONFIG).forEach(({ buttonId, component }) => {
     const button = document.getElementById(buttonId);
     if (button) {

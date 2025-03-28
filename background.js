@@ -88,27 +88,27 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 });
 
 // Listener for chrome runtime message
-chrome.management.onEnabled.addListener(() => {
-  // Make the fetch request to the server
-  const url = baseUrl + PLUGINS_ENABLE_DISABLE;
+// chrome.management.onEnabled.addListener(() => {
+//   // Make the fetch request to the server
+//   const url = baseUrl + PLUGINS_ENABLE_DISABLE;
 
-  fetch(url, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      return response.json();
-    })
-    .then((data) => {})
-    .catch((error) => {
-      console.error("There was a problem with the fetch operation:", error);
-    });
-});
+//   fetch(url, {
+//     method: "GET",
+//     headers: {
+//       "Content-Type": "application/json",
+//     },
+//   })
+//     .then((response) => {
+//       if (!response.ok) {
+//         throw new Error("Network response was not ok");
+//       }
+//       return response.json();
+//     })
+//     .then((data) => {})
+//     .catch((error) => {
+//       console.error("There was a problem with the fetch operation:", error);
+//     });
+// });
 
 /** ___________________________________________________________Information___________________________________________________________ */
 

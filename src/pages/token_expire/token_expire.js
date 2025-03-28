@@ -3,6 +3,8 @@ import { postData } from "/src/api/api_method.js";
 import { showLoader, hideLoader } from "/src/component/loader/loader.js";
 import { handleRegisteredUser } from "/src/component/popup/popup.js";
 import { loadCommonComponents } from "/src/routes/common_route.js";
+import { TARGET_ID } from "/src/constant/target_id.js";
+import { initializeSidebarNavigation } from "/src/component/sidebar/sidebar.js";
 
 const refreshTokenButton = document.getElementById("refreshTokenButton");
 
@@ -12,6 +14,7 @@ const getAccessToken = async () => {
 
     const { refresh_token } = await chrome.storage.local.get(["refresh_token"]);
     const { mac_address } = await chrome.storage.local.get(["mac_address"]);
+    const sidebarElement = document.getElementById(TARGET_ID.SIDEBAR);
 
     if (!refresh_token || !mac_address) {
       console.error("Missing refresh_token or macAddress");
@@ -32,6 +35,10 @@ const getAccessToken = async () => {
       });
       await loadCommonComponents();
       await handleRegisteredUser();
+      if (sidebarElement) {
+        sidebarElement.style.display = "block";
+      }
+      initializeSidebarNavigation();
     }
     hideLoader();
   } catch (error) {
