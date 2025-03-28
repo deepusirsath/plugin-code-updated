@@ -23,6 +23,7 @@ import {
 
 let globalTable = null;
 let currentSearchQuery = "";
+let isPopupOpen = false;
 
 /**
  * Sets the current search query value for dispute mail filtering
@@ -41,8 +42,21 @@ export const setCurrentdisputeMailSearchQuery = (value) => {
  * @returns {Promise<void>}
  */
 const showPopup = async (msg_id) => {
-  const viewDetailData = await getViewDetailOfDisputeMail(msg_id);
-  createViewDetail(viewDetailData);
+  if (isPopupOpen) {
+    return;
+  }
+
+  isPopupOpen = true;
+
+  try {
+    const viewDetailData = await getViewDetailOfDisputeMail(msg_id);
+    createViewDetail(viewDetailData);
+  } catch (error) {
+  } finally {
+    setTimeout(() => {
+      isPopupOpen = false;
+    }, 500);
+  }
 };
 
 /**
@@ -54,29 +68,31 @@ const showPopup = async (msg_id) => {
  */
 const getViewDetailOfDisputeMail = async (msg_id) => {
   const currentEmail = getCurrentEmail();
-
   if (currentEmail) {
     try {
       const requestData = {
         messageId: msg_id,
         email: currentEmail,
       };
+
       const response = await postData(`${GET_ACTION_VIEW_DETAIL}`, requestData);
       if (response && response.tokenExpired) {
         hideLoader();
         return response;
       }
+
       return response.data;
     } catch (error) {
+      console.error("Error fetching spam mail details:", error);
       displayError();
     }
+  } else {
+    console.warn("No current email found, cannot fetch spam mail details");
   }
 };
 
 const getAllDisputeMail = async (page = 1) => {
-  // Show loader immediately
   showLoader();
-  // Create a promise that resolves after 1 second minimum
   const minLoadingTime = new Promise((resolve) => setTimeout(resolve, 100));
   // Get the current email from chrome.storage
   const emailPromise = new Promise((resolve) => {
@@ -211,9 +227,14 @@ const initializeSearchHandlers = () => {
  */
 const attachViewButtonListeners = () => {
   document.querySelectorAll(".view-button").forEach((button) => {
-    button.addEventListener("click", () => {
-      showPopup(button.dataset.msg_id);
-    });
+    const newButton = button.cloneNode(true);
+    button.parentNode.replaceChild(newButton, button);
+  });
+
+  // Now attach fresh event listeners
+  const buttons = document.querySelectorAll(".view-button");
+  buttons.forEach((button) => {
+    button.addEventListener("click", () => {});
   });
 };
 
@@ -248,7 +269,7 @@ const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
         : await getAllDisputeMail(page);
 
     if (disputeMailResponse && disputeMailResponse.tokenExpired) {
-      return; // Token expired, the apiRequest function already handled it
+      return;
     }
 
     if (

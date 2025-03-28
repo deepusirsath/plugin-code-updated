@@ -22,6 +22,7 @@ import {
 
 let globalTable = null;
 let currentSearchQuery = "";
+let isPopupOpen = false;
 
 /**
  * Updates the current search query value used for filtering spam mails
@@ -37,8 +38,20 @@ export const setCurrentSearchQuery = (value) => {
  * @returns {void} Creates and displays the detail view popup
  */
 const showPopup = async (msg_id) => {
-  const viewDetailData = await getViewDetailOfSpamMail(msg_id);
-  createViewDetail(viewDetailData);
+  if (isPopupOpen) {
+    return;
+  }
+  isPopupOpen = true;
+  try {
+    const viewDetailData = await getViewDetailOfSpamMail(msg_id);
+    createViewDetail(viewDetailData);
+  } catch (error) {
+    console.error("Error showing popup:", error);
+  } finally {
+    setTimeout(() => {
+      isPopupOpen = false;
+    }, 500);
+  }
 };
 
 /**
@@ -56,6 +69,7 @@ const getViewDetailOfSpamMail = async (msg_id) => {
         messageId: msg_id,
         email: currentEmail,
       };
+
       const response = await postData(`${GET_ACTION_VIEW_DETAIL}`, requestData);
 
       if (response && response.tokenExpired) {
@@ -71,18 +85,14 @@ const getViewDetailOfSpamMail = async (msg_id) => {
 };
 
 const getAllSpamMail = async (page = 1) => {
-  // Show loader immediately
   showLoader();
-  // Create a promise that resolves after 1 second minimum
   const minLoadingTime = new Promise((resolve) => setTimeout(resolve, 100));
-
   // Get the current email from chrome.storage
   const emailPromise = new Promise((resolve) => {
     chrome.storage.local.get(["currentMailId"], function (result) {
       if (result.currentMailId) {
         resolve(result.currentMailId);
       } else {
-        // Wait a moment and try again
         setTimeout(() => {
           chrome.storage.local.get(["currentMailId"], function (retryResult) {
             resolve(retryResult.currentMailId || null);
@@ -213,6 +223,13 @@ const initializeSearchHandlers = () => {
  */
 const attachViewButtonListeners = () => {
   document.querySelectorAll(".view-button").forEach((button) => {
+    const newButton = button.cloneNode(true);
+    button.parentNode.replaceChild(newButton, button);
+  });
+
+  const buttons = document.querySelectorAll(".view-button");
+
+  buttons.forEach((button) => {
     button.addEventListener("click", () => {
       showPopup(button.dataset.msg_id);
     });
