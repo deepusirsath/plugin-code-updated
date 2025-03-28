@@ -551,7 +551,7 @@ async function extractMessageIdAndEml() {
             }
           } else if (response.status === "error") {
             hideLoadingScreen();
-            showAlert("networkError");
+            showAlert("inform");
           }
         }
       );
