@@ -35,11 +35,14 @@ async function fetchDeviceDataToSend() {
     const response = await fetch("http://localhost:3000/deviceIdentifiers");
     if (response.ok) {
       const data = await response.json();
-      chrome.storage.local.set({
+      await chrome.storage.local.set({
         access_token: data.licenseStatus.access_token,
       });
-      chrome.storage.local.set({
+      await chrome.storage.local.set({
         refresh_token: data.licenseStatus.refresh_token,
+      });
+      await chrome.storage.local.set({
+        mac_address: data.deviceDetails.macAdress,
       });
     }
   } catch (error) {

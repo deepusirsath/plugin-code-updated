@@ -53,6 +53,20 @@ p {
   }
 }
 
+.btn-primary {
+  padding: 9px 15px;
+  font-weight: 500;
+  font-size: 13px;
+  cursor: pointer;
+  background: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.2);
+}
+
+
 /* Responsive adjustments */
 @media (max-width: 480px) {
   .token-expired-card {
