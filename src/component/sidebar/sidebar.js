@@ -339,4 +339,15 @@ const toggleSidebar = () => {
 };
 
 // Attach click event listener to toggle button
-document.getElementById("toggle-btn").addEventListener("click", toggleSidebar);
+const toggleBtn = document.getElementById("toggle-btn");
+if (toggleBtn) {
+  toggleBtn.addEventListener("click", toggleSidebar);
+}
+
+
+// Use event delegation for dynamically added elements
+document.addEventListener("click", (event) => {
+  if (event.target.id === "toggle-btn") {
+    toggleSidebar();
+  }
+});
