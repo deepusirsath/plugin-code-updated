@@ -510,7 +510,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 async function sendEmlToServer(messageId, blob = null, client, user_email) {
   try {
     console.log("send eml to server start");
-    // if (!pluginId) {
+    // if (!pluginId) {F
     //   await getExtensionid();
     // }
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });

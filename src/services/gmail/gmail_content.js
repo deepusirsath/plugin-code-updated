@@ -390,7 +390,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     } else if (message.action === "pending") {
       hideLoadingScreen();
       shouldApplyPointerEvents = true;
-      showAlert("pending");
+      // showAlert("pending");
       // Clear any existing interval before setting a new one
       if (intervalId) {
         clearInterval(intervalId);
@@ -522,7 +522,7 @@ async function extractMessageIdAndEml() {
                       shouldApplyPointerEvents = resStatus !== "safe";
                       if (resStatus === "pending") {
                         hideLoadingScreen();
-                        showAlert("pending");
+                        // showAlert("pending", "Some time");
                         if (intervalId) {
                           clearInterval(intervalId);
                         }
@@ -845,3 +845,49 @@ if (document.body) {
 
 // Also run a periodic check to catch any menus that might have been missed
 setInterval(checkForContextMenu, 500);
+
+
+
+
+
+
+
+
+
+
+// Add this with the other message listeners
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "emailSizeCategory" && message.client === "gmail") {
+    // console.log(`message.action === "emailSizeCategory" && message.client === "gmail"`)
+    handleEmailSizeCategory(message.sizeCategory);
+  }
+});
+
+// Add this function to handle different size categories
+function handleEmailSizeCategory(sizeCategory) {
+  let sizeMessage = "";
+  
+  switch(sizeCategory) {
+    case "underTwo":
+      showAlert("pending", "underTwo")
+      sizeMessage = "Email size is under 2 MB";
+      break;
+    case "underTen":
+      showAlert("pending", "underTen")
+      sizeMessage = "Email size is between 2-10 MB";
+      break;
+    case "underTwenty":
+      showAlert("pending", "underTwenty")
+      sizeMessage = "Email size is between 10-20 MB";
+      break;
+    case "overTwenty":
+      showAlert("pending", "overTwenty")
+      sizeMessage = "Email size is over 20 MB";
+      break;
+    default:
+      showAlert("pending", "Some time")
+      sizeMessage = "Email size unknown";
+  }
+  
+  // console.log(`Gmail: ${sizeMessage}`);
+}

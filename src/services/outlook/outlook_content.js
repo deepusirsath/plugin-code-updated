@@ -81,6 +81,26 @@ chrome.storage.local.get("registration", (data) => {
  *    - Restores pointer events after 3 seconds.
  * 3. Selects all elements with the class `.bvdCQ` and disables their pointer events permanently.
  */
+// function handleEmailInteractions() {
+//   setInterval(() => {
+//     // Handle .EeHm8 elements
+//     const emailElements = document.querySelectorAll(".EeHm8");
+//     emailElements.forEach((element) => {
+//       element.addEventListener("click", () => {
+//         element.style.pointerEvents = "none";
+//         setTimeout(() => {
+//           element.style.pointerEvents = "auto";
+//         }, 3000);
+//       });
+//     });
+// // disableTextSelection F8ZSr BGDdH
+//     // Handle .bvdCQ elements
+//     const bvdElements = document.querySelectorAll(".bvdCQ");
+//     bvdElements.forEach((element) => {
+//       element.style.pointerEvents = "none";
+//     });
+//   }, 1000); // Checks every 1 second
+// }
 function handleEmailInteractions() {
   setInterval(() => {
     // Handle .EeHm8 elements
@@ -97,6 +117,12 @@ function handleEmailInteractions() {
     // Handle .bvdCQ elements
     const bvdElements = document.querySelectorAll(".bvdCQ");
     bvdElements.forEach((element) => {
+      element.style.pointerEvents = "none";
+    });
+    
+    // Handle disableTextSelection F8ZSr BGDdH elements
+    const attachmentElements = document.querySelectorAll(".disableTextSelection.F8ZSr");
+    attachmentElements.forEach((element) => {
       element.style.pointerEvents = "none";
     });
   }, 1000); // Checks every 1 second
@@ -148,22 +174,70 @@ function fetchLocation() {
 
 
 
+// Track both the path and full URL to detect all types of navigation
 let lastUrlPath = location.pathname;
-// console.log("Initial URL path:", lastUrlPath);
+let lastFullUrl = location.href;
+let activeClickListener = false;
+
+// Function to clean up previous click listener if needed
+function cleanupPreviousClickListener() {
+  // If we had code to remove event listeners, it would go here
+  // For now, we'll just set the flag to false
+  activeClickListener = false;
+}
+
+// Enhanced URL observer that checks both path and full URL changes
 new MutationObserver(() => {
   const currentUrlPath = location.pathname;
-  if (currentUrlPath !== lastUrlPath) {
+  const currentFullUrl = location.href;
+  
+  // Check if either the path or full URL has changed
+  if (currentUrlPath !== lastUrlPath || currentFullUrl !== lastFullUrl) {
     lastUrlPath = currentUrlPath;
+    lastFullUrl = currentFullUrl;
     
-    // Check if the current URL matches any of the target paths
-    const urlRegex = /^\/mail(\/\d+)?(\/junkemail|\/deleteditems|\/archive)?$/;
-    if (urlRegex.test(currentUrlPath)) {
-      // console.log("Detected navigation to target Outlook path:", currentUrlPath);
-      // Reset any existing click listeners and set up new ones
+    // Check if the current URL is an Outlook mail URL that we should handle
+    // This regex matches both simple mail paths and those with query parameters
+    const isMailUrl = /^\/mail(\/\d+)?(\/junkemail|\/deleteditems|\/archive)?/.test(currentUrlPath) && 
+                      currentFullUrl.includes('outlook.live.com');
+    
+    if (isMailUrl) {
+      // Clean up previous listener to avoid duplicates
+      if (activeClickListener) {
+        cleanupPreviousClickListener();
+      }
+      
+      // Set up a new click listener
       setupClickListener();
+      activeClickListener = true;
+      // console.log("Initialized click listener for Outlook path:", currentUrlPath);
     }
   }
 }).observe(document, { subtree: true, childList: true });
+
+// Also check URL changes on page load and history state changes
+window.addEventListener('load', () => {
+  const isMailUrl = /^\/mail(\/\d+)?(\/junkemail|\/deleteditems|\/archive)?/.test(location.pathname) && 
+                    location.href.includes('outlook.live.com');
+  
+  if (isMailUrl && !activeClickListener) {
+    setupClickListener();
+    activeClickListener = true;
+    // console.log("Initialized click listener on page load");
+  }
+});
+
+// Listen for history state changes (when using browser back/forward buttons)
+window.addEventListener('popstate', () => {
+  const isMailUrl = /^\/mail(\/\d+)?(\/junkemail|\/deleteditems|\/archive)?/.test(location.pathname) && 
+                    location.href.includes('outlook.live.com');
+  
+  if (isMailUrl && !activeClickListener) {
+    setupClickListener();
+    activeClickListener = true;
+    // console.log("Initialized click listener after history navigation");
+  }
+});
 
 
 chrome.runtime.onMessage.addListener((request) => {
@@ -226,6 +300,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   return true;
 });
+
+
+
 
 /**
  * Detects clicks on specific menu items in an email client and triggers a page reload.
@@ -557,7 +634,7 @@ function setupClickListener(attempts = 500) {
                     hideLoadingScreen();
                   } else if (status === "pending") {
                     hideLoadingScreen();
-                    showAlert("pending", unsafeReason);
+                    showAlert("pending", "Some time");
                     chrome.storage.local.get("outlook_email", (data) => {
                       chrome.runtime.sendMessage({
                         action: "pendingStatusOutlook",
@@ -631,7 +708,7 @@ function setupClickListener(attempts = 500) {
                             function handlePendingStatus() {
                               hideLoadingScreen();
                               shouldApplyPointerEvents = true;
-                              showAlert("pending");
+                              // showAlert("pending");
                               // Clear any existing interval before starting a new one
                               if (intervalId) {
                                 clearInterval(intervalId);
@@ -806,14 +883,44 @@ async function runEmailExtraction() {
     });
   };
 
+  // const closeEmail = async () => {
+  //   const overlay = document.querySelector(
+  //     ".fui-DialogSurface__backdrop.rsptlh5"
+  //   );
+  //   overlay.click();
+  //   // Enable scrolling (if it was disabled during the modal display)
+  // };
   const closeEmail = async () => {
-    const overlay = document.querySelector(
-      ".fui-DialogSurface__backdrop.rsptlh5"
-    );
-    overlay.click();
+    // Try to find the Close button first
+    const closeButton = document.querySelector('.fui-DialogActions button.fui-Button');
+    
+    if (closeButton) {
+      // Click the Close button if found
+      closeButton.click();
+    } 
+    else {
+      // Fallback to the original approach if button not found
+      const overlay = document.querySelector(".fui-DialogSurface__backdrop.rsptlh5");
+      if (overlay) {
+        overlay.click();
+      } 
+      else {
+        // If neither method works, try to find the button by its text content
+        const allButtons = Array.from(document.querySelectorAll('button'));
+        const closeButtonByText = allButtons.find(button => 
+          button.textContent.trim() === 'Close' && 
+          button.closest('.fui-DialogActions')
+        );
+        
+        if (closeButtonByText) {
+          closeButtonByText.click();
+        }
+      }
+    }
+    
     // Enable scrolling (if it was disabled during the modal display)
   };
-
+  
   // Start the extraction process
   await processNavigationButton();
 }
@@ -861,7 +968,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     } else if (message.action === "pending") {
       hideLoadingScreen();
       shouldApplyPointerEvents = true;
-      showAlert("pending");
+      // showAlert("pending");
       // Clear any existing interval before setting a new one
       if (intervalId) {
         clearInterval(intervalId);
@@ -1073,7 +1180,7 @@ function checkReloadStatusOutlook() {
           }, 500);
           showAlert("unsafe", unsafeReason);
         } else if (status === "pending") {
-          showAlert("pending", unsafeReason);
+          // showAlert("pending", "Some time");
 
           chrome.storage.local.get("outlook_email", (data) => {
             setTimeout(() => {
@@ -1295,3 +1402,48 @@ document.addEventListener('contextmenu', () => {
 }, true);
 
 
+
+
+
+
+
+
+
+
+
+
+
+// Add this with the other message listeners
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "emailSizeCategory" && message.client === "outlook") {
+    handleEmailSizeCategory(message.sizeCategory);
+  }
+});
+
+// Add this function to handle different size categories
+function handleEmailSizeCategory(sizeCategory) {
+  let sizeMessage = "";
+  
+  switch(sizeCategory) {
+    case "underTwo":
+      showAlert("pending", "underTwo")
+      sizeMessage = "Email size is under 2 MB";
+      break;
+    case "underTen":
+      showAlert("pending", "underTen")
+      sizeMessage = "Email size is between 2-10 MB";
+      break;
+    case "underTwenty":
+      showAlert("pending", "underTwenty")
+      sizeMessage = "Email size is between 10-20 MB";
+      break;
+    case "overTwenty":
+      showAlert("pending", "overTwenty")
+      sizeMessage = "Email size is over 20 MB";
+      break;
+    default:
+      showAlert("pending", "Some time")
+      sizeMessage = "Email size unknown";
+  }
+
+}

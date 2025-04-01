@@ -407,8 +407,7 @@ function extractIdsFromNonceScripts() {
           blockEmailBody();
         } else if (status === "pending" || status === "Pending") {
           hideLoadingScreen();
-          showAlert("pending", unsafeReason);
-
+          // showAlert("pending", "Some time");
           chrome.runtime.sendMessage({
             action: "pendingStatusYahoo",
             emailId: sendUserEmail,
@@ -545,6 +544,42 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
+// Add this with the other message listeners
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "emailSizeCategory" && message.client === "yahoo") {
+    handleEmailSizeCategory(message.sizeCategory);
+  }
+});
+
+// Add this function to handle different size categories
+function handleEmailSizeCategory(sizeCategory) {
+  let sizeMessage = "";
+  
+  switch(sizeCategory) {
+    case "underTwo":
+      showAlert("pending", "underTwo")
+      sizeMessage = "Email size is under 2 MB";
+      break;
+    case "underTen":
+      showAlert("pending", "underTen")
+      sizeMessage = "Email size is between 2-10 MB";
+      break;
+    case "underTwenty":
+      showAlert("pending", "underTwenty")
+      sizeMessage = "Email size is between 10-20 MB";
+      break;
+    case "overTwenty":
+      showAlert("pending", "overTwenty")
+      sizeMessage = "Email size is over 20 MB";
+      break;
+    default:
+      showAlert("pending", "Some time")
+      sizeMessage = "Email size unknown";
+  }
+  
+}
+
+
 /**
  * Listens for messages sent to the content script from other parts of the Chrome extension.
  * This listener specifically handles messages related to the Yahoo client.
@@ -591,7 +626,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     } else if (message.action === "pending") {
       hideLoadingScreen();
       shouldApplyPointerEvents = true;
-      showAlert("pending");
+      // showAlert("pending");
       // Clear any existing interval before setting a new one
       if (intervalId) {
         clearInterval(intervalId);

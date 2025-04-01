@@ -9,6 +9,13 @@ Promise.all([
 
 export function showAlert(key, messageReason = " ") {
   hideLoadingScreen();
+
+  // Check if an alert is already present and remove it
+  const existingAlert = document.querySelector(".pending-alert");
+  if (existingAlert) {
+    existingAlert.remove();
+  }
+
   // Check if the pending alert already exists using a unique class
   if (key === "pending") {
     const pendingAlert = document.querySelector(".pending-alert");
@@ -241,7 +248,7 @@ export function showAlert(key, messageReason = " ") {
 
     case "inform":
       message.innerText =
-        "System maintenance in progress - Your security is our priority";
+        "System maintenance in progress, please refresh the page after some time";
 
       alertContainer.style.width = "360px";
       alertContainer.style.padding = "24px";
@@ -306,8 +313,41 @@ export function showAlert(key, messageReason = " ") {
       break;
 
     case "pending":
-      message.innerText =
-        "We're processing your request.... Please wait for the procedure to be finished.";
+      // Dynamic message based on the messageReason parameter
+      let waitTime = "a moment";
+      let sizeInfo = "";
+
+      switch (messageReason) {
+        case "underTwo":
+          waitTime = "approximately 10-15 seconds";
+          sizeInfo = "Email size is under 2 MB";
+          break;
+        case "underTen":
+          waitTime = "approximately 30-45 seconds";
+          sizeInfo = "Email size is between 2-10 MB";
+          break;
+        case "underTwenty":
+          waitTime = "approximately 1-2 minutes";
+          sizeInfo = "Email size is between 10-20 MB";
+          break;
+        case "overTwenty":
+          waitTime = "approximately 2-3 minutes";
+          sizeInfo = "Email size is over 20 MB";
+          break;
+        default:
+          waitTime = "some time";
+          sizeInfo = "";
+      }
+
+      message.innerHTML = `
+          <div style="font-family: 'Segoe UI', sans-serif; text-align: center;">
+            <div style="font-size: 16px; color: #0056b3; font-weight: bold; margin-bottom: 8px;">
+              AI Security Analysis in Progress
+            </div>
+            <div style="color: #333; font-size: 14px; line-height: 1.4;">
+              Please wait ${waitTime} while our AI analyzes this email for security threats.
+            </div>
+          </div>`;
 
       alertContainer.style.background =
         "linear-gradient(145deg, #ffffff, #f0f8ff)";
@@ -317,48 +357,76 @@ export function showAlert(key, messageReason = " ") {
         "0 8px 20px rgba(0, 123, 255, 0.06), 0 4px 8px rgba(0, 0, 0, 0.08)";
       alertContainer.style.borderRadius = "12px";
 
+      // Timer-style animation with progress indicator
       iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
-            <defs>
-                <linearGradient id="pendingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#007bff;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#0056b3;stop-opacity:1" />
-                </linearGradient>
-            </defs>
-            <circle cx="24" cy="24" r="20"
-                    stroke="url(#pendingGradient)"
-                    stroke-width="3"
-                    fill="none"
-                    stroke-dasharray="31.4 31.4">
-                <animateTransform
-                    attributeName="transform"
-                    type="rotate"
-                    from="0 24 24"
-                    to="360 24 24"
-                    dur="2.5s"
-                    repeatCount="indefinite"
-                    calcMode="spline"
-                    keySplines="0.4 0 0.2 1"/>
+          <defs>
+            <linearGradient id="pendingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#007bff;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#0056b3;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          
+          <!-- Outer circle -->
+          <circle cx="24" cy="24" r="22" fill="none" stroke="#e6f0ff" stroke-width="4" />
+          
+          <!-- Progress circle -->
+          <circle cx="24" cy="24" r="22" 
+                  fill="none" 
+                  stroke="url(#pendingGradient)" 
+                  stroke-width="4"
+                  stroke-linecap="round"
+                  stroke-dasharray="138.2"
+                  stroke-dashoffset="138.2">
+            <animate attributeName="stroke-dashoffset"
+                     values="138.2;0"
+                     dur="${
+                       messageReason === "underTwo"
+                         ? "15s"
+                         : messageReason === "underTen"
+                         ? "45s"
+                         : messageReason === "underTwenty"
+                         ? "120s"
+                         : messageReason === "overTwenty"
+                         ? "180s"
+                         : "60s"
+                     }"
+                     repeatCount="1"
+                     fill="freeze"
+                     calcMode="linear" />
+          </circle>
+          
+          <!-- Center timer display -->
+          <g transform="translate(24, 24)">
+            <!-- Hourglass shape -->
+            <path d="M-8,-8 L8,-8 L8,-7 L0,0 L8,7 L8,8 L-8,8 L-8,7 L0,0 L-8,-7 Z" 
+                  fill="url(#pendingGradient)" 
+                  opacity="0.9">
+              <animateTransform
+                attributeName="transform"
+                type="rotate"
+                from="0 0 0"
+                to="180 0 0"
+                dur="2s"
+                repeatCount="indefinite" />
+            </path>
+            
+            <!-- Flowing sand particles -->
+            <circle cx="0" cy="0" r="1" fill="#007bff">
+              <animate attributeName="cy" values="-3;3" dur="2s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="1;0" dur="2s" repeatCount="indefinite" />
             </circle>
-            <g fill="#007bff">
-                <circle cx="24" cy="24" r="2">
-                    <animate attributeName="opacity"
-                        values="0.3;1;0.3" dur="1.5s"
-                        repeatCount="indefinite" begin="0s"/>
-                </circle>
-                <circle cx="32" cy="24" r="2">
-                    <animate attributeName="opacity"
-                        values="0.3;1;0.3" dur="1.5s"
-                        repeatCount="indefinite" begin="0.5s"/>
-                </circle>
-                <circle cx="16" cy="24" r="2">
-                    <animate attributeName="opacity"
-                        values="0.3;1;0.3" dur="1.5s"
-                        repeatCount="indefinite" begin="1s"/>
-                </circle>
-            </g>
+            <circle cx="-1" cy="-2" r="0.7" fill="#007bff">
+              <animate attributeName="cy" values="-4;4" dur="2s" begin="0.3s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="1;0" dur="2s" begin="0.3s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="1" cy="-1" r="0.7" fill="#007bff">
+              <animate attributeName="cy" values="-4;4" dur="2s" begin="0.6s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="1;0" dur="2s" begin="0.6s" repeatCount="indefinite" />
+            </circle>
+          </g>
         </svg>`;
       break;
-
+      
     case "badRequest":
       message.innerText =
         "An error occurred while processing your request. Multiple attempts failed. Check your input and retry. If the problem continues, contact support.";
