@@ -42,6 +42,12 @@ async function fetchDeviceDataToSend() {
         refresh_token: data?.licenseStatus?.refresh_token,
       });
       await chrome.storage.local.set({
+        validFrom: data?.licenseStatus?.validFrom,
+      });
+      await chrome.storage.local.set({
+        validTill: data?.licenseStatus?.validTill,
+      });
+      await chrome.storage.local.set({
         mac_address: data?.deviceDetails?.macAdress,
       });
     }

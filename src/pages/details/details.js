@@ -1,43 +1,57 @@
-import { postData } from "/src/api/api_method.js";
 import { COMPONENTS } from "/src/constant/component.js";
 import { displayError } from "/src/helper/display_error.js";
-import { GET_ALLOCATION_DATA } from "/src/routes/api_route.js";
-import { showLoader, hideLoader } from "/src/component/loader/loader.js";
 
+/**
+ * Formats a date string to a readable format
+ * @param {string} dateString - The date string to format
+ * @returns {string} - Formatted date or "No Data Found" if no date
+ */
+const formatDate = (dateString) => {
+  if (!dateString) return "No Data Found";
+
+  return new Date(dateString).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
+
+/**
+ * Retrieves and displays license details
+ */
 export const getAllDetails = async () => {
-  document.getElementById("details-box").style.display = "none";
-  showLoader();
+  const detailsBox = document.getElementById("details-box");
+  detailsBox.style.display = "none";
 
   try {
-    const licenseId =
-      "c6ef942170cda72c2d1c9bb3fcfbc5003144e03f6cc3eeed15feae8407fc3b9b";
-    const requestData = {
-      licenseId: licenseId,
-    };
+    const {
+      mac_address = "",
+      validFrom = "",
+      validTill = "",
+    } = await chrome.storage.local.get([
+      "mac_address",
+      "validFrom",
+      "validTill",
+    ]);
 
-    const response = await postData(`${GET_ALLOCATION_DATA}`, requestData);
-    const allocated_to = response.data.allocated_to;
-    const allocated_date = response.data?.valid_from;
-    const allocated_till = response.data?.valid_till;
-
-    // Update all elements with details-value class
     const detailsValues = document.querySelectorAll("#details-value");
-    detailsValues[0].textContent = allocated_to || "No Data Found";
-    detailsValues[1].textContent = allocated_date || "No Data Found";
-    detailsValues[2].textContent = allocated_till || "No Data Found";
 
-    document.getElementById("details-box").style.display = "block";
-    hideLoader();
+    if (detailsValues.length >= 3) {
+      detailsValues[0].textContent = mac_address || "No Data Found";
+      detailsValues[1].textContent = formatDate(validFrom);
+      detailsValues[2].textContent = formatDate(validTill);
+    }
+
+    detailsBox.style.display = "block";
   } catch (error) {
-    hideLoader();
     displayError();
   }
 };
 
-// document.addEventListener("componentLoaded", (event) => {
-//   if (event.detail.componentName === COMPONENTS.DETAILS) {
-//     getAllDetails();
-//   }
-// });
+document.addEventListener("componentLoaded", (event) => {
+  if (event.detail.componentName === COMPONENTS.DETAILS) {
+    getAllDetails();
+  }
+});
 
-// getAllDetails();
+getAllDetails();
