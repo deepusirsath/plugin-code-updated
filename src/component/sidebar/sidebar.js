@@ -120,6 +120,7 @@ const handleDisputeButton = async (componentName) => {
     await loadUnauthenticatedComponents();
     return;
   }
+
   const thisOperation = {};
   currentLoadingOperation = thisOperation;
   document.getElementById("data-output").innerHTML = "";
@@ -338,12 +339,10 @@ const toggleSidebar = () => {
   toggleSlide.style.marginLeft = "-15px";
 };
 
-// Attach click event listener to toggle button
 const toggleBtn = document.getElementById("toggle-btn");
 if (toggleBtn) {
   toggleBtn.addEventListener("click", toggleSidebar);
 }
-
 
 // Use event delegation for dynamically added elements
 document.addEventListener("click", (event) => {
