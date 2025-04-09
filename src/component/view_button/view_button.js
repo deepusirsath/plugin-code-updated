@@ -20,29 +20,12 @@ import { loadCSS } from "/src/helper/content_loader_helper.js";
  * container.appendChild(button);
  *
  */
-// export const createViewButton = (sender, status) => {
-//   const view_button = `/src/${BASEPATH.COMPONENT}/${COMPONENTS.VIEW_BUTTON}/${COMPONENTS.VIEW_BUTTON}`;
-//   loadCSS(`${view_button}.css`);
-//   const button = document.createElement("button");
-//   button.className = "view-button";
-//   button.textContent = "View";
-//   button.dataset.msg_id = sender;
-//   return button;
-// };
 export const createViewButton = (sender, status) => {
-  // console.log("Creating view button:", { sender, status });
-  
   const view_button = `/src/${BASEPATH.COMPONENT}/${COMPONENTS.VIEW_BUTTON}/${COMPONENTS.VIEW_BUTTON}`;
-  // console.log("View button path:", view_button);
-  
   loadCSS(`${view_button}.css`);
-  
   const button = document.createElement("button");
   button.className = "view-button";
   button.textContent = "View";
   button.dataset.msg_id = sender;
-  
-  // console.log("Button created:", button);
-  
   return button;
 };
