@@ -2,10 +2,6 @@ import { COMPONENTS } from "/src/constant/component.js";
 import { GET_GRAPH_DATA } from "/src/routes/api_route.js";
 import { postData } from "/src/api/api_method.js";
 import { displayError } from "/src/helper/display_error.js";
-import {
-  getCurrentEmail,
-  getEmailIds,
-} from "/src/helper/get_email_from_local_storage.js";
 import { showLoader, hideLoader } from "/src/component/loader/loader.js";
 
 /**

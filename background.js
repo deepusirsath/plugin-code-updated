@@ -83,7 +83,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === "reloadPage") {
     // Query the active tab in the current window
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-      var currentTab = tabs[0];
+      let currentTab = tabs[0];
       // Reload the current tab
       chrome.tabs.reload(currentTab.id, function () {
         sendResponse({ success: true });
@@ -148,9 +148,9 @@ async function fetchIpAddress() {
 function userBrowserInfo() {
   return new Promise((resolve) => {
     navigator.sayswho = (function () {
-      var ua = navigator.userAgent;
-      var tem;
-      var M =
+      let ua = navigator.userAgent;
+      let tem;
+      let M =
         ua.match(
           /(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i
         ) || [];
