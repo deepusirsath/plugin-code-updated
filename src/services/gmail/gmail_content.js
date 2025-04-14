@@ -371,7 +371,21 @@ function pendingStatusCallForGmail() {
   });
 }
 
-// Do not start automatically
+/**
+ * Listens for messages from the background or content script and processes actions based on the message.
+ *
+ * This event listener checks for messages sent by Gmail client, specifically performing actions based 
+ * on the `action` type. It handles three types of actions:
+ * - "blockUrls": Clears the interval, hides the loading screen, and applies the "unsafe" status with the provided reason.
+ * - "unblock": Clears the interval, hides the loading screen, and applies the "safe" status.
+ * - "pending": Hides the loading screen, sets the pointer events to true, and starts an interval to check for the pending status every 5 seconds.
+ * 
+ * The function also calls `blockEmailBody()` for each action and responds with a status of "success".
+ *
+ * @param {Object} message - The message object containing details about the action, client, and unsafe reason.
+ * @param {Object} sender - Information about the script that sent the message.
+ * @param {Function} sendResponse - A function to send a response back to the sender, with the status "success".
+ */
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.client === "gmail") {
@@ -718,7 +732,17 @@ window.addEventListener("click", (e) => {
     });
   }
 });
-
+/**
+ * Listens for messages from the background script and extracts the email address from the page title.
+ *
+ * When the "ExtractEMailForGmail" action is received, this function attempts to extract an email address 
+ * from the document title using a regex pattern. If an email is found, it is stored in Chrome's local storage.
+ * If no email is found, the extraction function retries after 200 milliseconds.
+ *
+ * @param {Object} request - The message received from the background script.
+ * @param {Object} sender - Information about the script that sent the message.
+ * @param {Function} sendResponse - Function to send a response back to the sender (not used in this implementation).
+ */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "ExtractEMailForGmail") {
     // console.log("ExtractEMailForGmailExtractEMailForGmailExtractEMailForGmail");
@@ -746,7 +770,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 
 
-// Function to disable "Open in new window" menu option using the exact DOM structure
+/**
+ * Disables the "Open in new window" menu item in the Gmail context menu.
+ *
+ * This function searches for menu items with `role="menuitem"` and checks 
+ * if they contain the text "Open in new window". If found, it disables 
+ * interaction by setting `pointer-events: none`, reducing opacity, 
+ * and preventing clicks from triggering any action.
+ * 
+ * Additionally, it disables inner elements, including the `.J-N-Jz` 
+ * (inner menu item) and `.J-N-JX` (icon element), ensuring that 
+ * users cannot bypass the restriction.
+ */
 const disableOpenInNewWindow = () => {
   // Look for menu items with role="menuitem"
   const menuItems = document.querySelectorAll('div.J-N[role="menuitem"]');
@@ -849,13 +884,17 @@ setInterval(checkForContextMenu, 500);
 
 
 
-
-
-
-
-
-
-// Add this with the other message listeners
+/**
+ * Listens for messages from the background or content script and processes email size categories.
+ *
+ * This event listener checks if the received message has the action `"emailSizeCategory"`
+ * and comes from the `"gmail"` client. If both conditions are met, it calls 
+ * `handleEmailSizeCategory` with the provided size category.
+ *
+ * @param {Object} message - The message object sent from another script.
+ * @param {Object} sender - Information about the script that sent the message.
+ * @param {Function} sendResponse - A function to send a response back to the sender.
+ */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "emailSizeCategory" && message.client === "gmail") {
     // console.log(`message.action === "emailSizeCategory" && message.client === "gmail"`)
@@ -863,7 +902,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-// Add this function to handle different size categories
+/**
+ * Handles email size categorization and displays an alert accordingly.
+ *
+ * This function takes an email size category and triggers an alert with 
+ * the corresponding status. It also sets a message describing the email size range.
+ * 
+ * The function categorizes email sizes as:
+ * - "underTwo": Emails smaller than 2 MB.
+ * - "underTen": Emails between 2 MB and 10 MB.
+ * - "underTwenty": Emails between 10 MB and 20 MB.
+ * - "overTwenty": Emails larger than 20 MB.
+ * - Default case: Unknown email size.
+ *
+ * @param {string} sizeCategory - The category of the email size.
+ */
 function handleEmailSizeCategory(sizeCategory) {
   let sizeMessage = "";
   
