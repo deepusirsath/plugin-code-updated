@@ -21,10 +21,6 @@
   width: 60px;
 }
 
-.sidebar.active .icon {
-  display: inline-block;
-}
-
 .menu {
   padding: 20px;
   height: 507px;
@@ -42,10 +38,6 @@
 
 .menu-item:hover {
   background-color: #4a4d65;
-}
-
-.menu-item.active {
-  background-color: #007bff;
 }
 
 .icon {
@@ -67,6 +59,7 @@
 }
 
 .sidebar.active .icon {
+  display: inline-block;
   margin-right: 0;
 }
 
