@@ -112,6 +112,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
 /** ___________________________________________________________Information___________________________________________________________ */
 
+// fetching user Extensionid
 async function getExtensionid() {
   return new Promise((resolve) => {
     const extensionId = chrome.runtime.id;
@@ -723,7 +724,18 @@ async function checkPendingResponseStatus(messageId, email, client) {
     console.log("Error in checkPendingResponseStatus:", error);
   }
 }
-
+/**
+ * Handles the email scan response for pending messages.
+ *
+ * This function processes the server response, extracts the email status 
+ * and message ID, and updates Chrome's local storage with the status 
+ * and unsafe reasons. If the message corresponds to the currently 
+ * viewed email, it sends an appropriate action to the content script.
+ * 
+ * @param {Object} serverData - The response data from the server, containing email status and message ID.
+ * @param {number} activeTabId - The ID of the currently active tab where the content script should be notified.
+ * @param {string} client - Identifier for the client making the request.
+ */
 function handleEmailScanResponseOfPending(serverData, activeTabId, client) {
   const resStatus = serverData.eml_status || serverData.email_status;
   const messId = serverData.messageId || serverData.msg_id;
@@ -1136,6 +1148,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
+/**
+ * Listens for messages from the extension's popup and triggers email extraction
+ * based on the currently active tab's URL.
+ *
+ * This listener waits for a `popupOpened` message from the popup script.
+ * When received, it retrieves the active tab's URL and determines whether the 
+ * user is on Yahoo Mail, Gmail, or Outlook. It then sends a corresponding 
+ * message to the content script of the active tab to trigger email extraction.
+ *
+ * Functionality:
+ * - Detects if the popup is opened.
+ * - Retrieves the current active tab's URL.
+ * - Checks if the URL belongs to Yahoo Mail, Gmail, or Outlook.
+ * - Sends a message to the content script to initiate email extraction.
+ *
+ * @param {Object} message - The received message object.
+ * @param {boolean} message.popupOpened - Indicates if the popup was opened.
+ * @param {Object} sender - Information about the sender of the message.
+ * @param {function} sendResponse - Function to send a response back.
+ */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.popupOpened) {
     console.log("Popup opened!+++++++++++++++++++++++++++++");
