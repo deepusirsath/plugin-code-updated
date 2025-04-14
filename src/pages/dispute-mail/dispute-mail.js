@@ -67,7 +67,9 @@ const showPopup = async (msg_id) => {
  * @throws {Error} Displays error if the API request fails
  */
 const getViewDetailOfDisputeMail = async (msg_id) => {
+  console.log("msg_id", msg_id);
   const currentEmail = getCurrentEmail();
+  console.log("currentEmail", currentEmail);
   if (currentEmail) {
     try {
       const requestData = {
@@ -234,7 +236,9 @@ const attachViewButtonListeners = () => {
   // Now attach fresh event listeners
   const buttons = document.querySelectorAll(".view-button");
   buttons.forEach((button) => {
-    button.addEventListener("click", () => {});
+    button.addEventListener("click", () => {
+      showPopup(button.dataset.msg_id);
+    });
   });
 };
 

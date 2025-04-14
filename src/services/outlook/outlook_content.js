@@ -119,9 +119,11 @@ function handleEmailInteractions() {
     bvdElements.forEach((element) => {
       element.style.pointerEvents = "none";
     });
-    
+
     // Handle disableTextSelection F8ZSr BGDdH elements
-    const attachmentElements = document.querySelectorAll(".disableTextSelection.F8ZSr");
+    const attachmentElements = document.querySelectorAll(
+      ".disableTextSelection.F8ZSr"
+    );
     attachmentElements.forEach((element) => {
       element.style.pointerEvents = "none";
     });
@@ -171,9 +173,6 @@ function fetchLocation() {
   }
 }
 
-
-
-
 // Track both the path and full URL to detect all types of navigation
 let lastUrlPath = location.pathname;
 let lastFullUrl = location.href;
@@ -190,23 +189,25 @@ function cleanupPreviousClickListener() {
 new MutationObserver(() => {
   const currentUrlPath = location.pathname;
   const currentFullUrl = location.href;
-  
+
   // Check if either the path or full URL has changed
   if (currentUrlPath !== lastUrlPath || currentFullUrl !== lastFullUrl) {
     lastUrlPath = currentUrlPath;
     lastFullUrl = currentFullUrl;
-    
+
     // Check if the current URL is an Outlook mail URL that we should handle
     // This regex matches both simple mail paths and those with query parameters
-    const isMailUrl = /^\/mail(\/\d+)?(\/junkemail|\/deleteditems|\/archive)?/.test(currentUrlPath) && 
-                      currentFullUrl.includes('outlook.live.com');
-    
+    const isMailUrl =
+      /^\/mail(\/\d+)?(\/junkemail|\/deleteditems|\/archive)?/.test(
+        currentUrlPath
+      ) && currentFullUrl.includes("outlook.live.com");
+
     if (isMailUrl) {
       // Clean up previous listener to avoid duplicates
       if (activeClickListener) {
         cleanupPreviousClickListener();
       }
-      
+
       // Set up a new click listener
       setupClickListener();
       activeClickListener = true;
@@ -216,10 +217,12 @@ new MutationObserver(() => {
 }).observe(document, { subtree: true, childList: true });
 
 // Also check URL changes on page load and history state changes
-window.addEventListener('load', () => {
-  const isMailUrl = /^\/mail(\/\d+)?(\/junkemail|\/deleteditems|\/archive)?/.test(location.pathname) && 
-                    location.href.includes('outlook.live.com');
-  
+window.addEventListener("load", () => {
+  const isMailUrl =
+    /^\/mail(\/\d+)?(\/junkemail|\/deleteditems|\/archive)?/.test(
+      location.pathname
+    ) && location.href.includes("outlook.live.com");
+
   if (isMailUrl && !activeClickListener) {
     setupClickListener();
     activeClickListener = true;
@@ -228,17 +231,18 @@ window.addEventListener('load', () => {
 });
 
 // Listen for history state changes (when using browser back/forward buttons)
-window.addEventListener('popstate', () => {
-  const isMailUrl = /^\/mail(\/\d+)?(\/junkemail|\/deleteditems|\/archive)?/.test(location.pathname) && 
-                    location.href.includes('outlook.live.com');
-  
+window.addEventListener("popstate", () => {
+  const isMailUrl =
+    /^\/mail(\/\d+)?(\/junkemail|\/deleteditems|\/archive)?/.test(
+      location.pathname
+    ) && location.href.includes("outlook.live.com");
+
   if (isMailUrl && !activeClickListener) {
     setupClickListener();
     activeClickListener = true;
     // console.log("Initialized click listener after history navigation");
   }
 });
-
 
 chrome.runtime.onMessage.addListener((request) => {
   if (
@@ -248,7 +252,7 @@ chrome.runtime.onMessage.addListener((request) => {
     showAlert("badRequest");
     hideLoadingScreen();
   }
-})
+});
 
 /**
  * Listens for messages sent from other parts of the Chrome extension.
@@ -300,9 +304,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   return true;
 });
-
-
-
 
 /**
  * Detects clicks on specific menu items in an email client and triggers a page reload.
@@ -433,10 +434,10 @@ async function executeWithLoadingScreenAndExtraction() {
     // console.log("Email extraction already in progress, skipping new request");
     return;
   }
- 
+
   // Set flag to indicate extraction is in progress
   isExtractionInProgress = true;
- 
+
   blockUserInteraction(); // Disable all user interactions
   showLoadingScreen(); // Show the loading screen indefinitely
 
@@ -450,17 +451,6 @@ async function executeWithLoadingScreenAndExtraction() {
     unblockUserInteraction(); // Re-enable user interactions
   }
 }
-// async function executeWithLoadingScreenAndExtraction() {
-//   blockUserInteraction(); // Disable all user interactions
-//   showLoadingScreen(); // Show the loading screen indefinitely
-
-//   try {
-//     await runEmailExtraction(); // Extract email content
-//   } finally {
-//     // hideLoadingScreen(); // Hide the loading screen once email content is extracted
-//     unblockUserInteraction(); // Re-enable user interactions
-//   }
-// }
 
 let lastUrl = location.href;
 new MutationObserver(() => {
@@ -754,7 +744,7 @@ function setupClickListener(attempts = 500) {
   }
 }
 
-window.addEventListener('offline', function() {
+window.addEventListener("offline", function () {
   showAlert("networkError");
   hideLoadingScreen();
 });
@@ -892,35 +882,38 @@ async function runEmailExtraction() {
   // };
   const closeEmail = async () => {
     // Try to find the Close button first
-    const closeButton = document.querySelector('.fui-DialogActions button.fui-Button');
-    
+    const closeButton = document.querySelector(
+      ".fui-DialogActions button.fui-Button"
+    );
+
     if (closeButton) {
       // Click the Close button if found
       closeButton.click();
-    } 
-    else {
+    } else {
       // Fallback to the original approach if button not found
-      const overlay = document.querySelector(".fui-DialogSurface__backdrop.rsptlh5");
+      const overlay = document.querySelector(
+        ".fui-DialogSurface__backdrop.rsptlh5"
+      );
       if (overlay) {
         overlay.click();
-      } 
-      else {
+      } else {
         // If neither method works, try to find the button by its text content
-        const allButtons = Array.from(document.querySelectorAll('button'));
-        const closeButtonByText = allButtons.find(button => 
-          button.textContent.trim() === 'Close' && 
-          button.closest('.fui-DialogActions')
+        const allButtons = Array.from(document.querySelectorAll("button"));
+        const closeButtonByText = allButtons.find(
+          (button) =>
+            button.textContent.trim() === "Close" &&
+            button.closest(".fui-DialogActions")
         );
-        
+
         if (closeButtonByText) {
           closeButtonByText.click();
         }
       }
     }
-    
+
     // Enable scrolling (if it was disabled during the modal display)
   };
-  
+
   // Start the extraction process
   await processNavigationButton();
 }
@@ -1217,8 +1210,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-
-
 // Store original prototype methods that we'll override
 const originalCreateElement = document.createElement;
 const originalAppendChild = Node.prototype.appendChild;
@@ -1229,44 +1220,49 @@ const originalSetAttribute = Element.prototype.setAttribute;
 const checkAndDisableMenuItem = (element) => {
   // Skip if not an element
   if (!element || element.nodeType !== Node.ELEMENT_NODE) return;
-  
+
   // Check if this is a menu item we want to disable
-  if (element.getAttribute && element.getAttribute('role') === 'menuitem') {
+  if (element.getAttribute && element.getAttribute("role") === "menuitem") {
     // Wait for the text content to be set
     setTimeout(() => {
-      if (element.textContent && 
-          (element.textContent.includes('Open in new window') || 
-           element.textContent.includes('Open in new tab'))) {
-        
+      if (
+        element.textContent &&
+        (element.textContent.includes("Open in new window") ||
+          element.textContent.includes("Open in new tab"))
+      ) {
         // console.log('Intercepted menu item:', element.textContent);
-        
+
         // Disable the element
-        element.style.pointerEvents = 'none';
-        element.style.opacity = '0.5';
-        element.style.cursor = 'default';
-        element.setAttribute('aria-disabled', 'true');
-        element.removeAttribute('tabindex');
-        
+        element.style.pointerEvents = "none";
+        element.style.opacity = "0.5";
+        element.style.cursor = "default";
+        element.setAttribute("aria-disabled", "true");
+        element.removeAttribute("tabindex");
+
         // Mark as processed
-        element.setAttribute('data-disabled-by-extension', 'true');
-        
+        element.setAttribute("data-disabled-by-extension", "true");
+
         // Disable all children
-        const children = element.querySelectorAll('*');
-        children.forEach(child => {
-          child.style.pointerEvents = 'none';
-          child.style.cursor = 'default';
+        const children = element.querySelectorAll("*");
+        children.forEach((child) => {
+          child.style.pointerEvents = "none";
+          child.style.cursor = "default";
         });
-        
+
         // Add a click interceptor
-        element.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          return false;
-        }, true);
+        element.addEventListener(
+          "click",
+          (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+          },
+          true
+        );
       }
     }, 0);
   }
-  
+
   // Also check children recursively
   if (element.children && element.children.length) {
     Array.from(element.children).forEach(checkAndDisableMenuItem);
@@ -1274,76 +1270,86 @@ const checkAndDisableMenuItem = (element) => {
 };
 
 // Override createElement to intercept menu creation
-document.createElement = function(tagName, options) {
+document.createElement = function (tagName, options) {
   const element = originalCreateElement.call(document, tagName, options);
-  
+
   // Add a mutation observer to this element to catch when it becomes a menu item
   const observer = new MutationObserver((mutations) => {
-    if (element.getAttribute('role') === 'menuitem' || 
-        element.getAttribute('role') === 'menu') {
+    if (
+      element.getAttribute("role") === "menuitem" ||
+      element.getAttribute("role") === "menu"
+    ) {
       checkAndDisableMenuItem(element);
     }
   });
-  
-  observer.observe(element, { 
-    attributes: true, 
+
+  observer.observe(element, {
+    attributes: true,
     childList: true,
     subtree: true,
-    attributeFilter: ['role', 'class']
+    attributeFilter: ["role", "class"],
   });
-  
+
   return element;
 };
 
 // Override appendChild to intercept menu items being added to the DOM
-Node.prototype.appendChild = function(child) {
+Node.prototype.appendChild = function (child) {
   const result = originalAppendChild.call(this, child);
-  
+
   // Check if this is a menu or menu item
-  if (this.getAttribute && 
-      (this.getAttribute('role') === 'menu' || 
-       child.getAttribute && child.getAttribute('role') === 'menuitem')) {
+  if (
+    this.getAttribute &&
+    (this.getAttribute("role") === "menu" ||
+      (child.getAttribute && child.getAttribute("role") === "menuitem"))
+  ) {
     checkAndDisableMenuItem(child);
   }
-  
+
   // Also check if this is a Gmail menu
-  if ((this.classList && this.classList.contains('J-M')) || 
-      (child.classList && child.classList.contains('J-N'))) {
+  if (
+    (this.classList && this.classList.contains("J-M")) ||
+    (child.classList && child.classList.contains("J-N"))
+  ) {
     checkAndDisableMenuItem(child);
   }
-  
+
   return result;
 };
 
 // Override insertBefore to intercept menu items being added to the DOM
-Node.prototype.insertBefore = function(newNode, referenceNode) {
+Node.prototype.insertBefore = function (newNode, referenceNode) {
   const result = originalInsertBefore.call(this, newNode, referenceNode);
-  
+
   // Check if this is a menu or menu item
-  if (this.getAttribute && 
-      (this.getAttribute('role') === 'menu' || 
-       newNode.getAttribute && newNode.getAttribute('role') === 'menuitem')) {
+  if (
+    this.getAttribute &&
+    (this.getAttribute("role") === "menu" ||
+      (newNode.getAttribute && newNode.getAttribute("role") === "menuitem"))
+  ) {
     checkAndDisableMenuItem(newNode);
   }
-  
+
   // Also check if this is a Gmail menu
-  if ((this.classList && this.classList.contains('J-M')) || 
-      (newNode.classList && newNode.classList.contains('J-N'))) {
+  if (
+    (this.classList && this.classList.contains("J-M")) ||
+    (newNode.classList && newNode.classList.contains("J-N"))
+  ) {
     checkAndDisableMenuItem(newNode);
   }
-  
+
   return result;
 };
 
 // Override setAttribute to catch when elements become menu items
-Element.prototype.setAttribute = function(name, value) {
+Element.prototype.setAttribute = function (name, value) {
   const result = originalSetAttribute.call(this, name, value);
-  
+
   // Check if this element is becoming a menu item
-  if (name === 'role' && (value === 'menuitem' || value === 'menu')) {
+  if (name === "role" && (value === "menuitem" || value === "menu")) {
     checkAndDisableMenuItem(this);
   }
-  
+
   return result;
 };
 
@@ -1351,38 +1357,43 @@ Element.prototype.setAttribute = function(name, value) {
 const scanForMenuItems = () => {
   // Look for all menu items
   const menuItems = document.querySelectorAll('[role="menuitem"]');
-  
-  menuItems.forEach(item => {
-    if (item.textContent && 
-        (item.textContent.includes('Open in new window') || 
-         item.textContent.includes('Open in new tab')) &&
-        !item.hasAttribute('data-disabled-by-extension')) {
-      
+
+  menuItems.forEach((item) => {
+    if (
+      item.textContent &&
+      (item.textContent.includes("Open in new window") ||
+        item.textContent.includes("Open in new tab")) &&
+      !item.hasAttribute("data-disabled-by-extension")
+    ) {
       // console.log('Found menu item in scan:', item.textContent);
-      
+
       // Disable the element
-      item.style.pointerEvents = 'none';
-      item.style.opacity = '0.5';
-      item.style.cursor = 'default';
-      item.setAttribute('aria-disabled', 'true');
-      item.removeAttribute('tabindex');
-      
+      item.style.pointerEvents = "none";
+      item.style.opacity = "0.5";
+      item.style.cursor = "default";
+      item.setAttribute("aria-disabled", "true");
+      item.removeAttribute("tabindex");
+
       // Mark as processed
-      item.setAttribute('data-disabled-by-extension', 'true');
-      
+      item.setAttribute("data-disabled-by-extension", "true");
+
       // Disable all children
-      const children = item.querySelectorAll('*');
-      children.forEach(child => {
-        child.style.pointerEvents = 'none';
-        child.style.cursor = 'default';
+      const children = item.querySelectorAll("*");
+      children.forEach((child) => {
+        child.style.pointerEvents = "none";
+        child.style.cursor = "default";
       });
-      
+
       // Add a click interceptor
-      item.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        return false;
-      }, true);
+      item.addEventListener(
+        "click",
+        (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        },
+        true
+      );
     }
   });
 };
@@ -1394,24 +1405,16 @@ scanForMenuItems();
 setInterval(scanForMenuItems, 500);
 
 // Also listen for context menu events
-document.addEventListener('contextmenu', () => {
-  // Run multiple scans after a context menu event
-  for (let i = 0; i < 10; i++) {
-    setTimeout(scanForMenuItems, i * 50);
-  }
-}, true);
-
-
-
-
-
-
-
-
-
-
-
-
+document.addEventListener(
+  "contextmenu",
+  () => {
+    // Run multiple scans after a context menu event
+    for (let i = 0; i < 10; i++) {
+      setTimeout(scanForMenuItems, i * 50);
+    }
+  },
+  true
+);
 
 // Add this with the other message listeners
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -1423,27 +1426,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // Add this function to handle different size categories
 function handleEmailSizeCategory(sizeCategory) {
   let sizeMessage = "";
-  
-  switch(sizeCategory) {
+
+  switch (sizeCategory) {
     case "underTwo":
-      showAlert("pending", "underTwo")
+      showAlert("pending", "underTwo");
       sizeMessage = "Email size is under 2 MB";
       break;
     case "underTen":
-      showAlert("pending", "underTen")
+      showAlert("pending", "underTen");
       sizeMessage = "Email size is between 2-10 MB";
       break;
     case "underTwenty":
-      showAlert("pending", "underTwenty")
+      showAlert("pending", "underTwenty");
       sizeMessage = "Email size is between 10-20 MB";
       break;
     case "overTwenty":
-      showAlert("pending", "overTwenty")
+      showAlert("pending", "overTwenty");
       sizeMessage = "Email size is over 20 MB";
       break;
     default:
-      showAlert("pending", "Some time")
+      showAlert("pending", "Some time");
       sizeMessage = "Email size unknown";
   }
-
 }

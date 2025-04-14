@@ -42,6 +42,12 @@ async function fetchDeviceDataToSend() {
         refresh_token: data?.licenseStatus?.refresh_token,
       });
       await chrome.storage.local.set({
+        validFrom: data?.licenseStatus?.validFrom,
+      });
+      await chrome.storage.local.set({
+        validTill: data?.licenseStatus?.validTill,
+      });
+      await chrome.storage.local.set({
         mac_address: data?.deviceDetails?.macAdress,
       });
     }
@@ -77,7 +83,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === "reloadPage") {
     // Query the active tab in the current window
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-      var currentTab = tabs[0];
+      let currentTab = tabs[0];
       // Reload the current tab
       chrome.tabs.reload(currentTab.id, function () {
         sendResponse({ success: true });
@@ -88,27 +94,27 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 });
 
 // Listener for chrome runtime message
-// chrome.management.onEnabled.addListener(() => {
-//   // Make the fetch request to the server
-//   const url = baseUrl + PLUGINS_ENABLE_DISABLE;
+chrome.management.onEnabled.addListener(() => {
+  // Make the fetch request to the server
+  const url = baseUrl + PLUGINS_ENABLE_DISABLE;
 
-//   fetch(url, {
-//     method: "GET",
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//   })
-//     .then((response) => {
-//       if (!response.ok) {
-//         throw new Error("Network response was not ok");
-//       }
-//       return response.json();
-//     })
-//     .then((data) => {})
-//     .catch((error) => {
-//       console.error("There was a problem with the fetch operation:", error);
-//     });
-// });
+  fetch(url, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      return response.json();
+    })
+    .then((data) => {})
+    .catch((error) => {
+      console.error("There was a problem with the fetch operation:", error);
+    });
+});
 
 /** ___________________________________________________________Information___________________________________________________________ */
 
@@ -143,9 +149,9 @@ async function fetchIpAddress() {
 function userBrowserInfo() {
   return new Promise((resolve) => {
     navigator.sayswho = (function () {
-      var ua = navigator.userAgent;
-      var tem;
-      var M =
+      let ua = navigator.userAgent;
+      let tem;
+      let M =
         ua.match(
           /(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i
         ) || [];
@@ -511,9 +517,57 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 async function sendEmlToServer(messageId, blob = null, client, user_email) {
   try {
     console.log("send eml to server start");
-    // if (!pluginId) {F
-    //   await getExtensionid();
-    // }
+    let blobSizeInMB = 0;
+    let sizeCategory = "";
+
+    // Calculate blob size if blob exists
+    if (blob) {
+      let blobSizeInBytes = 0;
+
+      if (client === "outlook") {
+        // For Outlook, blob is not yet a Blob object
+        const tempBlob = new Blob([blob], { type: "text/plain" });
+        blobSizeInBytes = tempBlob.size;
+      } else {
+        // For Gmail and Yahoo, blob is already a Blob object
+        blobSizeInBytes = blob.size;
+      }
+
+      const blobSizeInKB = (blobSizeInBytes / 1024).toFixed(2);
+      blobSizeInMB = (blobSizeInBytes / (1024 * 1024)).toFixed(2);
+      console.log(
+        `${client} blob size: ${blobSizeInBytes} bytes (${blobSizeInKB} KB, ${blobSizeInMB} MB)`
+      );
+
+      // Determine size category
+      if (blobSizeInMB < 2) {
+        sizeCategory = "underTwo";
+      } else if (blobSizeInMB < 10) {
+        sizeCategory = "underTen";
+      } else if (blobSizeInMB < 20) {
+        sizeCategory = "underTwenty";
+      } else {
+        sizeCategory = "overTwenty";
+      }
+
+      // Get active tab to send message
+      const tabs = await chrome.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
+      if (tabs && tabs.length > 0) {
+        const activeTabId = tabs[0].id;
+        // Send message to content script with size category
+        chrome.tabs.sendMessage(activeTabId, {
+          action: "emailSizeCategory",
+          sizeCategory: sizeCategory,
+          client: client,
+        });
+      }
+    } else {
+      console.log("No blob provided to sendEmlToServer");
+    }
+
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tabs || !tabs.length) {
       throw new Error("No active tab available");

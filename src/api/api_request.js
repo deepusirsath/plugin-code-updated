@@ -23,7 +23,7 @@ export async function apiRequest(url, method, payload = null, customHeaders) {
     Authorization: access_token ? `Bearer ${access_token}` : "",
     ...customHeaders,
   };
-  
+
   const options = {
     method,
     headers,
@@ -45,7 +45,7 @@ export async function apiRequest(url, method, payload = null, customHeaders) {
       }
 
       const sidebarElement = document.getElementById(TARGET_ID.SIDEBAR);
-     
+
       if (sidebarElement) {
         sidebarElement.style.display = "none";
       }
@@ -70,6 +70,5 @@ export async function apiRequest(url, method, payload = null, customHeaders) {
     return response.status === 204 ? null : await response.json();
   } catch (error) {
     console.error(ERROR_MESSAGES.API_FAILED_MESSAGE);
-    throw error;
   }
 }
