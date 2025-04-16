@@ -39,6 +39,9 @@ async function fetchDeviceDataToSend() {
         access_token: data?.licenseStatus?.access_token,
       });
       await chrome.storage.local.set({
+        revoke_status: data?.licenseStatus?.revoke_status,
+      });
+      await chrome.storage.local.set({
         refresh_token: data?.licenseStatus?.refresh_token,
       });
       await chrome.storage.local.set({

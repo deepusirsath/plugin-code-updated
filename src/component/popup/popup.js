@@ -58,9 +58,15 @@ export const handleRegisteredUser = async () => {
  */
 const handleEmailPageResponse = async (response) => {
   const { access_token } = await chrome.storage.local.get("access_token");
+  const { revoke_status } = await chrome.storage.local.get("revoke_status");
+
+  if (revoke_status) {
+    await loadUnauthenticatedComponents("licenseExpire");
+    return;
+  }
 
   if (!access_token) {
-    await loadUnauthenticatedComponents();
+    await loadUnauthenticatedComponents("tokenExpire");
     return;
   }
 
