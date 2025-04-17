@@ -521,10 +521,26 @@ function createUrl(selectedMailboxId, lastMessageId, userEmail) {
     console.error(ERROR_MESSAGES.FAILED_TO_SEND_EMAIL_CONTENT);
   }
 }
+
+// Add these event listeners to detect network status changes
 window.addEventListener('offline', function() {
   showAlert("networkError");
   hideLoadingScreen();
+  chrome.storage.local.set({ networkWentOffline: true });
 });
+
+window.addEventListener('online', function() {
+  // Check if the network previously went offline
+  chrome.storage.local.get("networkWentOffline", function(result) {
+    if (result.networkWentOffline) {
+      chrome.storage.local.remove("networkWentOffline");
+      window.location.reload();
+    }
+  });
+});
+
+
+
 /**
  * Listens for messages sent from the background script or other parts of the extension.
  * Specifically, it handles error messages received from the server for Yahoo clients.
