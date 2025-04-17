@@ -1,13 +1,10 @@
-chrome.runtime.sendMessage({ popupOpened: true }, () => {
-  console.log("popup opened");
-});
-
 import { displayError } from "/src/helper/display_error.js";
 import { isEmailPage } from "/src/helper/is_gmail_page_helper.js";
 import { loadCommonComponents } from "/src/routes/common_route.js";
 import { loadNotEmailPageComponents } from "/src/routes/not_email_page_route.js";
 import { loadAuthenticatedComponents } from "/src/routes/authenticated_route.js";
 import { loadUnauthenticatedComponents } from "/src/routes/unauthenticated_route.js";
+import { checkTokenValidity } from "/src/helper/decode_Jwt_helper.js";
 
 /**
  * Initializes the popup interface for registered users by loading authenticated components
@@ -59,14 +56,15 @@ export const handleRegisteredUser = async () => {
 const handleEmailPageResponse = async (response) => {
   const { access_token } = await chrome.storage.local.get("access_token");
   const { revoke_status } = await chrome.storage.local.get("revoke_status");
+  const isTokenValid = await checkTokenValidity(access_token);
 
-  if (revoke_status) {
-    await loadUnauthenticatedComponents("licenseExpire");
+  if (!isTokenValid || !access_token) {
+    await loadUnauthenticatedComponents("tokenExpire");
     return;
   }
 
-  if (!access_token) {
-    await loadUnauthenticatedComponents("tokenExpire");
+  if (revoke_status) {
+    await loadUnauthenticatedComponents("licenseExpire");
     return;
   }
 
