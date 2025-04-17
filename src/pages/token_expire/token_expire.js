@@ -30,7 +30,8 @@ const getAccessToken = async () => {
     const response = await postData(`${GEN_ACCESS_TOKEN}`, requestData);
 
     if (response?.tokenExpired) {
-      fetchDeviceDataToSend();
+      await fetchDeviceDataToSend();
+      window.close();
     }
 
     if (response?.data?.access_token) {
