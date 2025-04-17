@@ -20,6 +20,10 @@ const formatDate = (dateString) => {
  * Retrieves and displays license details
  */
 export const getAllDetails = async () => {
+  const noDataFoundElement = document.getElementById("noDataFound");
+  if (noDataFoundElement) {
+    noDataFoundElement.innerHTML = "";
+  }
   const detailsBox = document.getElementById("details-box");
   detailsBox.style.display = "none";
 
