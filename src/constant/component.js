@@ -20,4 +20,5 @@ export const COMPONENTS = {
   EMAIL_PAGE_NOT_FOUND: "email_page_not_found",
   OPENED_MAIL_NOT_FOUND: "opened_mail_not_found",
   TOKEN_EXPIRE: "token_expire",
+  LICENSE_EXPIRE: "license_expire",
 };
