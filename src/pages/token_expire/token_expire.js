@@ -40,6 +40,7 @@ const getAccessToken = async () => {
       });
       await loadCommonComponents();
       await handleRegisteredUser();
+
       if (sidebarElement) {
         sidebarElement.style.display = "block";
       }
