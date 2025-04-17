@@ -1,4 +1,5 @@
 // Import necessary modules
+import { fetchDeviceDataToSend } from "./src/helper/devide_data_helper.js";
 import config from "./config.js";
 import {
   CHECK_EMAIL,
@@ -29,32 +30,6 @@ let macId = null;
 chrome.storage.local.set({ registration: true });
 
 /** ___________________________________________________________Extension___________________________________________________________ */
-
-async function fetchDeviceDataToSend() {
-  try {
-    const response = await fetch("http://localhost:3000/deviceIdentifiers");
-    if (response.ok) {
-      const data = await response.json();
-      await chrome.storage.local.set({
-        access_token: data?.licenseStatus?.access_token,
-      });
-      await chrome.storage.local.set({
-        refresh_token: data?.licenseStatus?.refresh_token,
-      });
-      await chrome.storage.local.set({
-        validFrom: data?.licenseStatus?.validFrom,
-      });
-      await chrome.storage.local.set({
-        validTill: data?.licenseStatus?.validTill,
-      });
-      await chrome.storage.local.set({
-        mac_address: data?.deviceDetails?.macAdress,
-      });
-    }
-  } catch (error) {
-    console.error("Error fetching device data:", error);
-  }
-}
 
 chrome.storage.local.get(null, function (items) {
   console.log("All Local Storage Data:", items);
@@ -91,29 +66,6 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     });
     return true; // Keeps the message channel open until sendResponse is called
   }
-});
-
-// Listener for chrome runtime message
-chrome.management.onEnabled.addListener(() => {
-  // Make the fetch request to the server
-  const url = baseUrl + PLUGINS_ENABLE_DISABLE;
-
-  fetch(url, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      return response.json();
-    })
-    .then((data) => {})
-    .catch((error) => {
-      console.error("There was a problem with the fetch operation:", error);
-    });
 });
 
 /** ___________________________________________________________Information___________________________________________________________ */

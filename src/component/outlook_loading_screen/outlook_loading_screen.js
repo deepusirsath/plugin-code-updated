@@ -259,7 +259,6 @@ export const hideLoadingScreen = () => {
           }, 1000);
         }, 300);
       }
-    } else {
     }
   }, 1000);
 };

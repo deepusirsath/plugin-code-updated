@@ -26,7 +26,7 @@
   word-break: break-word;
   overflow-wrap: break-word;
   max-height: 80vh;
-  overflow-y: auto;
+  /* overflow-y: auto; */
   height: fit-content;
 }
 
