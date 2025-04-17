@@ -1,11 +1,7 @@
 // Import necessary modules
-import { fetchDeviceDataToSend } from "./src/helper/devide_data_helper.js";
 import config from "./config.js";
-import {
-  CHECK_EMAIL,
-  PLUGINS_ENABLE_DISABLE,
-  PENDING_STATUS_CHECK,
-} from "./src/routes/api_route.js";
+import { fetchDeviceDataToSend } from "./src/helper/devide_data_helper.js";
+import { CHECK_EMAIL, PENDING_STATUS_CHECK } from "./src/routes/api_route.js";
 import {
   sendDisputeToServer,
   checkAdminComment,
@@ -26,8 +22,6 @@ let ipAddress = null;
 let browserInfo = null;
 let operatingSystem = null;
 let macId = null;
-
-chrome.storage.local.set({ registration: true });
 
 /** ___________________________________________________________Extension___________________________________________________________ */
 

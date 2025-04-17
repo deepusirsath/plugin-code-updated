@@ -3,6 +3,8 @@ export const fetchDeviceDataToSend = async () => {
     const response = await fetch("http://localhost:3000/deviceIdentifiers");
     if (response.ok) {
       const data = await response.json();
+      await chrome.storage.local.set({ registration: true });
+
       await chrome.storage.local.set({
         access_token: data?.licenseStatus?.access_token,
       });
