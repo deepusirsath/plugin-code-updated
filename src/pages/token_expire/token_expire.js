@@ -3,8 +3,9 @@ import { postData } from "/src/api/api_method.js";
 import { showLoader, hideLoader } from "/src/component/loader/loader.js";
 import { handleRegisteredUser } from "/src/component/popup/popup.js";
 import { loadCommonComponents } from "/src/routes/common_route.js";
-import { TARGET_ID } from "/src/constant/target_id.js";
 import { initializeSidebarNavigation } from "/src/component/sidebar/sidebar.js";
+import { fetchDeviceDataToSend } from "/src/helper/devide_data_helper.js";
+import { TARGET_ID } from "/src/constant/target_id.js";
 
 const refreshTokenButton = document.getElementById("refreshTokenButton");
 
@@ -17,7 +18,6 @@ const getAccessToken = async () => {
     const sidebarElement = document.getElementById(TARGET_ID.SIDEBAR);
 
     if (!refresh_token || !mac_address) {
-      console.error("Missing refresh_token or macAddress");
       hideLoader();
       return;
     }
@@ -29,6 +29,11 @@ const getAccessToken = async () => {
 
     const response = await postData(`${GEN_ACCESS_TOKEN}`, requestData);
 
+    if (response?.tokenExpired) {
+      await fetchDeviceDataToSend();
+      window.close();
+    }
+
     if (response?.data?.access_token) {
       await chrome.storage.local.set({
         access_token: response?.data?.access_token,
@@ -38,6 +43,7 @@ const getAccessToken = async () => {
       if (sidebarElement) {
         sidebarElement.style.display = "block";
       }
+
       initializeSidebarNavigation();
     }
     hideLoader();

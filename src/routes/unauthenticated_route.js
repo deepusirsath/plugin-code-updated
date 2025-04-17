@@ -22,17 +22,9 @@ import { loadComponent } from "/src/helper/content_loader_helper.js";
  * Used by loadUnauthenticatedComponents() to dynamically load and render
  * the registration form for new users.
  */
-const tokenExpireRoute = [
+const UnauthenticatedRoute = [
   {
     componentName: COMPONENTS.TOKEN_EXPIRE,
-    basePath: BASEPATH.PAGES,
-    targetId: TARGET_ID.DATA_OUTPUT,
-  },
-];
-
-const licenseRoute = [
-  {
-    componentName: COMPONENTS.LICENSE_EXPIRE,
     basePath: BASEPATH.PAGES,
     targetId: TARGET_ID.DATA_OUTPUT,
   },
@@ -51,10 +43,8 @@ const licenseRoute = [
  *
  * @returns {Promise<void>} Resolves when all components are loaded
  */
-export const loadUnauthenticatedComponents = async (data) => {
-  data === "licenseExpire"
-    ? await Promise.all(licenseRoute.map((config) => loadComponent(config)))
-    : await Promise.all(
-        tokenExpireRoute.map((config) => loadComponent(config))
-      );
+export const loadUnauthenticatedComponents = async () => {
+  await Promise.all(
+    UnauthenticatedRoute.map((config) => loadComponent(config))
+  );
 };
