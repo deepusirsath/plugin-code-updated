@@ -223,6 +223,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (chrome.runtime.lastError) {
           return;
         }
+
         if (data.registration) {
           const lastSegment = url.split("/").pop().split("#").pop();
           if (lastSegment.length >= isValidSegmentLength) {

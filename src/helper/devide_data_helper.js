@@ -1,6 +1,7 @@
 export const fetchDeviceDataToSend = async () => {
   try {
     const response = await fetch("http://localhost:64321/deviceIdentifiers");
+
     if (response.ok) {
       const data = await response.json();
       await chrome.storage.local.set({ registration: true });
