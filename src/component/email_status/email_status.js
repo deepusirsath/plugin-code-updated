@@ -426,7 +426,7 @@ export function showAlert(key, messageReason = " ") {
           </g>
         </svg>`;
       break;
-      
+
     case "badRequest":
       message.innerText =
         "An error occurred while processing your request. Multiple attempts failed. Check your input and retry. If the problem continues, contact support.";
@@ -475,41 +475,47 @@ export function showAlert(key, messageReason = " ") {
       alertContainer.style.borderRadius = "8px";
 
       iconHtml = `<svg width="52" height="52" viewBox="0 0 48 48">
-          <defs>
-            <linearGradient id="networkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#6c757d;stop-opacity:1" />
-              <stop offset="100%" style="stop-color:#495057;stop-opacity:1" />
-            </linearGradient>
-            <filter id="shadow-network">
-              <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#6c757d" flood-opacity="0.15"/>
-            </filter>
-          </defs>
-          
-          <!-- Simplified Wi-Fi Signal with Connection Issues -->
-          <g filter="url(#shadow-network)" transform="translate(24,32)">
-            <!-- Signal arcs with staggered animation -->
-            <path d="M-16,0 A16,16 0 0 1 16,0" fill="none" stroke="url(#networkGradient)" stroke-width="3" stroke-linecap="round" stroke-dasharray="0 100" opacity="0.7">
-              <animate attributeName="stroke-dasharray" values="0 100;50 50;0 100" dur="2s" repeatCount="indefinite"/>
-            </path>
-            <path d="M-12,6 A12,12 0 0 1 12,6" fill="none" stroke="url(#networkGradient)" stroke-width="3" stroke-linecap="round" stroke-dasharray="0 100" opacity="0.7">
-              <animate attributeName="stroke-dasharray" values="0 100;50 50;0 100" dur="2s" begin="0.2s" repeatCount="indefinite"/>
-            </path>
-            <path d="M-8,12 A8,8 0 0 1 8,12" fill="none" stroke="url(#networkGradient)" stroke-width="3" stroke-linecap="round" stroke-dasharray="0 100" opacity="0.7">
-              <animate attributeName="stroke-dasharray" values="0 100;50 50;0 100" dur="2s" begin="0.4s" repeatCount="indefinite"/>
-            </path>
+            <defs>
+              <linearGradient id="networkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#6c757d;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#495057;stop-opacity:1" />
+              </linearGradient>
+              <filter id="shadow-network">
+                <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#6c757d" flood-opacity="0.15"/>
+              </filter>
+            </defs>
             
-            <!-- Connection dot with pulsing animation -->
-            <circle cx="0" cy="18" r="3" fill="#e74c3c">
-              <animate attributeName="r" values="2;3;2" dur="1.5s" repeatCount="indefinite"/>
-              <animate attributeName="fill-opacity" values="0.7;1;0.7" dur="1.5s" repeatCount="indefinite"/>
-            </circle>
-            
-            <!-- Brief connection lines that appear/disappear -->
-            <line x1="-4" y1="18" x2="4" y2="18" stroke="#e74c3c" stroke-width="2" stroke-linecap="round" stroke-dasharray="8 0">
-              <animate attributeName="stroke-dasharray" values="0 8;8 0;0 8" dur="3s" repeatCount="indefinite"/>
-            </line>
-          </g>
-        </svg>`;
+            <!-- Simplified Wi-Fi Signal with Connection Issues -->
+            <g filter="url(#shadow-network)" transform="translate(24,32)">
+              <!-- Signal arcs with staggered animation -->
+              <path d="M-16,0 A16,16 0 0 1 16,0" fill="none" stroke="url(#networkGradient)" stroke-width="3" stroke-linecap="round" stroke-dasharray="0 100" opacity="0.7">
+                <animate attributeName="stroke-dasharray" values="0 100;50 50;0 100" dur="2s" repeatCount="indefinite"/>
+              </path>
+              <path d="M-12,6 A12,12 0 0 1 12,6" fill="none" stroke="url(#networkGradient)" stroke-width="3" stroke-linecap="round" stroke-dasharray="0 100" opacity="0.7">
+                <animate attributeName="stroke-dasharray" values="0 100;50 50;0 100" dur="2s" begin="0.2s" repeatCount="indefinite"/>
+              </path>
+              <path d="M-8,12 A8,8 0 0 1 8,12" fill="none" stroke="url(#networkGradient)" stroke-width="3" stroke-linecap="round" stroke-dasharray="0 100" opacity="0.7">
+                <animate attributeName="stroke-dasharray" values="0 100;50 50;0 100" dur="2s" begin="0.4s" repeatCount="indefinite"/>
+              </path>
+              
+              <!-- Connection dot with pulsing animation -->
+              <circle cx="0" cy="18" r="3" fill="#e74c3c">
+                <animate attributeName="r" values="2;3;2" dur="1.5s" repeatCount="indefinite"/>
+                <animate attributeName="fill-opacity" values="0.7;1;0.7" dur="1.5s" repeatCount="indefinite"/>
+              </circle>
+              
+              <!-- Brief connection lines that appear/disappear -->
+              <line x1="-4" y1="18" x2="4" y2="18" stroke="#e74c3c" stroke-width="2" stroke-linecap="round" stroke-dasharray="8 0">
+                <animate attributeName="stroke-dasharray" values="0 8;8 0;0 8" dur="3s" repeatCount="indefinite"/>
+              </line>
+            </g>
+          </svg>`;
+
+      // Replace the button with a reload button
+      button.innerText = "Reload";
+      button.addEventListener("click", () => {
+        location.reload();
+      });
       break;
     default:
       return;

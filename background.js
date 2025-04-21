@@ -722,6 +722,7 @@ async function checkPendingResponseStatus(messageId, email, client) {
     console.log("Error in checkPendingResponseStatus:", error);
   }
 }
+
 /**
  * Handles the email scan response for pending messages.
  *
