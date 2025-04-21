@@ -471,21 +471,13 @@ async function sendEmlToServer(messageId, blob = null, client, user_email) {
       let blobSizeInBytes = 0;
 
       if (client === "outlook") {
-        // For Outlook, blob is not yet a Blob object
         const tempBlob = new Blob([blob], { type: "text/plain" });
         blobSizeInBytes = tempBlob.size;
       } else {
-        // For Gmail and Yahoo, blob is already a Blob object
         blobSizeInBytes = blob.size;
       }
 
-      const blobSizeInKB = (blobSizeInBytes / 1024).toFixed(2);
       blobSizeInMB = (blobSizeInBytes / (1024 * 1024)).toFixed(2);
-      console.log(
-        `${client} blob size: ${blobSizeInBytes} bytes (${blobSizeInKB} KB, ${blobSizeInMB} MB)`
-      );
-
-      // Determine size category
       if (blobSizeInMB < 2) {
         sizeCategory = "underTwo";
       } else if (blobSizeInMB < 10) {
@@ -724,6 +716,7 @@ async function checkPendingResponseStatus(messageId, email, client) {
     console.log("Error in checkPendingResponseStatus:", error);
   }
 }
+
 /**
  * Handles the email scan response for pending messages.
  *

@@ -351,9 +351,21 @@ chrome.runtime.onMessage.addListener((request) => {
     hideLoadingScreen();
   }
 });
+
 window.addEventListener("offline", function () {
   showAlert("networkError");
   hideLoadingScreen();
+  chrome.storage.local.set({ networkWentOffline: true });
+});
+
+window.addEventListener("online", function () {
+  // Check if the network previously went offline
+  chrome.storage.local.get("networkWentOffline", function (result) {
+    if (result.networkWentOffline) {
+      chrome.storage.local.remove("networkWentOffline");
+      window.location.reload();
+    }
+  });
 });
 
 chrome.runtime.onMessage.addListener((request) => {
@@ -687,13 +699,6 @@ async function findEmailId() {
  * @param {Event} event - The click event triggered by the user.
  */
 
-// document.addEventListener("click", function removeAlertOnClick(event) {
-//   const alertContainer = document.querySelector("div[style*='z-index: 1000']");
-//   if (alertContainer) {
-//     document.body.removeChild(alertContainer);
-//     document.removeEventListener("click", removeAlertOnClick); // Remove listener after execution
-//   }
-// });
 document.addEventListener("click", function removeAlertOnClick(event) {
   const alertContainer = document.querySelector("div[style*='z-index: 1000']");
   if (alertContainer && alertContainer.parentNode) {
@@ -735,6 +740,7 @@ window.addEventListener("click", (e) => {
     });
   }
 });
+
 /**
  * Listens for messages from the background script and extracts the email address from the page title.
  *

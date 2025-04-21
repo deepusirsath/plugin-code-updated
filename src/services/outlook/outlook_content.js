@@ -744,10 +744,21 @@ function setupClickListener(attempts = 500) {
   }
 }
 
-window.addEventListener("offline", function () {
+window.addEventListener('offline', function() {
   showAlert("networkError");
   hideLoadingScreen();
+  chrome.storage.local.set({ networkWentOffline: true });
 });
+
+window.addEventListener('online', function() {
+  chrome.storage.local.get("networkWentOffline", function(result) {
+    if (result.networkWentOffline) {
+      chrome.storage.local.remove("networkWentOffline");
+      window.location.reload();
+    }
+  });
+});
+
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (
