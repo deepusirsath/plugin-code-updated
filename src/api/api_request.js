@@ -38,6 +38,7 @@ export async function apiRequest(url, method, payload = null, customHeaders) {
     const response = await fetch(url, options);
 
     if (response.status === 401) {
+      await chrome.storage.local.set({ registration: false });
       await chrome.storage.local.remove("access_token");
       const dataOutputElement = document.getElementById(TARGET_ID.DATA_OUTPUT);
       if (dataOutputElement) {
