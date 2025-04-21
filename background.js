@@ -1,6 +1,5 @@
 // Import necessary modules
 import config from "./config.js";
-import { fetchDeviceDataToSend } from "./src/helper/devide_data_helper.js";
 import { CHECK_EMAIL, PENDING_STATUS_CHECK } from "./src/routes/api_route.js";
 import {
   sendDisputeToServer,
@@ -28,6 +27,38 @@ let macId = null;
 chrome.storage.local.get(null, function (items) {
   console.log("All Local Storage Data:", items);
 });
+
+const fetchDeviceDataToSend = async () => {
+  try {
+    const response = await fetch("http://localhost:64321/deviceIdentifiers");
+
+    if (response.ok) {
+      const data = await response.json();
+      await chrome.storage.local.set({ registration: true });
+
+      await chrome.storage.local.set({
+        access_token: data?.licenseStatus?.access_token,
+      });
+      await chrome.storage.local.set({
+        revoke_status: data?.licenseStatus?.revoke_status,
+      });
+      await chrome.storage.local.set({
+        refresh_token: data?.licenseStatus?.refresh_token,
+      });
+      await chrome.storage.local.set({
+        validFrom: data?.licenseStatus?.validFrom,
+      });
+      await chrome.storage.local.set({
+        validTill: data?.licenseStatus?.validTill,
+      });
+      await chrome.storage.local.set({
+        mac_address: data?.deviceDetails?.macAdress,
+      });
+    }
+  } catch (error) {
+    console.error("Error fetching device data:", error);
+  }
+};
 
 // Listener for chrome startup
 chrome.runtime.onStartup.addListener(async () => {
