@@ -284,6 +284,13 @@ const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
     }
 
     if (!spamMailResponse.results || spamMailResponse.results.length === 0) {
+
+       // Clear all container elements that might cause gaps
+  const dataOutputElement = document.getElementById(TARGET_ID.DATA_OUTPUT);
+  if (dataOutputElement) {
+    dataOutputElement.innerHTML = ""; // Clear the entire data output container
+  }
+  
       const SearchElement = document.getElementById("search-container");
       if (SearchElement) {
         SearchElement.innerHTML = "";
