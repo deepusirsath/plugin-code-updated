@@ -1,52 +1,156 @@
-.details-container{
+.details-container {
     background-color: #ffffff;
     padding: 20px;
-    margin: 20px auto;
+    margin: 15px auto;
     border-radius: 12px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-    max-width: 400px;
-    transition: transform 0.3s, box-shadow 0.3s;
-    font-family: 'Arial', sans-serif;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    max-width: 90%;
+    transition: all 0.3s ease;
+    font-family: 'Segoe UI', 'Arial', sans-serif;
+    overflow-y: auto;
+    max-height: calc(100vh - 100px);
 }
 
 .details-container:hover {
-    transform: scale(1.03);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-}
-
-#details-title {
-    font-size: 24px;
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 15px;
-    color: #333;
-    border-bottom: 2px solid #f0f0f0;
-    padding-bottom: 10px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
 }
 
 #details-content {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
 }
 
-#details-item {
+.details-item {
     background-color: #f8f9fa;
-    border-left: 4px solid #007bff;
-    padding: 10px 15px;
+    border-left: 4px solid #0066cc;
+    padding: 10px 14px;
     border-radius: 8px;
     display: flex;
+    flex-direction: row; /* Changed to row for horizontal alignment */
+    align-items: center; /* Center align items vertically */
+    transition: background-color 0.2s ease;
+}
+
+.details-item:hover {
+    background-color: #f0f4f8;
+}
+
+.details-item strong {
+    font-size: 13px;
+    color: #0066cc;
+    margin-right: 10px; /* Add right margin instead of bottom */
+    letter-spacing: 0.3px;
+    min-width: 100px; /* Set minimum width for labels */
+    flex-shrink: 0; /* Prevent label from shrinking */
+}
+
+/* Special styling for License ID to allow it to be on separate lines if needed */
+.details-item:first-child {
     flex-direction: column;
+    align-items: flex-start;
 }
 
-#details-item strong {
+.details-item:first-child strong {
+    margin-bottom: 4px;
+    margin-right: 0;
+}
+
+#details-value, #license-id {
     font-size: 14px;
-    color: #007bff;
-    margin-bottom: 5px;
-}
-
-#details-value {
-    font-size: 16px;
     color: #333;
     font-weight: normal;
+    word-wrap: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    line-height: 1.3;
+}
+
+#license-id {
+    width: 100%; /* Allow license ID to use full width */
+}
+
+.browsers-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 8px;
+    font-size: 12px; /* Smaller font for browser details */
+    color: #333;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.browsers-table th,
+.browsers-table td {
+    border: 1px solid #e6e6e6;
+    padding: 8px 10px;
+    text-align: center;
+}
+
+.browsers-table th {
+    background-color: #f2f6fc;
+    font-weight: 600;
+    color: #0066cc;
+    border-bottom: 2px solid #0066cc;
+}
+
+.browsers-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.browsers-table tr:hover {
+    background-color: #f0f7ff;
+}
+
+.status-icon {
+    font-size: 14px;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tick-icon {
+    color: #28a745;
+}
+
+.cross-icon {
+    color: #dc3545;
+}
+
+/* Special styling for the browsers section */
+.details-item:last-child {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.details-item:last-child strong {
+    margin-bottom: 4px;
+    margin-right: 0;
+}
+
+@media (max-width: 768px) {
+    .details-container {
+        max-width: 95%;
+        padding: 16px;
+        margin: 10px auto;
+    }
+    
+    .details-item strong {
+        min-width: 90px;
+        font-size: 12px;
+    }
+    
+    #details-value, #license-id {
+        font-size: 13px;
+    }
+    
+    .browsers-table th,
+    .browsers-table td {
+        padding: 6px;
+        font-size: 12px;
+    }
 }

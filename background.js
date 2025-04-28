@@ -54,6 +54,15 @@ const fetchDeviceDataToSend = async () => {
       await chrome.storage.local.set({
         mac_address: data?.deviceDetails?.macAdress,
       });
+      await chrome.storage.local.set({
+        allocation_date: data?.licenseStatus?.allocation_date,
+      });
+      await chrome.storage.local.set({
+        licenseId: data?.licenseStatus?.licenseId,
+      });
+      await chrome.storage.local.set({
+        browsers: data?.deviceDetails?.browsers,
+      });
     }
   } catch (error) {
     console.error("Error fetching device data:", error);

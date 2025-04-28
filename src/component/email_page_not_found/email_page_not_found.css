@@ -1,85 +1,86 @@
 .content {
-  flex-grow: 1;
-  padding: 20px;
-  height: 85vh;
-  background-color: #fff;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.headers {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.headers .heading {
-  font-size: 18px;
-  font-weight: bold;
-  color: #21272c;
-}
-
-.not-email-message {
-  flex-grow: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  flex-direction: column;
-}
-
-.not-email-message .icon-large {
-  font-size: 50px;
-  color: #bdc3c7;
-}
-
-.not-email-message h3 {
-  margin-top: 10px;
-  font-size: 22px;
-  color: #444040;
-}
-
-.not-email-message p {
-  margin-top: 5px;
-  font-size: 14px;
-  color: #95a5a6;
-}
-
-.email-icons {
-  margin-top: 20px;
-  display: flex;
-  gap: 20px;
-  justify-content: center;
-}
-
-.email-icon {
-  cursor: pointer;
-  text-align: center;
-  margin-right: 20px;
-  transition: transform 0.3s ease;
-}
-
-.email-icon:hover {
-  transform: scale(1.1);
-}
-
-.icon-img {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
-}
-
-.service-name {
-  margin-top: 8px;
-  font-size: 14px;
-  color: #333;
-}
-
-#data-output {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 70vh;
-}
+    flex-grow: 1;
+    padding: 20px;
+    height: 85vh;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  .headers {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .headers .heading {
+    font-size: 18px;
+    font-weight: bold;
+    color: #21272c;
+  }
+  
+  .not-email-message {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    flex-direction: column;
+  }
+  
+  .not-email-message .icon-large {
+    font-size: 50px;
+    color: #bdc3c7;
+  }
+  
+  .not-email-message h3 {
+    margin-top: 10px;
+    font-size: 22px;
+    color: #444040;
+  }
+  
+  .not-email-message p {
+    margin-top: 5px;
+    font-size: 14px;
+    color: #95a5a6;
+  }
+  
+  .email-icons {
+    margin-top: 20px;
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+  }
+  
+  .email-icon {
+    cursor: pointer;
+    text-align: center;
+    margin-right: 20px;
+    transition: transform 0.3s ease;
+  }
+  
+  .email-icon:hover {
+    transform: scale(1.1);
+  }
+  
+  .icon-img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+  }
+  
+  .service-name {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #333;
+  }
+  
+  #data-output {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 70vh;
+  }
+  
