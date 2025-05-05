@@ -31,13 +31,13 @@ export const getAllDetails = async () => {
   try {
     const {
       mac_address = "",
-      allocation_date = "",
+      validFrom = "",
       validTill = "",
       licenseId = "No Data Found",
       browsers = {},
     } = await chrome.storage.local.get([
       "mac_address",
-      "allocation_date",
+      "validFrom",
       "validTill",
       "licenseId",
       "browsers",
@@ -47,7 +47,7 @@ export const getAllDetails = async () => {
 
     if (detailsValues.length >= 3) {
       detailsValues[0].textContent = mac_address || "No Data Found";
-      detailsValues[1].textContent = formatDate(allocation_date);
+      detailsValues[1].textContent = formatDate(validFrom);
       detailsValues[2].textContent = formatDate(validTill);
     }
 

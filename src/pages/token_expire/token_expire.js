@@ -38,14 +38,7 @@ const getAccessToken = async () => {
       await chrome.storage.local.set({
         access_token: response?.data?.access_token,
       });
-      await loadCommonComponents();
-      await handleRegisteredUser();
-
-      if (sidebarElement) {
-        sidebarElement.style.display = "block";
-      }
-
-      initializeSidebarNavigation();
+      window.close();
     }
     hideLoader();
   } catch (error) {
