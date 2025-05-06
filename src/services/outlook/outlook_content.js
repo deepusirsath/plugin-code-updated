@@ -340,7 +340,7 @@ function detectMenuItems(event) {
         .includes(titleText.toLowerCase()) &&
       (target.getAttribute("aria-selected") === "true" ||
         target.getAttribute("data-folder-name")?.toLowerCase() ===
-          folderName.toLowerCase())
+        folderName.toLowerCase())
     );
   }
 
@@ -568,15 +568,15 @@ function setupClickListener(attempts = 500) {
             )
               .toString()
               .padStart(2, "0")}${lastTime
-              .getDate()
-              .toString()
-              .padStart(2, "0")}_${lastTime
-              .getHours()
-              .toString()
-              .padStart(2, "0")}${lastTime
-              .getMinutes()
-              .toString()
-              .padStart(2, "0")}`;
+                .getDate()
+                .toString()
+                .padStart(2, "0")}_${lastTime
+                  .getHours()
+                  .toString()
+                  .padStart(2, "0")}${lastTime
+                    .getMinutes()
+                    .toString()
+                    .padStart(2, "0")}`;
 
             const MessageIdCreated = `${dataConvid}_${newDateTime}_${countNumber}`;
             let NewMessageId = MessageIdCreated.slice(0, 84);
@@ -744,14 +744,14 @@ function setupClickListener(attempts = 500) {
   }
 }
 
-window.addEventListener('offline', function() {
+window.addEventListener('offline', function () {
   showAlert("networkError");
   hideLoadingScreen();
   chrome.storage.local.set({ networkWentOffline: true });
 });
 
-window.addEventListener('online', function() {
-  chrome.storage.local.get("networkWentOffline", function(result) {
+window.addEventListener('online', function () {
+  chrome.storage.local.get("networkWentOffline", function (result) {
     if (result.networkWentOffline) {
       chrome.storage.local.remove("networkWentOffline");
       window.location.reload();
@@ -1020,7 +1020,7 @@ function findOutlookEmailId() {
 
         // Add the storage code here
         chrome.storage.local.remove(["gmail_email", "yahoo_email"], () => {
-          chrome.storage.local.set({ outlook_email: userEmailId }, () => {});
+          chrome.storage.local.set({ outlook_email: userEmailId }, () => { });
         });
         chrome.storage.local.set({ currentMailId: userEmailId });
         return;
@@ -1029,7 +1029,7 @@ function findOutlookEmailId() {
   }, 500); // Run the search every 0.5 second (adjust interval as needed)
 }
 
-chrome.storage.local.get(null, function (data) {});
+chrome.storage.local.get(null, function (data) { });
 
 chrome.storage.local.get("messages", function (result) {
   let messages = JSON.parse(result.messages || "{}"); // Ensure messages is an object
@@ -1116,15 +1116,15 @@ function checkReloadStatusOutlook() {
               )
                 .toString()
                 .padStart(2, "0")}${lastTime
-                .getDate()
-                .toString()
-                .padStart(2, "0")}_${lastTime
-                .getHours()
-                .toString()
-                .padStart(2, "0")}${lastTime
-                .getMinutes()
-                .toString()
-                .padStart(2, "0")}`;
+                  .getDate()
+                  .toString()
+                  .padStart(2, "0")}_${lastTime
+                    .getHours()
+                    .toString()
+                    .padStart(2, "0")}${lastTime
+                      .getMinutes()
+                      .toString()
+                      .padStart(2, "0")}`;
 
               const MessageIdCreated = `${dataConvid}_${newDateTime}_${countNumber}`;
               let NewMessageId = MessageIdCreated.slice(0, 84);
@@ -1210,10 +1210,21 @@ function checkReloadStatusOutlook() {
 window.addEventListener("click", (e) => {
   const element = document.querySelector("#ConversationReadingPaneContainer");
   const junkBox = document.querySelector("#ItemReadingPaneContainer");
-  if ((shouldApplyPointerEvents && element) || junkBox) {
-    showBlockedPopup();
-  }
+
+  setTimeout(() => {
+    const innerFolderDiv = document.querySelector("span.vlQVl.jXaVF");
+    const isSentItems = innerFolderDiv?.textContent === "Sent Items";
+    const isDraftItems = innerFolderDiv?.textContent === "Drafts";
+
+    if (isSentItems || isDraftItems) {
+      shouldApplyPointerEvents = false;
+    }
+    else if ((shouldApplyPointerEvents && element) || junkBox) {
+      showBlockedPopup();
+    }
+  }, 500); // Add a delay to allow UI to update
 });
+
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "ExtractEMailForOutlook") {

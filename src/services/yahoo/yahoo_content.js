@@ -166,6 +166,7 @@ if (yahooMailRegex.test(url) && !extractionDone) {
     }
     if (data.registration) {
       setTimeout(() => {}, 500); // Move this inside executeExtractionScript
+      console.log("Registration data found:", data.registration);
       executeExtractionScript();
     }
   });
@@ -182,6 +183,7 @@ if (yahooMailRegex.test(url) && !extractionDone) {
  */
 async function executeExtractionScript() {
   setTimeout(() => {
+    console.log("Executing extraction script...");
     const { lastMessageId, userEmail } = extractIdsFromNonceScripts();
     blockEmailBody();
     sendMessageId = lastMessageId;
@@ -343,9 +345,9 @@ function extractIdsFromNonceScripts() {
   ).some((div) => div.textContent.trim() === "Sent");
 
   if (isSentFound) {
+    console.log("Sent folder found. Skipping extraction.");
     shouldApplyPointerEvents = false;
     hideLoadingScreen();
-
     return;
   }
 
@@ -669,6 +671,12 @@ window.addEventListener("click", (e) => {
   const element = document.querySelector(
     'div[data-test-id="message-group-view-scroller"]'
   );
+  const isSentFound = Array.from(
+    document.querySelectorAll('div[data-test-id="pill-text"]')
+  ).some((div) => div.textContent.trim() === "Sent");
+  if (isSentFound) {
+    shouldApplyPointerEvents = false;
+  }
   if (shouldApplyPointerEvents && element) {
     showBlockedPopup();
   }
