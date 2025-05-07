@@ -67,9 +67,7 @@ const showPopup = async (msg_id) => {
  * @throws {Error} Displays error if the API request fails
  */
 const getViewDetailOfDisputeMail = async (msg_id) => {
-  console.log("msg_id", msg_id);
   const currentEmail = getCurrentEmail();
-  console.log("currentEmail", currentEmail);
   if (currentEmail) {
     try {
       const requestData = {
