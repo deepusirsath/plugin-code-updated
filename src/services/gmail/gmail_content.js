@@ -731,7 +731,11 @@ function blockEmailBody() {
 
 // Add a click event listener to the window to detect the click event on the email body
 window.addEventListener("click", (e) => {
+  // First check if we're in sent or drafts folder
   const elements = document.getElementsByClassName("nH a98 iY");
+  if (isSentOrDraftEmail()) {
+    shouldApplyPointerEvents = false;
+  }
   if (elements && elements.length > 0) {
     Array.from(elements).forEach(() => {
       if (shouldApplyPointerEvents) {
@@ -740,6 +744,16 @@ window.addEventListener("click", (e) => {
     });
   }
 });
+// window.addEventListener("click", (e) => {
+//   const elements = document.getElementsByClassName("nH a98 iY");
+//   if (elements && elements.length > 0) {
+//     Array.from(elements).forEach(() => {
+//       if (shouldApplyPointerEvents) {
+//         showBlockedPopup();
+//       }
+//     });
+//   }
+// });
 
 /**
  * Listens for messages from the background script and extracts the email address from the page title.

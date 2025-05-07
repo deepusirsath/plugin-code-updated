@@ -33,7 +33,7 @@ const ERROR_MESSAGES = {
 let messageReason = " ";
 
 document.addEventListener("visibilitychange", function () {
-  chrome.storage.local.remove(["gmail_email", "outlook_email"], () => {});
+  chrome.storage.local.remove(["gmail_email", "outlook_email"], () => { });
 
   if (document.visibilityState === "visible") {
     // Extract only email from scripts
@@ -54,7 +54,7 @@ document.addEventListener("visibilitychange", function () {
     if (userEmail) {
       chrome.storage.local.set({ currentMailId: userEmail });
       chrome.storage.local.remove(["gmail_email", "outlook_email"], () => {
-        chrome.storage.local.set({ yahoo_email: userEmail }, () => {});
+        chrome.storage.local.set({ yahoo_email: userEmail }, () => { });
       });
     }
   }
@@ -105,7 +105,7 @@ function handleYahooMailCheck(message, sendResponse) {
       }
     }
 
-    chrome.storage.local.remove(["gmail_email", "outlook_email"], () => {});
+    chrome.storage.local.remove(["gmail_email", "outlook_email"], () => { });
 
     if (emailBodySearch) {
       sendResponse({
@@ -165,7 +165,7 @@ if (yahooMailRegex.test(url) && !extractionDone) {
       return;
     }
     if (data.registration) {
-      setTimeout(() => {}, 500); // Move this inside executeExtractionScript
+      setTimeout(() => { }, 500); // Move this inside executeExtractionScript
       executeExtractionScript();
     }
   });
@@ -370,7 +370,7 @@ function extractIdsFromNonceScripts() {
         selectedMailboxId = selectedMailboxMatch[1];
         userEmail = selectedMailboxMatch[2];
       }
-      chrome.storage.local.set({ yahoo_email: userEmail }, () => {});
+      chrome.storage.local.set({ yahoo_email: userEmail }, () => { });
     } else {
     }
   });
@@ -523,15 +523,15 @@ function createUrl(selectedMailboxId, lastMessageId, userEmail) {
 }
 
 // Add these event listeners to detect network status changes
-window.addEventListener('offline', function() {
+window.addEventListener('offline', function () {
   showAlert("networkError");
   hideLoadingScreen();
   chrome.storage.local.set({ networkWentOffline: true });
 });
 
-window.addEventListener('online', function() {
+window.addEventListener('online', function () {
   // Check if the network previously went offline
-  chrome.storage.local.get("networkWentOffline", function(result) {
+  chrome.storage.local.get("networkWentOffline", function (result) {
     if (result.networkWentOffline) {
       chrome.storage.local.remove("networkWentOffline");
       window.location.reload();
@@ -570,8 +570,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // Add this function to handle different size categories
 function handleEmailSizeCategory(sizeCategory) {
   let sizeMessage = "";
-  
-  switch(sizeCategory) {
+
+  switch (sizeCategory) {
     case "underTwo":
       showAlert("pending", "underTwo")
       sizeMessage = "Email size is under 2 MB";
@@ -592,7 +592,7 @@ function handleEmailSizeCategory(sizeCategory) {
       showAlert("pending", "Some time")
       sizeMessage = "Email size unknown";
   }
-  
+
 }
 
 
@@ -669,10 +669,25 @@ window.addEventListener("click", (e) => {
   const element = document.querySelector(
     'div[data-test-id="message-group-view-scroller"]'
   );
+  const isSentFound = Array.from(
+    document.querySelectorAll('div[data-test-id="pill-text"]')
+  ).some((div) => div.textContent.trim() === "Sent");
+  if (isSentFound) {
+    shouldApplyPointerEvents = false;
+  }
   if (shouldApplyPointerEvents && element) {
     showBlockedPopup();
   }
 });
+
+// window.addEventListener("click", (e) => {
+//   const element = document.querySelector(
+//     'div[data-test-id="message-group-view-scroller"]'
+//   );
+//   if (shouldApplyPointerEvents && element) {
+//     showBlockedPopup();
+//   }
+// });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "ExtractEMailForYahoo") {
