@@ -949,7 +949,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 /** ________________________________________ Yahoo ______________________________________________*/
-chrome.storage.local.remove("messages", function () {});
+// chrome.storage.local.remove("messages", function () {});
 
 /**
  * Listens for tab updates and checks if the URL changes.
@@ -1056,6 +1056,32 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     emlExtractionYahoo(emlUrl, currentMessageId, userEmail);
   }
 });
+
+
+/** ________________________________________ NIC ______________________________________________*/
+
+// Add this to the existing chrome.tabs.onUpdated listener or create a new one
+
+// Add this to the existing chrome.tabs.onUpdated listener or create a new one
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.status === "complete") {
+    const urlToCheck = tab.url;
+    
+    // Check if the URL contains email.gov.in
+    if (urlToCheck && urlToCheck.includes("email.gov.in")) {
+      setTimeout(() => {
+        chrome.tabs.sendMessage(
+          tabId,
+          { action: "initializeNicScript" },
+        );
+      }, 200);
+    }
+  }
+});
+
+
+
+
 
 /**
  * Handles reloading dispute status and admin comments for an email
