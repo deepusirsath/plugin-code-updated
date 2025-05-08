@@ -729,7 +729,12 @@ function blockEmailBody() {
   }
 }
 
-// Add a click event listener to the window to detect the click event on the email body
+function isSentOrDraftEmail() {
+  console.log("isSentOrDraftEmail called");
+  const url = window.location.href;
+  return url.includes('#sent') || url.includes('#draft');
+}
+
 window.addEventListener("click", (e) => {
   // First check if we're in sent or drafts folder
   const elements = document.getElementsByClassName("nH a98 iY");
