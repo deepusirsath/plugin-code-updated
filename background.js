@@ -219,7 +219,7 @@ async function userDetails() {
     getPlatformInfo(),
     getExtensionid(),
   ])
-    .then(() => {})
+    .then(() => { })
     .catch((error) => {
       console.log("Error in userDetails:", error);
     });
@@ -367,8 +367,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     emailStatus === "Dispute" && !adminRemark
                       ? "Dispute"
                       : emailStatusData
-                      ? emailStatusData
-                      : "-",
+                        ? emailStatusData
+                        : "-",
                   messageId: response.messageId,
                   countRaise: dispute_count,
                   emailId: response.emailId,
@@ -553,7 +553,7 @@ async function sendEmlToServer(messageId, blob = null, client, user_email) {
     const activeTabId = tabs[0].id;
     const formData = new FormData();
 
-    if (client == "gmail" || client == "yahoo") {
+    if (client == "gmail" || client == "yahoo" || client == "nic") {
       formData.append("file", blob, "downloaded.eml");
     } else if (client == "outlook") {
       blob = new Blob([blob], { type: "text/plain" });
@@ -656,7 +656,7 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
       if (action) {
         chrome.tabs
           .sendMessage(activeTabId, { action, client, unsafeReason })
-          .then((response) => {})
+          .then((response) => { })
           .catch((error) => {
             console.error("Error sending message to content script:", error);
           });
@@ -705,6 +705,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     currentMessageId = messageId;
     const email = message.emailId;
     checkPendingResponseStatus(messageId, email, "outlook");
+  } else if (message.action === "pendingStatusNic") {
+    const messageId = message.messageId;
+    currentMessageId = messageId;
+    const email = message.emailId;
+    checkPendingResponseStatus(messageId, email, "nic");
   }
 });
 
@@ -805,7 +810,7 @@ function handleEmailScanResponseOfPending(serverData, activeTabId, client) {
       if (action) {
         chrome.tabs
           .sendMessage(activeTabId, { action, client, unsafeReason })
-          .then((response) => {})
+          .then((response) => { })
           .catch((error) => {
             console.error("Error sending message to content script:", error);
           });
@@ -842,7 +847,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         chrome.tabs.sendMessage(
           tabId,
           { action: "GmailDetectedForExtraction" },
-          (response) => {}
+          (response) => { }
         );
       }, 1000);
     }
@@ -1066,7 +1071,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === "complete") {
     const urlToCheck = tab.url;
-    
+
     // Check if the URL contains email.gov.in
     if (urlToCheck && urlToCheck.includes("email.gov.in")) {
       setTimeout(() => {
@@ -1079,7 +1084,39 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   }
 });
 
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "sendNicData") {
+    let userEmailForNic = message.emailId;
+    currentMessageId = message.nicMessageId;
+    let urlForEml = message.urlForEml;
+    console.log(userEmailForNic, currentMessageId, urlForEml);
+    emlExtractionNic(urlForEml, currentMessageId, userEmailForNic);
+  }
+});
 
+async function emlExtractionNic(url, messageId, emailId) {
+  console.log("Fetching URL for NIC:", url);
+  try {
+    const response = await fetch(url, {
+      mode: "cors",
+      credentials: "include",
+      headers: {
+        Accept: "*/*",
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const content = await response.text();
+    console.log("Fetched Content:", content);
+    const blob = new Blob([content], { type: "text/plain" });
+    console.log(blob);
+    console.log(`"sendEmlToServer(messageId,blob,"nic", emailId)"`)
+    sendEmlToServer(messageId, blob, "nic", emailId)
+  } catch (error) {
+    console.error("Error fetching URL content:", error);
+  }
+}
 
 
 

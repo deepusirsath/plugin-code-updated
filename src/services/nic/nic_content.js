@@ -14,6 +14,7 @@ let nicMessageId = "";
 let shouldApplyPointerEvents = true;
 let lastClickedMailId = null;
 let lastClickTime = 0;
+let isExtractionInProgress = false;
 // import component
 Promise.all([
     importComponent("/src/component/email_status/email_status.js"),
@@ -33,7 +34,6 @@ const ERROR_MESSAGES = {
     FAILED_TO_SEND_EMAIL_CONTENT:
         "Failed to send email content to background script:",
 };
-
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "initializeNicScript") {
@@ -92,12 +92,12 @@ function initializeSetupListener() {
     }
 } */
 
-
 /** chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     handleNicMailCheck(message, sendResponse);
     return true; // Keeps the message channel open for async sendResponse
 }); */
 
+async function extractionOfEmlFIle() { }
 
 const setupMailItemClickListeners = () => {
     const mailListContainer = document.getElementById("zl__CLV-main__rows");
@@ -107,7 +107,6 @@ const setupMailItemClickListeners = () => {
         setTimeout(setupMailItemClickListeners, 1000);
         return;
     }
-
     mailListContainer.addEventListener("click", (event) => {
         const mailItem = event.target.closest("li.RowDouble");
         if (mailItem) {
@@ -144,8 +143,8 @@ const setupMailItemClickListeners = () => {
 
                 // Increase delay to allow more time for DOM elements to load
                 setTimeout(() => {
-                    console.log("Mail info found lets extract the funcrtion");
-                    ExtractIDForEMLFile();
+                    // console.log("Mail info found lets extract the funcrtion");
+                    ExtractIdFromDate();
                 }, 1500); // Increased from 1000 to 2000ms
             }
         }
@@ -154,7 +153,7 @@ const setupMailItemClickListeners = () => {
 
 let data = {};
 
-function ExtractIDForEMLFile() {
+function ExtractIdFromDate() {
     const let1 = document.querySelectorAll(".date");
     console.log("Extracting ID for EML file from date elements:", let1);
     let latest = { date: null, id: null, number: null };
@@ -163,7 +162,6 @@ function ExtractIDForEMLFile() {
         const dateText = el.innerText;
         const date = new Date(dateText);
         const id = el.id || "";
-
         // Extract the number from the ID using RegExp
         const match = id.match(/main_MSGC(\d+)__header_dateCell/);
         const number = match ? match[1] : null;
@@ -174,24 +172,18 @@ function ExtractIDForEMLFile() {
             latest.number = number;
         }
     });
-    data = {
-        latestDate: latest.date.toString(),
-        elementId: latest.id,
-        extractedNumber: latest.number,
-        userName: "Ekvayu",
-    };
     generateUniqueId(latest.date.toString(), latest.id, latest.number, emailId);
-    console.log("Data extracted for EML file:", data);
+    // console.log("Data extracted for EML file:", data);
 }
 
 function generateUniqueId(latestDate, elementId, extractedNumber, userName) {
-    console.log(
-        "Generating unique ID for EML file with data:",
-        latestDate,
-        elementId,
-        extractedNumber,
-        userName
-    );
+    data = {
+        latestDate: latestDate,
+        elementId: elementId,
+        extractedNumber: extractedNumber,
+        userName: userName,
+    };
+    console.log("Generating unique ID for EML file with data:", data);
     const date = new Date(latestDate);
     const formattedDate =
         date.getFullYear().toString() +
@@ -200,13 +192,14 @@ function generateUniqueId(latestDate, elementId, extractedNumber, userName) {
         String(date.getHours()).padStart(2, "0") +
         String(date.getMinutes()).padStart(2, "0") +
         String(date.getSeconds()).padStart(2, "0");
-    const safeUser = userName.replace(/\W+/g, "").toLowerCase();
-    nicMessageId = `uid_${safeUser}_${extractedNumber}_${formattedDate}`;
-    console.log(nicMessageId);
+    const userMailInString = userName.replace(/\W+/g, "").toLowerCase();
+    nicMessageId = `${userMailInString}_${extractedNumber}_${formattedDate}`;
+    console.log("Created message Id: ", nicMessageId);
     if (nicMessageId) {
         chrome.storage.local.get("messages", function (result) {
             let messages = JSON.parse(result.messages || "{}");
 
+            //Mail found in localStorage
             if (messages[nicMessageId]) {
                 const status = messages[nicMessageId].status;
                 const unsafeReason = messages[nicMessageId].unsafeReason;
@@ -223,132 +216,120 @@ function generateUniqueId(latestDate, elementId, extractedNumber, userName) {
                     shouldApplyPointerEvents = true;
                     blockEmailBody();
                     hideLoadingScreen();
-                } else if (status === "pending") {
+                } else if (status === "pending" || status === "Pending") {
                     hideLoadingScreen();
-                    showAlert("pending", "Some time");
-                    chrome.storage.local.get("outlook_email", (data) => {
-                        chrome.runtime.sendMessage({
-                            action: "pendingStatusOutlook",
-                            emailId: data.outlook_email,
-                            messageId: nicMessageId,
-                        });
-                        shouldApplyPointerEvents = true;
-                        blockEmailBody();
+                    // showAlert("pending", "Some time");
+                    chrome.runtime.sendMessage({
+                        action: "pendingStatusNic",
+                        emailId: emailId,
+                        messageId: nicMessageId,
                     });
-                } else {
+                }
+                else {
                     shouldApplyPointerEvents = true;
                     blockEmailBody();
                 }
-            } 
+            }
+            //Mail not found in localstorage
             else {
+                showLoadingScreen();
                 shouldApplyPointerEvents = true;
                 blockEmailBody();
-                chrome.runtime
-                    .sendMessage(
-                        {
-                            client: "nicMail",
-                            action: "firstCheckForEmail",
-                            messageId: nicMessageId,
-                            email: emailId,
-                        },
-                        (response) => {
-                            let error = response.status;
-                            if (response.IsResponseRecieved === "success") {
-                                if (response.data.code === 200) {
-                                    const serverData = response.data.data;
-                                    const resStatus =
-                                        serverData.eml_status || serverData.email_status;
-                                    const messId =
-                                        serverData.messageId || serverData.msg_id;
-                                    const unsafeReason =
-                                        serverData.unsafe_reasons || " ";
 
-                                    if (
-                                        ["safe", "unsafe", "pending"].includes(resStatus)
-                                    ) {
-                                        chrome.storage.local.get(
-                                            "messages",
-                                            function (result) {
-                                                let messages = JSON.parse(
-                                                    result.messages || "{}"
-                                                );
-                                                messages[messId] = {
-                                                    status: resStatus,
-                                                    unsafeReason: unsafeReason,
-                                                };
+                chrome.runtime.sendMessage(
+                    {
+                        client: "nic",
+                        action: "firstCheckForEmail",
+                        messageId: nicMessageId,
+                        email: emailId,
+                    },
+                    (response) => {
+                        if (chrome.runtime.lastError) {
+                            return;
+                        }
+                        let error = response.status;
 
-                                                chrome.storage.local.set(
-                                                    {
-                                                        messages: JSON.stringify(messages),
-                                                    },
-                                                    () => {
-                                                        if (resStatus === "pending") {
-                                                            handlePendingStatus();
-                                                        } else {
-                                                            shouldApplyPointerEvents =
-                                                                resStatus !== "safe";
-                                                            blockEmailBody();
-                                                            showAlert(resStatus, unsafeReason);
-                                                        }
+                        if (response.IsResponseRecieved === "success") {
+                            if (response.data.code === 200) {
+                                const serverData = response.data.data;
+                                const resStatus =
+                                    serverData.eml_status || serverData.email_status;
+                                const messId = serverData.messageId || serverData.msg_id;
+                                const unsafeReason = serverData.unsafe_reasons || " ";
+
+                                if (["safe", "unsafe", "pending"].includes(resStatus)) {
+                                    chrome.storage.local.get("messages", function (result) {
+                                        let messages = JSON.parse(result.messages || "{}");
+                                        messages[messId] = {
+                                            status: resStatus,
+                                            unsafeReason: unsafeReason,
+                                        };
+
+                                        chrome.storage.local.set(
+                                            { messages: JSON.stringify(messages) },
+                                            () => {
+                                                hideLoadingScreen();
+                                                showAlert(resStatus, unsafeReason);
+
+                                                if (resStatus === "pending") {
+                                                    shouldApplyPointerEvents = true;
+
+                                                    // Clear any previous interval before setting a new one
+                                                    if (intervalId) {
+                                                        clearInterval(intervalId);
                                                     }
-                                                );
+
+                                                    intervalId = setInterval(() => {
+                                                        // console.log("pendingStatusCallForYahoo()");
+                                                        pendingStatusCallForYahoo();
+                                                    }, 5000);
+                                                } else {
+                                                    // If the status is "safe" or "unsafe", clear the interval (if any)
+                                                    if (intervalId) {
+                                                        clearInterval(intervalId);
+                                                        intervalId = null;
+                                                    }
+                                                    shouldApplyPointerEvents = resStatus !== "safe";
+                                                }
+
+                                                blockEmailBody(); // Execute after all conditions
                                             }
                                         );
-                                    }
-
-                                    // Function to handle "pending" status
-                                    function handlePendingStatus() {
-                                        hideLoadingScreen();
-                                        shouldApplyPointerEvents = true;
-                                        // showAlert("pending");
-                                        // Clear any existing interval before starting a new one
-                                        if (intervalId) {
-                                            clearInterval(intervalId);
-                                        }
-
-                                        intervalId = setInterval(() => {
-                                            // console.log("pendingStatusCallForOutlook()");
-                                            pendingStatusCallForOutlook();
-                                        }, 5000);
-                                    }
-                                } else {
-                                    shouldApplyPointerEvents = true;
-                                    blockEmailBody();
-                                    setTimeout(() => {
-                                        if (!isExtractionInProgress) {
-                                            executeWithLoadingScreenAndExtraction();
-                                        } else {
-                                            // console.log("Skipping extraction request as one is already in progress");
-                                        }
-                                    }, 100);
+                                    });
                                 }
-                            } else if (response.status === "error") {
-                                showAlert("inform");
-                                hideLoadingScreen();
+                            } else {
+                                blockEmailBody();
+                                setTimeout(() => {
+                                    createUrl(extractedNumber);
+                                }, 100);
                             }
+                        } else if (response.status === "error") {
+                            showAlert("inform");
+                            hideLoadingScreen();
                         }
-                    )
-                    .catch((error) => {
-                        showAlert("inform");
-                        hideLoadingScreen();
-                    });
+                    }
+                );
             }
         });
     }
-    // const urlForEml = `https://email.gov.in/service/home/~/?auth=co&view=text&id=${extractedNumber}`;
-    // console.log("urlForEml", urlForEml)
-    // sendDataToBackground(nicMessageId, extractedNumber, emailId, urlForEml)
+}
+function createUrl(extractedNumber) {
+    const urlForEml = `https://email.gov.in/service/home/~/?auth=co&view=text&id=${extractedNumber}`;
+    console.log("urlForEml", urlForEml);
+    console.log("nicMessageId: ", nicMessageId, "emailId:", emailId);
+    try {
+        console.log("sending the data to background script")
+        chrome.runtime.sendMessage({
+            action: "sendNicData",
+            nicMessageId,
+            emailId,
+            urlForEml,
+        });
+    } catch (error) {
+        console.error(ERROR_MESSAGES.FAILED_TO_SEND_EMAIL_CONTENT);
+    }
 }
 
-function sendDataToBackground(nicMessageId, extractedNumber, emailId, urlForEml) {
-    chrome.runtime.sendMessage({
-        action: "sendNicData",
-        nicMessageId: nicMessageId,
-        extractedNumber: extractedNumber,
-        emailId: emailId,
-        url: urlForEml
-    })
-}
 function findEmailId() {
     // Try to extract email from the page source
     console.log("Finding email ID from page source");
@@ -362,7 +343,6 @@ function findEmailId() {
     }
     return null;
 }
-
 function blockEmailBody() {
     const element = document.getElementById("zv__CLV-main__CV_messages");
     if (element) {
@@ -373,7 +353,6 @@ function blockEmailBody() {
         }
     }
 }
-
 function disableButtonDiv() {
     const buttonDivs = document.querySelectorAll(".ZmMsgListExpand");
     if (buttonDivs && buttonDivs.length > 0) {

@@ -426,7 +426,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
       // Start the interval manually
       intervalId = setInterval(() => {
-        // console.log("pendingStatusCallForGmail()");
         pendingStatusCallForGmail();
       }, 5000);
     }
