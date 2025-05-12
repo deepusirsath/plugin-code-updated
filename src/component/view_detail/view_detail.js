@@ -102,6 +102,106 @@ const handleCDRFiles = (createViewDetail) => {
 };
 
 /**
+ * Handles password-protected file download by opening a password input popup
+ * @param {Object} file - The file object containing information
+ * @param {string} file.file_name - Name of the file
+ * @param {number} file.row_id - Row ID for the file
+ */
+const handlePasswordProtectedFile = (file) => {
+  // Create the password input popup
+  const passwordPopup = document.createElement("div");
+  passwordPopup.className = "password-popup";
+  passwordPopup.innerHTML = `
+    <div class="password-popup-content">
+      <h3>Enter Password</h3>
+      <input type="password" id="password-input" placeholder="Enter the password" />
+      <div class="password-popup-actions">
+        <button id="submit-password">Submit</button>
+        <button id="cancel-password-popup">Cancel</button>
+      </div>
+    </div>
+  `;
+
+  // Add event listeners for submit and cancel buttons
+  passwordPopup.querySelector("#submit-password").addEventListener("click", async () => {
+    const password = document.getElementById("password-input").value;
+    if (!password) {
+      alert("Please enter a password.");
+      return;
+    }
+
+    // Send the password to the server
+    try {
+      const response = await fetch("/api/validate-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          row_id: file.row_id,
+          password: password,
+        }),
+      });
+
+      const result = await response.json();
+      if (result.status === "success") {
+        alert("Password validated successfully. File download will start.");
+        // Trigger file download
+        handleFileDownload({
+          file_name: file.file_name,
+          download_url: result.data.download_url,
+        });
+      } else {
+        alert("Invalid password. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error validating password:", error);
+      alert("An error occurred while validating the password.");
+    }
+
+    // Close the popup
+    passwordPopup.remove();
+  });
+
+  passwordPopup.querySelector("#cancel-password-popup").addEventListener("click", () => {
+    passwordPopup.remove();
+  });
+
+  // Append the popup to the document body
+  document.body.appendChild(passwordPopup);
+};
+
+/**
+ * Processes password-protected files and creates an interface
+ * @param {Object} createViewDetail - The view detail configuration object
+ * @param {Array<Object>} [createViewDetail.password_protect_file=[]] - Array of password-protected files
+ */
+const handlePasswordProtectedFiles = (createViewDetail) => {
+  const passwordProtectedFiles = createViewDetail?.password_protect_file || [];
+  if (passwordProtectedFiles.length === 0) return;
+
+  const passwordContainer = document.createElement("div");
+  passwordContainer.className = "password-protect-container";
+
+  passwordProtectedFiles.forEach((file) => {
+    const fileRow = document.createElement("div");
+    fileRow.className = "password-protect-row";
+    fileRow.innerHTML = `
+      <span>${file.file_name}</span>
+      <button class="password-protect-button" data-row-id="${file.row_id}">Unlock</button>
+    `;
+
+    fileRow.querySelector(".password-protect-button").addEventListener("click", () => {
+      handlePasswordProtectedFile(file);
+    });
+
+    passwordContainer.appendChild(fileRow);
+  });
+
+  document.getElementById("password-protect-container").appendChild(passwordContainer);
+};
+
+/**
  * Creates and renders a detailed email view popup
  * @param {Object} createViewDetail - The email details configuration object
  * @param {string} createViewDetail.sender - Email sender address
@@ -135,7 +235,7 @@ export const createViewDetail = (createViewDetail) => {
   const popup = document.createElement("div");
   popup.className = "popup-test";
   popup.innerHTML = `
-  <div class="popup-content">
+    <div class="popup-content">
       <div class="popup-header">
         <h3>Email Details</h3>
         <button class="close-popup">×</button>
@@ -188,6 +288,7 @@ export const createViewDetail = (createViewDetail) => {
           </div>
         </div>
         <div id="cdr-files-container"></div>
+        <div id="password-protect-container"></div>
       </div>
     </div>
   `;
@@ -214,6 +315,7 @@ export const createViewDetail = (createViewDetail) => {
 
   document.body.appendChild(popup);
   handleCDRFiles(createViewDetail);
+  handlePasswordProtectedFiles(createViewDetail);
 
   return popup;
 };
