@@ -104,6 +104,10 @@ const handleRegularButton = async (componentName) => {
  */
 
 const handleDisputeButton = async (componentName) => {
+  const noDataFoundElement = document.getElementById("noDataFound");
+  if (noDataFoundElement) {
+    noDataFoundElement.innerHTML = "";
+  }
   const { access_token } = await chrome.storage.local.get("access_token");
 
   if (!access_token) {

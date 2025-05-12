@@ -299,7 +299,7 @@ const getGraphData = async () => {
 
     createBarChart(chartData);
   } catch (error) {
-    displayError();
+    console.log(error);
   } finally {
     hideLoader();
   }
