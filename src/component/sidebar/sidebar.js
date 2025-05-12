@@ -104,6 +104,15 @@ const handleRegularButton = async (componentName) => {
  */
 
 const handleDisputeButton = async (componentName) => {
+  // Clear any existing "No Data Found" component
+  const noDataFoundElement = document.getElementById("noDataFound");
+  if (noDataFoundElement) {
+    noDataFoundElement.innerHTML = "";
+  }
+  
+  // Clear the data output area to prevent component stacking
+  document.getElementById("data-output").innerHTML = "";
+  
   const { access_token } = await chrome.storage.local.get("access_token");
 
   if (!access_token) {
@@ -113,7 +122,6 @@ const handleDisputeButton = async (componentName) => {
     }
 
     const sidebarElement = document.getElementById(TARGET_ID.SIDEBAR);
-
     if (sidebarElement) {
       sidebarElement.style.display = "none";
     }
@@ -123,10 +131,9 @@ const handleDisputeButton = async (componentName) => {
 
   const thisOperation = {};
   currentLoadingOperation = thisOperation;
-  document.getElementById("data-output").innerHTML = "";
   showLoader();
 
-  // Create a timeout promise that resolves after 5 seconds
+  // Create a timeout promise that resolves after 3 seconds
   const timeoutPromise = new Promise((resolve) => {
     setTimeout(() => {
       resolve({ timedOut: true });
@@ -216,7 +223,6 @@ const handleDisputeButton = async (componentName) => {
             }
           );
         } else {
-          console.log("outer idsubf vjdfvdf");
           await loadCssAndHtmlFile({
             componentName: COMPONENTS.OPENED_MAIL_NOT_FOUND,
             basePath: BASEPATH.COMPONENT,
