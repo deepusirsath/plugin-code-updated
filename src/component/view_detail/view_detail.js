@@ -3,6 +3,7 @@ import { COMPONENTS } from "/src/constant/component.js";
 import { loadCSS } from "/src/helper/content_loader_helper.js";
 import {VALIDATE_CDR_PASSWORD} from "/src/routes/api_route.js";
 import config from "/config.js";
+import { showCustomAlert } from "/src/component/custom_alert/custom_alert.js";
 const baseUrl = config.BASE_URL;
 
 const validateCdrPasswordUrl = `${baseUrl}${VALIDATE_CDR_PASSWORD}`;
@@ -122,7 +123,10 @@ const handlePasswordProtectedFile = (file) => {
   passwordPopup.innerHTML = `
     <div class="password-popup-content">
       <h3>This file is secured with a password. Please enter the password to include it in the CDR.</h3>
-      <input type="password" id="password-input" placeholder="Enter the password" />
+      <div class="password-input-container">
+        <input type="password" id="password-input" placeholder="Enter the password" />
+        <span id="toggle-password-visibility" class="toggle-password">🔒</span>
+      </div>
       <div class="password-popup-actions">
         <button id="submit-password">Submit</button>
         <button id="cancel-password-popup">Cancel</button>
@@ -130,9 +134,23 @@ const handlePasswordProtectedFile = (file) => {
     </div>
   `;
 
+  // Add event listener to toggle password visibility
+  const togglePasswordVisibility = passwordPopup.querySelector("#toggle-password-visibility");
+  const passwordInput = passwordPopup.querySelector("#password-input");
+
+  togglePasswordVisibility.addEventListener("click", () => {
+    if (passwordInput.type === "password") {
+      passwordInput.type = "text";
+      togglePasswordVisibility.textContent = "🔓"; // Open lock icon for visible password
+    } else {
+      passwordInput.type = "password";
+      togglePasswordVisibility.textContent = "🔒"; // Closed lock icon for hidden password
+    }
+  });
+
   // Add event listeners for submit and cancel buttons
   passwordPopup.querySelector("#submit-password").addEventListener("click", async () => {
-    const password = document.getElementById("password-input").value;
+    const password = passwordInput.value;
     if (!password) {
       alert("Please enter a password.");
       return;
@@ -153,7 +171,10 @@ const handlePasswordProtectedFile = (file) => {
 
       const result = await response.json();
       if (result.status === "success") {
-        alert("Password validated successfully. File download will start.");
+        showCustomAlert(
+          "Your password is under validation. Please wait for AI response.",
+          "success"
+        );
         // Trigger file download
         handleFileDownload({
           file_name: file.file_name,

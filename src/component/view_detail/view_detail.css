@@ -265,16 +265,17 @@ body {
 .password-popup-actions {
   margin-top: 10px;
   display: flex;
+  flex-direction: row;
+  align-items: right;
+  justify-content: flex-end; /* Align buttons to the right */
   gap: 10px;
+  width: 100%;
 }
 
 .password-popup-actions button {
   padding: 5px 10px;
   cursor: pointer;
 }
-
-
-
 
 /* Password-protect container styles */
 #password-protect-container {
@@ -355,34 +356,42 @@ body {
 }
 
 .password-popup-content h3 {
-  margin-bottom: 12px;
-  font-size: 16px;
-  color: #333333;
-  font-weight: bold;
+  margin-bottom: 16px; /* Slightly increased spacing for better separation */
+  font-size: 18px; /* Increased font size for better readability */
+  color: #222; /* Darker color for better contrast */
+  font-weight: 600; /* Slightly lighter weight for a cleaner look */
   text-align: center;
-  font-family:Verdana, Geneva, Tahoma, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Modern and widely supported font */
+  line-height: 1.5; /* Improved line spacing for readability */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
 }
 
 .password-popup-content input {
   width: 100%;
-  padding: 8px;
-  margin-bottom: 12px;
-  border: 1px solid #cccccc;
-  border-radius: 6px;
-  font-size: 13px;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: border-color 0.3s ease;
+  padding: 10px; /* Slightly increased padding for better usability */
+  margin-bottom: 14px; /* Increased spacing for better separation */
+  border: 1px solid #bbb; /* Softer border color for a cleaner look */
+  border-radius: 8px; /* Slightly more rounded corners */
+  font-size: 14px; /* Increased font size for better readability */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Modern font */
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1); /* Enhanced shadow for depth */
+  transition: border-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transitions */
+  text-overflow: ellipsis; /* Add ellipsis for long text */
+  overflow: hidden; /* Prevent overflow */
+  white-space: nowrap; /* Prevent text wrapping */
+  box-sizing: border-box; /* Ensure padding is included in width */
 }
 
 .password-popup-content input:focus {
-  border-color: #0078d4;
-  outline: none;
+  border-color: #005a9e; /* Darker blue for better focus indication */
+  box-shadow: 0 0 6px rgba(0, 90, 158, 0.5); /* Glow effect on focus */
+  outline: none; /* Removes default outline */
 }
 
 .password-popup-actions {
   display: flex;
-  justify-content: space-between;
-  gap: 8px;
+  justify-content: flex-end; /* Align buttons to the right */
+  gap: 10px;
   width: 100%;
 }
 
@@ -412,4 +421,41 @@ body {
 
 .password-popup-actions #cancel-password-popup:hover {
   background: #aaaaaa;
+}
+
+.password-input-container {
+  position: relative;
+  width: 100%;
+  overflow: hidden; /* Prevent overflow */
+}
+
+.password-input-container input {
+  width: 100%;
+  padding-right: 40px; /* Add padding for the eye icon */
+  text-overflow: ellipsis; /* Add ellipsis for long text */
+  overflow: hidden; /* Prevent overflow */
+  white-space: nowrap; /* Prevent text wrapping */
+  box-sizing: border-box; /* Ensure padding is included in width */
+}
+
+.toggle-password {
+  position: absolute;
+  top: 35%;
+  right: 10px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 20px; /* Slightly larger font size for better visibility */
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%; /* Optional: Make the icon circular */
+  background-color: #f0f0f0; /* Optional: Add a subtle background */
+  transition: background-color 0.3s ease;
+}
+
+.toggle-password:hover {
+  background-color: #e0e0e0; /* Optional: Change background on hover */
 }
