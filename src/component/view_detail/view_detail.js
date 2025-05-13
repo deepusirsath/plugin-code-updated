@@ -1,7 +1,9 @@
 import { BASEPATH } from "/src/constant/basepath.js";
 import { COMPONENTS } from "/src/constant/component.js";
 import { loadCSS } from "/src/helper/content_loader_helper.js";
-
+// import { VALIDATE_CDR_PASSWORD } from "./src/routes/api_route.js";
+const baseUrl = config.BASE_URL;
+const apiUrl = baseUrl + "/validate-password"
 /**
  * Common download handler for both CDR files and attachments
  * @param {Object} file - The file object containing download information
@@ -108,12 +110,16 @@ const handleCDRFiles = (createViewDetail) => {
  * @param {number} file.row_id - Row ID for the file
  */
 const handlePasswordProtectedFile = (file) => {
+  // Create the background overlay
+  const overlay = document.createElement("div");
+  overlay.className = "password-popup-overlay";
+
   // Create the password input popup
   const passwordPopup = document.createElement("div");
   passwordPopup.className = "password-popup";
   passwordPopup.innerHTML = `
     <div class="password-popup-content">
-      <h3>Enter Password</h3>
+      <h3>This file is protected by a password. Please provide the password to add it to the CDR.</h3>
       <input type="password" id="password-input" placeholder="Enter the password" />
       <div class="password-popup-actions">
         <button id="submit-password">Submit</button>
@@ -132,7 +138,7 @@ const handlePasswordProtectedFile = (file) => {
 
     // Send the password to the server
     try {
-      const response = await fetch("/api/validate-password", {
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -160,15 +166,23 @@ const handlePasswordProtectedFile = (file) => {
     }
 
     // Close the popup
-    passwordPopup.remove();
+    overlay.remove();
   });
 
   passwordPopup.querySelector("#cancel-password-popup").addEventListener("click", () => {
-    passwordPopup.remove();
+    overlay.remove();
   });
 
-  // Append the popup to the document body
-  document.body.appendChild(passwordPopup);
+  // Close the popup if the user clicks outside of it
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) {
+      overlay.remove();
+    }
+  });
+
+  // Append the popup and overlay to the document body
+  overlay.appendChild(passwordPopup);
+  document.body.appendChild(overlay);
 };
 
 /**
@@ -188,7 +202,7 @@ const handlePasswordProtectedFiles = (createViewDetail) => {
     fileRow.className = "password-protect-row";
     fileRow.innerHTML = `
       <span>${file.file_name}</span>
-      <button class="password-protect-button" data-row-id="${file.row_id}">Unlock</button>
+      <button class="password-protect-button" data-row-id="${file.row_id}">Enter Password</button>
     `;
 
     fileRow.querySelector(".password-protect-button").addEventListener("click", () => {
