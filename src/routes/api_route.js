@@ -15,4 +15,4 @@ export const GET_ALLOCATION_DATA = "/get-allocation-data/";
 export const GET_GRAPH_DATA = "/graph-count/";
 export const FILTER_DISPUTE_MAIL = "/get-disputes-filter-data/";
 export const GEN_ACCESS_TOKEN = "/gen-access-token/";
-// export const VALIDATE_CDR_PASSWORD = "/validate-password";
+export const VALIDATE_CDR_PASSWORD = "/validate-cdr-password";

@@ -1,9 +1,11 @@
 import { BASEPATH } from "/src/constant/basepath.js";
 import { COMPONENTS } from "/src/constant/component.js";
 import { loadCSS } from "/src/helper/content_loader_helper.js";
-// import { VALIDATE_CDR_PASSWORD } from "./src/routes/api_route.js";
+import {VALIDATE_CDR_PASSWORD} from "/src/routes/api_route.js";
+import config from "/config.js";
 const baseUrl = config.BASE_URL;
-const apiUrl = baseUrl + "/validate-password"
+
+const validateCdrPasswordUrl = `${baseUrl}${VALIDATE_CDR_PASSWORD}`;
 /**
  * Common download handler for both CDR files and attachments
  * @param {Object} file - The file object containing download information
@@ -119,7 +121,7 @@ const handlePasswordProtectedFile = (file) => {
   passwordPopup.className = "password-popup";
   passwordPopup.innerHTML = `
     <div class="password-popup-content">
-      <h3>This file is protected by a password. Please provide the password to add it to the CDR.</h3>
+      <h3>This file is secured with a password. Please enter the password to include it in the CDR.</h3>
       <input type="password" id="password-input" placeholder="Enter the password" />
       <div class="password-popup-actions">
         <button id="submit-password">Submit</button>
@@ -138,7 +140,7 @@ const handlePasswordProtectedFile = (file) => {
 
     // Send the password to the server
     try {
-      const response = await fetch(apiUrl, {
+      const response = await fetch(validateCdrPasswordUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
