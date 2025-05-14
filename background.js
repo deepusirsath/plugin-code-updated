@@ -22,6 +22,9 @@ let browserInfo = null;
 let operatingSystem = null;
 let macId = null;
 
+chrome.storage.local.remove("messages", function () {
+  console.log("messages removed");
+});
 /** ___________________________________________________________Extension___________________________________________________________ */
 
 chrome.storage.local.get(null, function (items) {
@@ -554,10 +557,10 @@ async function sendEmlToServer(messageId, blob = null, client, user_email) {
     const formData = new FormData();
 
     if (client == "gmail" || client == "yahoo" || client == "nic") {
-      formData.append("file", blob, "downloaded.eml");
+      formData.append("file", blob, "download.eml");
     } else if (client == "outlook") {
       blob = new Blob([blob], { type: "text/plain" });
-      formData.append("file", blob, "downloaded.eml");
+      formData.append("file", blob, "download.eml");
     }
 
     formData.append("macId", macId);
@@ -790,7 +793,6 @@ function handleEmailScanResponseOfPending(serverData, activeTabId, client) {
 
   chrome.storage.local.get("messages", function (result) {
     let messages = result.messages ? JSON.parse(result.messages) : {};
-
     // Store both status and unsafeReason for each messageId
     messages[messId] = {
       status: resStatus,

@@ -31,7 +31,6 @@ const ERROR_MESSAGES = {
 };
 
 let messageReason = " ";
-
 document.addEventListener("visibilitychange", function () {
   chrome.storage.local.remove(["gmail_email", "outlook_email"], () => {});
 

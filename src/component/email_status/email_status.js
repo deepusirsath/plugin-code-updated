@@ -34,9 +34,10 @@ export function showAlert(key, messageReason = " ") {
     'div[data-test-id="message-group-view-scroller"]'
   );
 
+  const NicElement = document.getElementById("zv__CLV-main__CV_messages");
   // If no supported email platform is found, exit
   if (
-    !(GmailElements.length || OutlookElement || OutlookjunkBox || Yahooelement)
+    !(GmailElements.length || OutlookElement || OutlookjunkBox || Yahooelement || NicElement)
   ) {
     return;
   }
