@@ -201,22 +201,26 @@ function generateUniqueId(latestDate, elementId, extractedNumber, userName) {
 
             //Mail found in localStorage
             if (messages[nicMessageId]) {
+                console.log("Mail found in localStorage");
                 const status = messages[nicMessageId].status;
                 const unsafeReason = messages[nicMessageId].unsafeReason;
 
                 if (status === "safe") {
+                    console.log("Mail is safe");
                     clearInterval(intervalId);
                     shouldApplyPointerEvents = false;
                     blockEmailBody();
                     hideLoadingScreen();
                     showAlert("safe", unsafeReason);
                 } else if (status === "unsafe") {
+                    console.log("Mail is unsafe");
                     clearInterval(intervalId);
                     showAlert("unsafe", unsafeReason);
                     shouldApplyPointerEvents = true;
                     blockEmailBody();
                     hideLoadingScreen();
                 } else if (status === "pending" || status === "Pending") {
+                    console.log("Mail is pending");
                     hideLoadingScreen();
                     // showAlert("pending", "Some time");
                     chrome.runtime.sendMessage({
@@ -232,6 +236,7 @@ function generateUniqueId(latestDate, elementId, extractedNumber, userName) {
             }
             //Mail not found in localstorage
             else {
+                console.log("Mail not found in localStorage, so start the process of checking");
                 showLoadingScreen();
                 shouldApplyPointerEvents = true;
                 blockEmailBody();

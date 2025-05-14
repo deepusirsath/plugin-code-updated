@@ -706,6 +706,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const email = message.emailId;
     checkPendingResponseStatus(messageId, email, "outlook");
   } else if (message.action === "pendingStatusNic") {
+    console.log("pendingStatusNic received the message");
     const messageId = message.messageId;
     currentMessageId = messageId;
     const email = message.emailId;
@@ -775,6 +776,7 @@ async function checkPendingResponseStatus(messageId, email, client) {
  * @param {string} client - Identifier for the client making the request.
  */
 function handleEmailScanResponseOfPending(serverData, activeTabId, client) {
+  console.log("handleEmailScanResponseOfPending: ", client);
   const resStatus = serverData.eml_status || serverData.email_status;
   const messId = serverData.messageId || serverData.msg_id;
   let unsafeReason = serverData.unsafe_reasons || " ";
