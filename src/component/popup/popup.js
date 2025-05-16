@@ -62,6 +62,7 @@ const handleEmailPageResponse = async (response) => {
   const { revoke_status } = await chrome.storage.local.get("revoke_status");
 
   if (revoke_status) {
+    await chrome.storage.local.set({ registration: false });
     await loadUnauthenticatedComponents("licenseExpire");
     return;
   }
@@ -69,10 +70,12 @@ const handleEmailPageResponse = async (response) => {
   if (access_token) {
     const isTokenValid = await checkTokenValidity(access_token);
     if (!isTokenValid || !access_token) {
+      await chrome.storage.local.set({ registration: false });
       await loadUnauthenticatedComponents("tokenExpire");
       return;
     }
   } else {
+    await chrome.storage.local.set({ registration: false });
     await loadUnauthenticatedComponents("tokenExpire");
     return;
   }

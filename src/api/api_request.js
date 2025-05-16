@@ -38,43 +38,30 @@ export async function apiRequest(url, method, payload = null, customHeaders) {
     const response = await fetch(url, options);
 
     if (response.status === 401) {
-      try {
-        // Set registration to false and ensure it completes
-        await chrome.storage.local.set({ registration: false });
-        console.log("Registration set to false due to 401 error");
+      // Set registration to false and ensure it completes
+      await chrome.storage.local.set({ registration: false });
+      console.log("Registration set to false due to 401 error");
 
-        // Remove access token and ensure it completes
-        await chrome.storage.local.remove("access_token");
-        console.log("Access token removed due to 401 error");
+      // Remove access token and ensure it completes
+      await chrome.storage.local.remove("access_token");
+      console.log("Access token removed due to 401 error");
 
-        const dataOutputElement = document.getElementById(TARGET_ID.DATA_OUTPUT);
-        if (dataOutputElement) {
-          dataOutputElement.innerHTML = "";
-        }
-
-        const sidebarElement = document.getElementById(TARGET_ID.SIDEBAR);
-        if (sidebarElement) {
-          sidebarElement.style.display = "none";
-        }
-
-        loadComponent({
-          componentName: COMPONENTS.TOKEN_EXPIRE,
-          basePath: BASEPATH.PAGES,
-          targetId: TARGET_ID.DATA_OUTPUT,
-        });
-      } catch (storageError) {
-        console.error("Failed to update storage on 401 error:", storageError);
-        // Retry storage operation
-        setTimeout(async () => {
-          try {
-            await chrome.storage.local.set({ registration: false });
-            await chrome.storage.local.remove("access_token");
-          } catch (retryError) {
-            console.error("Retry failed:", retryError);
-          }
-        }, 500);
+      const dataOutputElement = document.getElementById(TARGET_ID.DATA_OUTPUT);
+      if (dataOutputElement) {
+        dataOutputElement.innerHTML = "";
       }
-      // Return a special object to indicate token expiry instead of throwing an error
+
+      const sidebarElement = document.getElementById(TARGET_ID.SIDEBAR);
+      if (sidebarElement) {
+        sidebarElement.style.display = "none";
+      }
+
+      loadComponent({
+        componentName: COMPONENTS.TOKEN_EXPIRE,
+        basePath: BASEPATH.PAGES,
+        targetId: TARGET_ID.DATA_OUTPUT,
+      });
+
       return { tokenExpired: true };
     }
 
