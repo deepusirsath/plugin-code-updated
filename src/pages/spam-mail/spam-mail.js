@@ -254,7 +254,9 @@ const attachViewButtonListeners = () => {
  * @throws {Error} Displays error message if component loading fails
  */
 const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
+
   try {
+    currentSearchQuery = "";
     await getEmailIds();
     const noDataFoundElement = document.getElementById("noDataFound");
     if (noDataFoundElement) {
