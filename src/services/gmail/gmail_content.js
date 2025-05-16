@@ -191,7 +191,6 @@ let messageReason = " ";
  */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "GmailDetectedForExtraction") {
-    // console.log("clearInterval(intervalId);")
     clearInterval(intervalId);
     setTimeout(() => {
       let url = window.location.href;
@@ -716,6 +715,9 @@ document.addEventListener("click", function removeAlertOnClick(event) {
  * true, interaction with these elements is disabled (`pointer-events: none`).
  * Otherwise, interaction is enabled (`pointer-events: all`).
  */
+
+
+
 function blockEmailBody() {
   const elements = document.getElementsByClassName("nH a98 iY");
   if (elements && elements.length > 0) {
@@ -730,7 +732,6 @@ function blockEmailBody() {
 }
 
 function isSentOrDraftEmail() {
-  console.log("isSentOrDraftEmail called");
   const url = window.location.href;
   return url.includes('#sent') || url.includes('#draft');
 }
