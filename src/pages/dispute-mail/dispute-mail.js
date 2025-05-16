@@ -259,7 +259,6 @@ const attachViewButtonListeners = () => {
  */
 const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
   try {
-    currentSearchQuery = "";
     await getEmailIds();
     const noDataFoundElement = document.getElementById("noDataFound");
     if (noDataFoundElement) {
@@ -340,6 +339,7 @@ const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
       handleRefresh(() => {
         const searchInput = document.getElementById("search-input");
         const clearButton = document.getElementById("clearButton");
+        currentSearchQuery = "";
 
         if (searchInput) {
           searchInput.value = "";

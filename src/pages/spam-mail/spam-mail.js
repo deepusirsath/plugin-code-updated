@@ -256,7 +256,6 @@ const attachViewButtonListeners = () => {
 const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
 
   try {
-    currentSearchQuery = "";
     await getEmailIds();
     const noDataFoundElement = document.getElementById("noDataFound");
     if (noDataFoundElement) {
@@ -313,6 +312,7 @@ const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
       }
 
       handleRefresh(() => {
+        currentSearchQuery = "";
         const searchInput = document.getElementById("search-input");
         const clearButton = document.getElementById("clearButton");
         if (searchInput) {
