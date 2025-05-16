@@ -42,11 +42,11 @@ export async function apiRequest(url, method, payload = null, customHeaders) {
         // Set registration to false and ensure it completes
         await chrome.storage.local.set({ registration: false });
         console.log("Registration set to false due to 401 error");
-        
+
         // Remove access token and ensure it completes
         await chrome.storage.local.remove("access_token");
         console.log("Access token removed due to 401 error");
-        
+
         const dataOutputElement = document.getElementById(TARGET_ID.DATA_OUTPUT);
         if (dataOutputElement) {
           dataOutputElement.innerHTML = "";
@@ -74,7 +74,6 @@ export async function apiRequest(url, method, payload = null, customHeaders) {
           }
         }, 500);
       }
-
       // Return a special object to indicate token expiry instead of throwing an error
       return { tokenExpired: true };
     }
