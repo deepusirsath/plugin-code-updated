@@ -256,7 +256,6 @@ const attachViewButtonListeners = () => {
 const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
 
   try {
-    // currentSearchQuery = "";
     await getEmailIds();
     const noDataFoundElement = document.getElementById("noDataFound");
     if (noDataFoundElement) {
