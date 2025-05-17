@@ -760,11 +760,11 @@ async function checkPendingResponseStatus(messageId, email, client) {
 /**
  * Handles the email scan response for pending messages.
  *
- * This function processes the server response, extracts the email status 
- * and message ID, and updates Chrome's local storage with the status 
- * and unsafe reasons. If the message corresponds to the currently 
+ * This function processes the server response, extracts the email status
+ * and message ID, and updates Chrome's local storage with the status
+ * and unsafe reasons. If the message corresponds to the currently
  * viewed email, it sends an appropriate action to the content script.
- * 
+ *
  * @param {Object} serverData - The response data from the server, containing email status and message ID.
  * @param {number} activeTabId - The ID of the currently active tab where the content script should be notified.
  * @param {string} client - Identifier for the client making the request.
@@ -832,19 +832,39 @@ function handleEmailScanResponseOfPending(serverData, activeTabId, client) {
  * @param {object} tab - The updated tab object.
  * @param {string} tab.url - The URL of the updated tab.
  */
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === "complete") {
-    const urlToCheck = tab.url;
-    const matchedKeyword = checkGmailUrl(urlToCheck);
+// chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+//   if (changeInfo.status === "complete") {
+//     const urlToCheck = tab.url;
+//     const matchedKeyword = checkGmailUrl(urlToCheck);
 
+//     if (matchedKeyword) {
+//       setTimeout(() => {
+//         chrome.tabs.sendMessage(
+//           tabId,
+//           { action: "GmailDetectedForExtraction" },
+//           (response) => {}
+//         );
+//       }, 1000);
+//     }
+//   }
+// });
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.url) {
+    const matchedKeyword = checkGmailUrl(changeInfo.url);
     if (matchedKeyword) {
       setTimeout(() => {
         chrome.tabs.sendMessage(
           tabId,
           { action: "GmailDetectedForExtraction" },
-          (response) => {}
+          (response) => {
+            // Handle response or error
+          }
         );
-      }, 1000);
+      }, 100);
+      // chrome.tabs.sendMessage(
+      //   tabId,
+      //   { action: "GmailDetectedForExtraction" }
+      // );
     }
   }
 });
@@ -897,7 +917,7 @@ async function emlExtractionGmail(emlUrl, currentMessageId, emailId) {
       },
     });
     const emailContent = await response.text();
-    console.log("Email Content:", emailContent);
+    // console.log("Email Content:", emailContent);
     const formattedContent = [
       "MIME-Version: 1.0",
       "Content-Type: message/rfc822",
@@ -1186,8 +1206,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
  * based on the currently active tab's URL.
  *
  * This listener waits for a `popupOpened` message from the popup script.
- * When received, it retrieves the active tab's URL and determines whether the 
- * user is on Yahoo Mail, Gmail, or Outlook. It then sends a corresponding 
+ * When received, it retrieves the active tab's URL and determines whether the
+ * user is on Yahoo Mail, Gmail, or Outlook. It then sends a corresponding
  * message to the content script of the active tab to trigger email extraction.
  *
  * Functionality:

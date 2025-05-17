@@ -128,25 +128,25 @@ Promise.all([
  * This function replaces the previous setTimeout-based approach to ensure elements are detected dynamically.
  */
 
-const waitForElements = () => {
-  const maxAttempts = 15;
-  let attempts = 0;
+// const waitForElements = () => {
+//   const maxAttempts = 15;
+//   let attempts = 0;
 
-  const checkElements = setInterval(() => {
-    const elements = document.getElementsByClassName("nH a98 iY");
-    attempts++;
+//   const checkElements = setInterval(() => {
+//     const elements = document.getElementsByClassName("nH a98 iY");
+//     attempts++;
 
-    if (elements && elements.length > 0) {
-      blockEmailBody();
-      clearInterval(checkElements);
-    } else if (attempts >= maxAttempts) {
-      clearInterval(checkElements);
-    }
-  }, 1000);
-};
+//     if (elements && elements.length > 0) {
+//       blockEmailBody();
+//       clearInterval(checkElements);
+//     } else if (attempts >= maxAttempts) {
+//       clearInterval(checkElements);
+//     }
+//   }, 1000);
+// };
 
-// Replace the original setTimeout with the new function
-waitForElements();
+// // Replace the original setTimeout with the new function
+// waitForElements();
 
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden && !emailId) {
@@ -189,8 +189,57 @@ let messageReason = " ";
  * - Validates registration data
  * - Ensures minimum segment length
  */
+// chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+//   if (message.action === "GmailDetectedForExtraction") {
+//     console.log("GmailDetectedForExtraction");
+//     clearInterval(intervalId);
+//     setTimeout(() => {
+//       let url = window.location.href;
+//       // Extract the part after #
+//       const hashParts = url.split("#");
+//       if (hashParts.length < 2) return;
+
+//       const afterHash = hashParts[1];
+
+//       // Check if compose appears immediately after folder name
+//       if (
+//         afterHash.match(
+//           /^(inbox|starred|snoozed|imp|label|search|scheduled|all|spam|trash|category)\/?\?compose=/
+//         )
+//       ) {
+//         return;
+//       }
+
+//       // If compose exists but has a long string before it, proceed
+//       if (afterHash.includes("?compose=")) {
+//         const beforeCompose = afterHash.split("?compose=")[0];
+//         if (beforeCompose.length < 30) {
+//           // console.log("compose found return=================================");
+//           return;
+//         }
+//       }
+//       // console.log("compose not found ===========================");
+//       chrome.storage.local.get("registration", (data) => {
+//         if (chrome.runtime.lastError) {
+//           return;
+//         }
+
+//         if (data.registration) {
+//           const lastSegment = url.split("/").pop().split("#").pop();
+//           if (lastSegment.length >= isValidSegmentLength) {
+//             console.log("init called");
+//             init();
+//           }
+//         }
+//       });
+//     }, 100);
+//     sendResponse({ status: "received" });
+//   }
+// });
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "GmailDetectedForExtraction") {
+    console.log("GmailDetectedForExtraction");
     clearInterval(intervalId);
     setTimeout(() => {
       let url = window.location.href;
@@ -213,11 +262,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (afterHash.includes("?compose=")) {
         const beforeCompose = afterHash.split("?compose=")[0];
         if (beforeCompose.length < 30) {
-          // console.log("compose found return=================================");
           return;
         }
       }
-      // console.log("compose not found ===========================");
+      
       chrome.storage.local.get("registration", (data) => {
         if (chrome.runtime.lastError) {
           return;
@@ -226,8 +274,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (data.registration) {
           const lastSegment = url.split("/").pop().split("#").pop();
           if (lastSegment.length >= isValidSegmentLength) {
-            console.log("init called");
-            init();
+            // Poll for elements with a maximum number of attempts
+            const maxAttempts = 200;
+            let attempts = 0;
+            
+            const checkForElements = setInterval(() => {
+              const elements = document.getElementsByClassName("nH a98 iY");
+              attempts++;
+              
+              if (elements && elements.length > 0) {
+                // console.log("Elements found, init called");
+                init();
+                clearInterval(checkForElements);
+              } else if (attempts >= maxAttempts) {
+                // console.log("Failed to find elements after maximum attempts");
+                alert("Please check your internet connection and refresh the page.");
+                clearInterval(checkForElements);
+              }
+            }, 500); // Check every 500ms
           }
         }
       });
