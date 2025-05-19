@@ -189,6 +189,7 @@ let messageReason = " ";
  * - Validates registration data
  * - Ensures minimum segment length
  */
+
 // chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 //   if (message.action === "GmailDetectedForExtraction") {
 //     console.log("GmailDetectedForExtraction");
@@ -239,7 +240,8 @@ let messageReason = " ";
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "GmailDetectedForExtraction") {
-    console.log("GmailDetectedForExtraction");
+    // console.log("GmailDetectedForExtraction");
+    blockEmailBody();
     clearInterval(intervalId);
     setTimeout(() => {
       let url = window.location.href;
@@ -385,7 +387,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     request.action === "EmailNotFoundInPendingRequest" &&
     request.client === "gmail"
   ) {
-    console.log("EmailNotFoundInPendingRequest");
+    // console.log("EmailNotFoundInPendingRequest");
     init();
   }
 });
