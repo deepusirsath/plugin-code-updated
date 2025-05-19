@@ -821,33 +821,6 @@ function handleEmailScanResponseOfPending(serverData, activeTabId, client) {
 
 /** ________________________________________ Gmail ______________________________________________*/
 
-/**
- * Listener for tab updates in Chrome.
- * This function checks if a tab has finished loading and then verifies if the URL matches a Gmail-related pattern.
- * If a match is found, it sends a message to the content script after a short delay.
- *
- * @param {number} tabId - The ID of the updated tab.
- * @param {object} changeInfo - Contains details about the change in the tab's state.
- * @param {string} changeInfo.status - The status of the tab update (e.g., "loading", "complete").
- * @param {object} tab - The updated tab object.
- * @param {string} tab.url - The URL of the updated tab.
- */
-// chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-//   if (changeInfo.status === "complete") {
-//     const urlToCheck = tab.url;
-//     const matchedKeyword = checkGmailUrl(urlToCheck);
-
-//     if (matchedKeyword) {
-//       setTimeout(() => {
-//         chrome.tabs.sendMessage(
-//           tabId,
-//           { action: "GmailDetectedForExtraction" },
-//           (response) => {}
-//         );
-//       }, 1000);
-//     }
-//   }
-// });
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.url) {
     const matchedKeyword = checkGmailUrl(changeInfo.url);
@@ -861,10 +834,6 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
           }
         );
       }, 100);
-      // chrome.tabs.sendMessage(
-      //   tabId,
-      //   { action: "GmailDetectedForExtraction" }
-      // );
     }
   }
 });

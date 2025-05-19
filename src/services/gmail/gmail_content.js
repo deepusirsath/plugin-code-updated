@@ -121,32 +121,6 @@ Promise.all([
   hideLoadingScreen = loadingScreen.hideLoadingScreen;
 });
 
-/**
- * Continuously checks for the presence of elements with the class "nH a98 iY" in the DOM.
- * The function attempts to locate these elements up to a maximum of 15 times, with a 1-second interval between attempts.
- * If the elements are found within the attempts, the `blockEmailBody` function is executed, and the interval is cleared.
- * This function replaces the previous setTimeout-based approach to ensure elements are detected dynamically.
- */
-
-// const waitForElements = () => {
-//   const maxAttempts = 15;
-//   let attempts = 0;
-
-//   const checkElements = setInterval(() => {
-//     const elements = document.getElementsByClassName("nH a98 iY");
-//     attempts++;
-
-//     if (elements && elements.length > 0) {
-//       blockEmailBody();
-//       clearInterval(checkElements);
-//     } else if (attempts >= maxAttempts) {
-//       clearInterval(checkElements);
-//     }
-//   }, 1000);
-// };
-
-// // Replace the original setTimeout with the new function
-// waitForElements();
 
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden && !emailId) {
@@ -189,55 +163,6 @@ let messageReason = " ";
  * - Validates registration data
  * - Ensures minimum segment length
  */
-
-// chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-//   if (message.action === "GmailDetectedForExtraction") {
-//     console.log("GmailDetectedForExtraction");
-//     clearInterval(intervalId);
-//     setTimeout(() => {
-//       let url = window.location.href;
-//       // Extract the part after #
-//       const hashParts = url.split("#");
-//       if (hashParts.length < 2) return;
-
-//       const afterHash = hashParts[1];
-
-//       // Check if compose appears immediately after folder name
-//       if (
-//         afterHash.match(
-//           /^(inbox|starred|snoozed|imp|label|search|scheduled|all|spam|trash|category)\/?\?compose=/
-//         )
-//       ) {
-//         return;
-//       }
-
-//       // If compose exists but has a long string before it, proceed
-//       if (afterHash.includes("?compose=")) {
-//         const beforeCompose = afterHash.split("?compose=")[0];
-//         if (beforeCompose.length < 30) {
-//           // console.log("compose found return=================================");
-//           return;
-//         }
-//       }
-//       // console.log("compose not found ===========================");
-//       chrome.storage.local.get("registration", (data) => {
-//         if (chrome.runtime.lastError) {
-//           return;
-//         }
-
-//         if (data.registration) {
-//           const lastSegment = url.split("/").pop().split("#").pop();
-//           if (lastSegment.length >= isValidSegmentLength) {
-//             console.log("init called");
-//             init();
-//           }
-//         }
-//       });
-//     }, 100);
-//     sendResponse({ status: "received" });
-//   }
-// });
-
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "GmailDetectedForExtraction") {
     // console.log("GmailDetectedForExtraction");
