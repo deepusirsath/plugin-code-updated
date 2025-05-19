@@ -114,13 +114,15 @@ Promise.all([
   importComponent(
     "/src/component/outlook_loading_screen/outlook_loading_screen.js"
   ),
-]).then(([emailStatus, blockPopup, loadingScreen]) => {
+  importComponent(
+    "/src/component/outlook_loading_screen/outlook_loading_screen.js"
+  ),
+]).then(([emailStatus, blockPopup, loadingScreen, hideLoadingScreen]) => {
   showAlert = emailStatus.showAlert;
   showBlockedPopup = blockPopup.showBlockedPopup;
   showLoadingScreen = loadingScreen.showLoadingScreen;
-  hideLoadingScreen = loadingScreen.hideLoadingScreen;
+  hideLoadingScreen = hideLoadingScreen.hideLoadingScreen;
 });
-
 
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden && !emailId) {
@@ -134,6 +136,41 @@ let emailId = null;
 let messageId = null;
 let isValidSegmentLength = 30;
 let messageReason = " ";
+
+const decodeJWT = (token) => {
+  const payloadBase64Url = token.split(".")[1];
+  const payloadBase64 = payloadBase64Url.replace(/-/g, "+").replace(/_/g, "/");
+
+  // Decode base64 string
+  const payloadJson = decodeURIComponent(
+    atob(payloadBase64)
+      .split("")
+      .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+      .join("")
+  );
+
+  return JSON.parse(payloadJson);
+};
+
+const checkTokenValidate = async () => {
+  const { refresh_token, access_token } = await chrome.storage.local.get([
+    "refresh_token",
+    "access_token",
+  ]);
+
+  if (refresh_token || access_token) {
+    const accessDecoded = decodeJWT(access_token);
+    const refreshDecoded = decodeJWT(refresh_token);
+    const currentTime = Math.floor(Date.now() / 1000);
+
+    if (accessDecoded.exp > currentTime || refreshDecoded.exp > currentTime) {
+      return true;
+    } else {
+      await chrome.storage.local.set({ registration: false });
+      return false;
+    }
+  }
+};
 
 /**
  * Chrome extension message listener for Gmail email detection and processing
@@ -163,8 +200,14 @@ let messageReason = " ";
  * - Validates registration data
  * - Ensures minimum segment length
  */
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (message.action === "GmailDetectedForExtraction") {
+    const { access_token } = await chrome.storage.local.get("access_token");
+    const isTokenValid = await checkTokenValidate(access_token);
+    if (!isTokenValid || !access_token) {
+      await chrome.storage.local.set({ registration: false });
+      return;
+    }
     // console.log("GmailDetectedForExtraction");
     blockEmailBody();
     clearInterval(intervalId);
@@ -192,7 +235,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           return;
         }
       }
-      
+
       chrome.storage.local.get("registration", (data) => {
         if (chrome.runtime.lastError) {
           return;
@@ -204,18 +247,20 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             // Poll for elements with a maximum number of attempts
             const maxAttempts = 200;
             let attempts = 0;
-            
+
             const checkForElements = setInterval(() => {
               const elements = document.getElementsByClassName("nH a98 iY");
               attempts++;
-              
+
               if (elements && elements.length > 0) {
                 // console.log("Elements found, init called");
                 init();
                 clearInterval(checkForElements);
               } else if (attempts >= maxAttempts) {
                 // console.log("Failed to find elements after maximum attempts");
-                alert("Please check your internet connection and refresh the page.");
+                alert(
+                  "Please check your internet connection and refresh the page."
+                );
                 clearInterval(checkForElements);
               }
             }, 500); // Check every 500ms
@@ -707,8 +752,6 @@ document.addEventListener("click", function removeAlertOnClick(event) {
  * Otherwise, interaction is enabled (`pointer-events: all`).
  */
 
-
-
 function blockEmailBody() {
   const elements = document.getElementsByClassName("nH a98 iY");
   if (elements && elements.length > 0) {
@@ -724,7 +767,7 @@ function blockEmailBody() {
 
 function isSentOrDraftEmail() {
   const url = window.location.href;
-  return url.includes('#sent') || url.includes('#draft');
+  return url.includes("#sent") || url.includes("#draft");
 }
 
 window.addEventListener("click", (e) => {
