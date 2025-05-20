@@ -2,6 +2,7 @@ import {
   IS_GMAIL,
   IS_OUTLOOK,
   IS_YAHOO,
+  IS_NIC,
 } from "/src/constant/email_service.js";
 import RegexLibrary from "/src/library/regex.lib.js";
 
@@ -37,3 +38,5 @@ export const isOutlookPage = (url) => url.includes(IS_OUTLOOK);
  * @returns {boolean} - Returns true if the URL belongs to Yahoo Mail, false otherwise.
  */
 export const isYahooPage = (url) => url.includes(IS_YAHOO);
+
+export const isNicPage = (url) => url.includes(IS_NIC);

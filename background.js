@@ -222,7 +222,7 @@ async function userDetails() {
     getPlatformInfo(),
     getExtensionid(),
   ])
-    .then(() => { })
+    .then(() => {})
     .catch((error) => {
       console.log("Error in userDetails:", error);
     });
@@ -370,8 +370,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     emailStatus === "Dispute" && !adminRemark
                       ? "Dispute"
                       : emailStatusData
-                        ? emailStatusData
-                        : "-",
+                      ? emailStatusData
+                      : "-",
                   messageId: response.messageId,
                   countRaise: dispute_count,
                   emailId: response.emailId,
@@ -659,7 +659,7 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
       if (action) {
         chrome.tabs
           .sendMessage(activeTabId, { action, client, unsafeReason })
-          .then((response) => { })
+          .then((response) => {})
           .catch((error) => {
             console.error("Error sending message to content script:", error);
           });
@@ -769,11 +769,11 @@ async function checkPendingResponseStatus(messageId, email, client) {
 /**
  * Handles the email scan response for pending messages.
  *
- * This function processes the server response, extracts the email status 
- * and message ID, and updates Chrome's local storage with the status 
- * and unsafe reasons. If the message corresponds to the currently 
+ * This function processes the server response, extracts the email status
+ * and message ID, and updates Chrome's local storage with the status
+ * and unsafe reasons. If the message corresponds to the currently
  * viewed email, it sends an appropriate action to the content script.
- * 
+ *
  * @param {Object} serverData - The response data from the server, containing email status and message ID.
  * @param {number} activeTabId - The ID of the currently active tab where the content script should be notified.
  * @param {string} client - Identifier for the client making the request.
@@ -814,7 +814,7 @@ function handleEmailScanResponseOfPending(serverData, activeTabId, client) {
       if (action) {
         chrome.tabs
           .sendMessage(activeTabId, { action, client, unsafeReason })
-          .then((response) => { })
+          .then((response) => {})
           .catch((error) => {
             console.error("Error sending message to content script:", error);
           });
@@ -851,7 +851,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         chrome.tabs.sendMessage(
           tabId,
           { action: "GmailDetectedForExtraction" },
-          (response) => { }
+          (response) => {}
         );
       }, 1000);
     }
@@ -1066,7 +1066,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-
 /** ________________________________________ NIC ______________________________________________*/
 
 // Add this to the existing chrome.tabs.onUpdated listener or create a new one
@@ -1079,10 +1078,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     // Check if the URL contains email.gov.in
     if (urlToCheck && urlToCheck.includes("email.gov.in")) {
       setTimeout(() => {
-        chrome.tabs.sendMessage(
-          tabId,
-          { action: "initializeNicScript" },
-        );
+        chrome.tabs.sendMessage(tabId, { action: "initializeNicScript" });
       }, 200);
     }
   }
@@ -1115,14 +1111,12 @@ async function emlExtractionNic(url, messageId, emailId) {
     console.log("Fetched Content:", content);
     const blob = new Blob([content], { type: "text/plain" });
     console.log(blob);
-    console.log(`"sendEmlToServer(messageId,blob,"nic", emailId)"`)
-    sendEmlToServer(messageId, blob, "nic", emailId)
+    console.log(`"sendEmlToServer(messageId,blob,"nic", emailId)"`);
+    sendEmlToServer(messageId, blob, "nic", emailId);
   } catch (error) {
     console.error("Error fetching URL content:", error);
   }
 }
-
-
 
 /**
  * Handles reloading dispute status and admin comments for an email
@@ -1253,8 +1247,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
  * based on the currently active tab's URL.
  *
  * This listener waits for a `popupOpened` message from the popup script.
- * When received, it retrieves the active tab's URL and determines whether the 
- * user is on Yahoo Mail, Gmail, or Outlook. It then sends a corresponding 
+ * When received, it retrieves the active tab's URL and determines whether the
+ * user is on Yahoo Mail, Gmail, or Outlook. It then sends a corresponding
  * message to the content script of the active tab to trigger email extraction.
  *
  * Functionality:
@@ -1274,6 +1268,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const currentUrl = tabs[0].url;
       console.log("Popup opened! and current url is ", currentUrl);
+      
       if (currentUrl.includes("mail.yahoo.com")) {
         chrome.tabs.sendMessage(tabs[0].id, { action: "ExtractEMailForYahoo" });
         console.log("Yahoo mail detected with the POPUP opened");
@@ -1287,6 +1282,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           action: "ExtractEMailForOutlook",
         });
         console.log("Outlook mail detected with the POPUP opened");
+      }
+      if (currentUrl.includes("email.gov.in")) {
+        chrome.tabs.sendMessage(tabs[0].id, {
+          action: "ExtractEMailForNic",
+        });
+        console.log("NIC mail detected with the POPUP opened");
       }
     });
   }

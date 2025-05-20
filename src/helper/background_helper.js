@@ -3,6 +3,7 @@ import {
   isGmailMailOpened,
   isOutlookPage,
   isYahooPage,
+  isNicPage,
 } from "/src/helper/mail_services_helper.js";
 
 export const checkGmailUrl = (url) => {
@@ -41,7 +42,8 @@ export const checkEmailPageStatus = (currentUrl, tabId, sendResponse) => {
   if (
     !isGmailPage(currentUrl) &&
     !isOutlookPage(currentUrl) &&
-    !isYahooPage(currentUrl)
+    !isYahooPage(currentUrl) &&
+    !isNicPage(currentUrl)
   ) {
     sendResponse("Please select email service");
     return;
@@ -70,6 +72,12 @@ export const checkEmailPageStatus = (currentUrl, tabId, sendResponse) => {
     case isYahooPage(currentUrl):
       chrome.tabs.sendMessage(tabId, { action: "checkYahoomail" }, (response) =>
         handleMailResponse(response, sendResponse, "Yahoo")
+      );
+      return true;
+
+    case isNicPage(currentUrl):
+      chrome.tabs.sendMessage(tabId, { action: "checkNicmail" }, (response) =>
+        handleMailResponse(response, sendResponse, "Nic")
       );
       return true;
 

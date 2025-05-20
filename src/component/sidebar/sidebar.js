@@ -147,6 +147,8 @@ const handleDisputeButton = async (componentName) => {
           "OpenedOutlook",
           "OpenedYahoo",
           "Gmail",
+          "Nic",
+          "OpenedNic",
         ];
 
         if (openedServices.includes(response)) {

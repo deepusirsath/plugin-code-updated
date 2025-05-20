@@ -5,6 +5,8 @@ const EMAIL_PAGES = [
   "OpenedOutlook",
   "Yahoo",
   "OpenedYahoo",
+  "Nic",
+  "OpenedNic",
 ];
 
 

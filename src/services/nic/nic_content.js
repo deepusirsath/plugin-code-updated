@@ -9,7 +9,7 @@ let showBlockedPopup = null;
 let showLoadingScreen = null;
 let hideLoadingScreen = null;
 let emailId = "";
-let senderElementForDispute = "";
+let senderEmail = "";
 let nicMessageId = "";
 let shouldApplyPointerEvents = true;
 let lastClickedMailId = null;
@@ -20,7 +20,9 @@ let messageReason = " ";
 Promise.all([
   importComponent("/src/component/email_status/email_status.js"),
   importComponent("/src/component/block_email_popup/block_email_popup.js"),
-  importComponent("/src/component/outlook_loading_screen/outlook_loading_screen.js"),
+  importComponent(
+    "/src/component/outlook_loading_screen/outlook_loading_screen.js"
+  ),
 ]).then(([emailStatus, blockPopup, loadingScreen]) => {
   showAlert = emailStatus.showAlert;
   showBlockedPopup = blockPopup.showBlockedPopup;
@@ -43,7 +45,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return;
       }
       if (data.registration) {
-        setTimeout(() => {}, 500);
+        setTimeout(() => { }, 500);
         console.log("Registration data found:", data.registration);
         initializeSetupListener();
       }
@@ -60,6 +62,38 @@ function initializeSetupListener() {
   }, 500);
 }
 
+function handleNicMailCheck(message, sendResponse) {
+  if (
+    message.action == "checkNicmail" ||
+    message.action == "fetchDisputeMessageId"
+  ) {
+    console.log("checkNicmail checkNicmail checkNicmail checkNicmail checkNicmail")
+    const emailBodySearch = document.getElementById("zv__CLV-main__CV_messages");
+    if (emailBodySearch) {
+      console.log("Email body found Email body found Email body foundEmail body found");
+      sendResponse({
+        emailBodyExists: true,
+        messageId: nicMessageId,
+        emailId: emailId,
+        senderEmail: senderEmail,
+      });
+    } 
+    else {
+      console.log("Email body not found Email body not found Email body not found");
+      sendResponse({
+        emailBodyExists: false,
+        error: "did't get the messasge Id",
+      });
+    }
+    return true;
+  }
+}
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  handleNicMailCheck(message, sendResponse);
+  return true; // Keeps the message channel open for async sendResponse
+});
+
 const setupMailItemClickListeners = () => {
   const mailListContainer = document.getElementById("zl__CLV-main__rows");
 
@@ -69,44 +103,64 @@ const setupMailItemClickListeners = () => {
     return;
   }
   mailListContainer.addEventListener("click", (event) => {
-    const mailItem = event.target.closest("li.RowDouble");
-    if (mailItem) {
-      const isOdd = mailItem.classList.contains("RowOdd");
-      const isEven = mailItem.classList.contains("RowEven");
+    let retries = 0;
+    const maxRetries = 100;
+    const retryInterval = 500; // ms
+    blockEmailBody();
 
-      if (isOdd || isEven) {
-        const mailId = mailItem.id;
-        const currentTime = Date.now();
-        if (mailId === lastClickedMailId && currentTime - lastClickTime < 300) {
-          return;
+    function tryFindElementAndProceed() {
+      const element = document.getElementById("zv__CLV-main__CV_messages");
+      if (element) {
+        // Proceed with original logic
+        const mailItem = event.target.closest("li.RowDouble");
+        if (mailItem) {
+          const isOdd = mailItem.classList.contains("RowOdd");
+          const isEven = mailItem.classList.contains("RowEven");
+
+          if (isOdd || isEven) {
+            const mailId = mailItem.id;
+            const currentTime = Date.now();
+            if (
+              mailId === lastClickedMailId &&
+              currentTime - lastClickTime < 300
+            ) {
+              return;
+            }
+            lastClickedMailId = mailId;
+            lastClickTime = currentTime;
+
+            // Extract relevant information from the mail item
+            const subjectElement = mailItem.querySelector(
+              '[id$="__su"] span:first-child'
+            );
+            const senderElement = mailItem.querySelector('[id$="__pa__0"]');
+            const dateElement = mailItem.querySelector('[id$="__dt"]');
+            senderEmail = senderElement.textContent;
+            const mailInfo = {
+              id: mailId,
+              subject: subjectElement
+                ? subjectElement.textContent
+                : "Unknown Subject",
+              sender: senderElement
+                ? senderElement.textContent
+                : "Unknown Sender",
+              date: dateElement ? dateElement.textContent : "Unknown Date",
+              rowType: isOdd ? "RowOdd" : "RowEven",
+            };
+            console.log("Mail item clicked:", mailInfo);
+            setTimeout(() => {
+              ExtractIdFromDate();
+            }, 1500);
+          }
         }
-        lastClickedMailId = mailId;
-        lastClickTime = currentTime;
-
-        // Extract relevant information from the mail item
-        const subjectElement = mailItem.querySelector(
-          '[id$="__su"] span:first-child'
-        );
-        const senderElement = mailItem.querySelector('[id$="__pa__0"]');
-        const dateElement = mailItem.querySelector('[id$="__dt"]');
-        senderElementForDispute = senderElement.textContent;
-        const mailInfo = {
-          id: mailId,
-          subject: subjectElement
-            ? subjectElement.textContent
-            : "Unknown Subject",
-          sender: senderElement ? senderElement.textContent : "Unknown Sender",
-          date: dateElement ? dateElement.textContent : "Unknown Date",
-          rowType: isOdd ? "RowOdd" : "RowEven",
-        };
-        console.log("Mail item clicked:", mailInfo);
-        // Increase delay to allow more time for DOM elements to load
-        setTimeout(() => {
-          // console.log("Mail info found lets extract the funcrtion");
-          ExtractIdFromDate();
-        }, 1500); // Increased from 1000 to 2000ms
+      } else if (retries < maxRetries) {
+        retries++;
+        setTimeout(tryFindElementAndProceed, retryInterval);
+      } else {
+        alert("Please check your internet connection and refresh the page and try again.");
       }
     }
+    tryFindElementAndProceed();
   });
 };
 
@@ -131,11 +185,21 @@ function ExtractIdFromDate() {
       latest.number = number;
     }
   });
-  generateUniqueIdAndTest(latest.date.toString(), latest.id, latest.number, emailId);
+  generateUniqueIdAndTest(
+    latest.date.toString(),
+    latest.id,
+    latest.number,
+    emailId
+  );
   // console.log("Data extracted for EML file:", data);
 }
 
-function generateUniqueIdAndTest(latestDate, elementId, extractedNumber, userName) {
+function generateUniqueIdAndTest(
+  latestDate,
+  elementId,
+  extractedNumber,
+  userName
+) {
   data = {
     latestDate: latestDate,
     elementId: elementId,
@@ -311,9 +375,17 @@ function findEmailId() {
   if (match && match[1]) {
     emailId = match[1];
     console.log("Found email:", emailId);
+    chrome.storage.local.set({ currentMailId: emailId });
   }
   return null;
 }
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === "ExtractEMailForNic") {
+    console.log("Extracting email for NIC ExtractEMailForNic____________ExtractEMailForNic");
+    findEmailId();
+  }
+});
+
 function blockEmailBody() {
   const element = document.getElementById("zv__CLV-main__CV_messages");
   if (element) {
@@ -381,7 +453,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-
 // Add this with the other message listeners
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "emailSizeCategory" && message.client === "nic") {
@@ -392,27 +463,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // Add this function to handle different size categories
 function handleEmailSizeCategory(sizeCategory) {
   let sizeMessage = "";
-  
-  switch(sizeCategory) {
+
+  switch (sizeCategory) {
     case "underTwo":
-      showAlert("pending", "underTwo")
+      showAlert("pending", "underTwo");
       sizeMessage = "Email size is under 2 MB";
       break;
     case "underTen":
-      showAlert("pending", "underTen")
+      showAlert("pending", "underTen");
       sizeMessage = "Email size is between 2-10 MB";
       break;
     case "underTwenty":
-      showAlert("pending", "underTwenty")
+      showAlert("pending", "underTwenty");
       sizeMessage = "Email size is between 10-20 MB";
       break;
     case "overTwenty":
-      showAlert("pending", "overTwenty")
+      showAlert("pending", "overTwenty");
       sizeMessage = "Email size is over 20 MB";
       break;
     default:
-      showAlert("pending", "Some time")
+      showAlert("pending", "Some time");
       sizeMessage = "Email size unknown";
   }
-  
 }
