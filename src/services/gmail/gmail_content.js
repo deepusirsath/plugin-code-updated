@@ -397,7 +397,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  * - Triggers showAlert with "inform" parameter when conditions match
  * - Handles Gmail-specific error notifications
  */
-chrome.runtime.onMessage.addListener((request) => {
+chrome.runtime.onMessage.addListener(async (request) => {
+  const { access_token } = await chrome.storage.local.get("access_token");
+  const isTokenValid = await checkTokenValidate(access_token);
+  if (!isTokenValid || !access_token) {
+    await chrome.storage.local.set({ registration: false });
+    return;
+  }
   if (
     request.action === "erroRecievedFromServer" &&
     request.client === "gmail"
@@ -406,7 +412,14 @@ chrome.runtime.onMessage.addListener((request) => {
     hideLoadingScreen();
   }
 });
-window.addEventListener("offline", function () {
+
+window.addEventListener("offline", async function () {
+  const { access_token } = await chrome.storage.local.get("access_token");
+  const isTokenValid = await checkTokenValidate(access_token);
+  if (!isTokenValid || !access_token) {
+    await chrome.storage.local.set({ registration: false });
+    return;
+  }
   showAlert("networkError");
   hideLoadingScreen();
   chrome.storage.local.set({ networkWentOffline: true });
@@ -422,7 +435,13 @@ window.addEventListener("online", function () {
   });
 });
 
-chrome.runtime.onMessage.addListener((request) => {
+chrome.runtime.onMessage.addListener(async (request) => {
+  const { access_token } = await chrome.storage.local.get("access_token");
+  const isTokenValid = await checkTokenValidate(access_token);
+  if (!isTokenValid || !access_token) {
+    await chrome.storage.local.set({ registration: false });
+    return;
+  }
   if (
     request.action === "badRequestServerError" &&
     request.client === "gmail"
@@ -455,8 +474,14 @@ function pendingStatusCallForGmail() {
  * @param {Object} sender - Information about the script that sent the message.
  * @param {Function} sendResponse - A function to send a response back to the sender, with the status "success".
  */
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (message.client === "gmail") {
+    const { access_token } = await chrome.storage.local.get("access_token");
+    const isTokenValid = await checkTokenValidate(access_token);
+    if (!isTokenValid || !access_token) {
+      await chrome.storage.local.set({ registration: false });
+      return;
+    }
     messageReason = message.unsafeReason;
 
     if (message.action === "blockUrls") {
@@ -522,6 +547,12 @@ const init = () => {
  */
 
 async function extractMessageIdAndEml() {
+  const { access_token } = await chrome.storage.local.get("access_token");
+  const isTokenValid = await checkTokenValidate(access_token);
+  if (!isTokenValid || !access_token) {
+    await chrome.storage.local.set({ registration: false });
+    return;
+  }
   // console.log("start the extractMessageIdAndEml");
   blockEmailBody();
   const node = document.querySelector("[data-legacy-message-id]");
@@ -783,7 +814,13 @@ function blockEmailBody() {
 }
 
 // Add a click event listener to the window to detect the click event on the email body
-window.addEventListener("click", (e) => {
+window.addEventListener("click", async (e) => {
+  const { access_token } = await chrome.storage.local.get("access_token");
+  const isTokenValid = await checkTokenValidate(access_token);
+  if (!isTokenValid || !access_token) {
+    await chrome.storage.local.set({ registration: false });
+    return;
+  }
   const elements = document.getElementsByClassName("nH a98 iY");
   if (elements && elements.length > 0) {
     Array.from(elements).forEach(() => {
@@ -939,7 +976,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 // Add this function to handle different size categories
-function handleEmailSizeCategory(sizeCategory) {
+async function handleEmailSizeCategory(sizeCategory) {
+  const { access_token } = await chrome.storage.local.get("access_token");
+  const isTokenValid = await checkTokenValidate(access_token);
+  if (!isTokenValid || !access_token) {
+    await chrome.storage.local.set({ registration: false });
+    return;
+  }
   let sizeMessage = "";
 
   switch (sizeCategory) {
