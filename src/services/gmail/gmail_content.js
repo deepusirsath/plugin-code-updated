@@ -114,15 +114,39 @@ Promise.all([
   importComponent(
     "/src/component/outlook_loading_screen/outlook_loading_screen.js"
   ),
-  importComponent(
-    "/src/component/outlook_loading_screen/outlook_loading_screen.js"
-  ),
-]).then(([emailStatus, blockPopup, loadingScreen, hideLoadingScreen]) => {
+]).then(([emailStatus, blockPopup, loadingScreen]) => {
   showAlert = emailStatus.showAlert;
   showBlockedPopup = blockPopup.showBlockedPopup;
   showLoadingScreen = loadingScreen.showLoadingScreen;
-  hideLoadingScreen = hideLoadingScreen.hideLoadingScreen;
+  hideLoadingScreen = loadingScreen.hideLoadingScreen;
 });
+
+/**
+ * Continuously checks for the presence of elements with the class "nH a98 iY" in the DOM.
+ * The function attempts to locate these elements up to a maximum of 15 times, with a 1-second interval between attempts.
+ * If the elements are found within the attempts, the `blockEmailBody` function is executed, and the interval is cleared.
+ * This function replaces the previous setTimeout-based approach to ensure elements are detected dynamically.
+ */
+
+// const waitForElements = () => {
+//   const maxAttempts = 15;
+//   let attempts = 0;
+
+//   const checkElements = setInterval(() => {
+//     const elements = document.getElementsByClassName("nH a98 iY");
+//     attempts++;
+
+//     if (elements && elements.length > 0) {
+//       blockEmailBody();
+//       clearInterval(checkElements);
+//     } else if (attempts >= maxAttempts) {
+//       clearInterval(checkElements);
+//     }
+//   }, 1000);
+// };
+
+// Replace the original setTimeout with the new function
+//waitForElements();
 
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden && !emailId) {
@@ -208,7 +232,6 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
       await chrome.storage.local.set({ registration: false });
       return;
     }
-    // console.log("GmailDetectedForExtraction");
     blockEmailBody();
     clearInterval(intervalId);
     setTimeout(() => {
@@ -235,12 +258,10 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
           return;
         }
       }
-
       chrome.storage.local.get("registration", (data) => {
         if (chrome.runtime.lastError) {
           return;
         }
-
         if (data.registration) {
           const lastSegment = url.split("/").pop().split("#").pop();
           if (lastSegment.length >= isValidSegmentLength) {
@@ -357,7 +378,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     request.action === "EmailNotFoundInPendingRequest" &&
     request.client === "gmail"
   ) {
-    // console.log("EmailNotFoundInPendingRequest");
     init();
   }
 });
@@ -386,7 +406,6 @@ chrome.runtime.onMessage.addListener((request) => {
     hideLoadingScreen();
   }
 });
-
 window.addEventListener("offline", function () {
   showAlert("networkError");
   hideLoadingScreen();
@@ -436,7 +455,6 @@ function pendingStatusCallForGmail() {
  * @param {Object} sender - Information about the script that sent the message.
  * @param {Function} sendResponse - A function to send a response back to the sender, with the status "success".
  */
-
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.client === "gmail") {
     messageReason = message.unsafeReason;
@@ -751,7 +769,6 @@ document.addEventListener("click", function removeAlertOnClick(event) {
  * true, interaction with these elements is disabled (`pointer-events: none`).
  * Otherwise, interaction is enabled (`pointer-events: all`).
  */
-
 function blockEmailBody() {
   const elements = document.getElementsByClassName("nH a98 iY");
   if (elements && elements.length > 0) {
@@ -765,17 +782,9 @@ function blockEmailBody() {
   }
 }
 
-function isSentOrDraftEmail() {
-  const url = window.location.href;
-  return url.includes("#sent") || url.includes("#draft");
-}
-
+// Add a click event listener to the window to detect the click event on the email body
 window.addEventListener("click", (e) => {
-  // First check if we're in sent or drafts folder
   const elements = document.getElementsByClassName("nH a98 iY");
-  if (isSentOrDraftEmail()) {
-    shouldApplyPointerEvents = false;
-  }
   if (elements && elements.length > 0) {
     Array.from(elements).forEach(() => {
       if (shouldApplyPointerEvents) {
@@ -784,28 +793,7 @@ window.addEventListener("click", (e) => {
     });
   }
 });
-// window.addEventListener("click", (e) => {
-//   const elements = document.getElementsByClassName("nH a98 iY");
-//   if (elements && elements.length > 0) {
-//     Array.from(elements).forEach(() => {
-//       if (shouldApplyPointerEvents) {
-//         showBlockedPopup();
-//       }
-//     });
-//   }
-// });
 
-/**
- * Listens for messages from the background script and extracts the email address from the page title.
- *
- * When the "ExtractEMailForGmail" action is received, this function attempts to extract an email address
- * from the document title using a regex pattern. If an email is found, it is stored in Chrome's local storage.
- * If no email is found, the extraction function retries after 200 milliseconds.
- *
- * @param {Object} request - The message received from the background script.
- * @param {Object} sender - Information about the script that sent the message.
- * @param {Function} sendResponse - Function to send a response back to the sender (not used in this implementation).
- */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "ExtractEMailForGmail") {
     // console.log("ExtractEMailForGmailExtractEMailForGmailExtractEMailForGmail");
@@ -830,18 +818,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-/**
- * Disables the "Open in new window" menu item in the Gmail context menu.
- *
- * This function searches for menu items with `role="menuitem"` and checks
- * if they contain the text "Open in new window". If found, it disables
- * interaction by setting `pointer-events: none`, reducing opacity,
- * and preventing clicks from triggering any action.
- *
- * Additionally, it disables inner elements, including the `.J-N-Jz`
- * (inner menu item) and `.J-N-JX` (icon element), ensuring that
- * users cannot bypass the restriction.
- */
+// Function to disable "Open in new window" menu option using the exact DOM structure
 const disableOpenInNewWindow = () => {
   // Look for menu items with role="menuitem"
   const menuItems = document.querySelectorAll('div.J-N[role="menuitem"]');
@@ -953,17 +930,7 @@ if (document.body) {
 // Also run a periodic check to catch any menus that might have been missed
 setInterval(checkForContextMenu, 500);
 
-/**
- * Listens for messages from the background or content script and processes email size categories.
- *
- * This event listener checks if the received message has the action `"emailSizeCategory"`
- * and comes from the `"gmail"` client. If both conditions are met, it calls
- * `handleEmailSizeCategory` with the provided size category.
- *
- * @param {Object} message - The message object sent from another script.
- * @param {Object} sender - Information about the script that sent the message.
- * @param {Function} sendResponse - A function to send a response back to the sender.
- */
+// Add this with the other message listeners
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "emailSizeCategory" && message.client === "gmail") {
     // console.log(`message.action === "emailSizeCategory" && message.client === "gmail"`)
@@ -971,21 +938,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-/**
- * Handles email size categorization and displays an alert accordingly.
- *
- * This function takes an email size category and triggers an alert with
- * the corresponding status. It also sets a message describing the email size range.
- *
- * The function categorizes email sizes as:
- * - "underTwo": Emails smaller than 2 MB.
- * - "underTen": Emails between 2 MB and 10 MB.
- * - "underTwenty": Emails between 10 MB and 20 MB.
- * - "overTwenty": Emails larger than 20 MB.
- * - Default case: Unknown email size.
- *
- * @param {string} sizeCategory - The category of the email size.
- */
+// Add this function to handle different size categories
 function handleEmailSizeCategory(sizeCategory) {
   let sizeMessage = "";
 
