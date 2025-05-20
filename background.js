@@ -830,30 +830,19 @@ function handleEmailScanResponseOfPending(serverData, activeTabId, client) {
 
 /** ________________________________________ Gmail ______________________________________________*/
 
-/**
- * Listener for tab updates in Chrome.
- * This function checks if a tab has finished loading and then verifies if the URL matches a Gmail-related pattern.
- * If a match is found, it sends a message to the content script after a short delay.
- *
- * @param {number} tabId - The ID of the updated tab.
- * @param {object} changeInfo - Contains details about the change in the tab's state.
- * @param {string} changeInfo.status - The status of the tab update (e.g., "loading", "complete").
- * @param {object} tab - The updated tab object.
- * @param {string} tab.url - The URL of the updated tab.
- */
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === "complete") {
-    const urlToCheck = tab.url;
-    const matchedKeyword = checkGmailUrl(urlToCheck);
-
+  if (changeInfo.url) {
+    const matchedKeyword = checkGmailUrl(changeInfo.url);
     if (matchedKeyword) {
       setTimeout(() => {
         chrome.tabs.sendMessage(
           tabId,
           { action: "GmailDetectedForExtraction" },
-          (response) => {}
+          (response) => {
+            // Handle response or error
+          }
         );
-      }, 1000);
+      }, 100);
     }
   }
 });
@@ -906,7 +895,7 @@ async function emlExtractionGmail(emlUrl, currentMessageId, emailId) {
       },
     });
     const emailContent = await response.text();
-    console.log("Email Content:", emailContent);
+    // console.log("Email Content:", emailContent);
     const formattedContent = [
       "MIME-Version: 1.0",
       "Content-Type: message/rfc822",

@@ -38,15 +38,20 @@ export async function apiRequest(url, method, payload = null, customHeaders) {
     const response = await fetch(url, options);
 
     if (response.status === 401) {
+      // Set registration to false and ensure it completes
       await chrome.storage.local.set({ registration: false });
+      console.log("Registration set to false due to 401 error");
+
+      // Remove access token and ensure it completes
       await chrome.storage.local.remove("access_token");
+      console.log("Access token removed due to 401 error");
+
       const dataOutputElement = document.getElementById(TARGET_ID.DATA_OUTPUT);
       if (dataOutputElement) {
         dataOutputElement.innerHTML = "";
       }
 
       const sidebarElement = document.getElementById(TARGET_ID.SIDEBAR);
-
       if (sidebarElement) {
         sidebarElement.style.display = "none";
       }
@@ -57,7 +62,6 @@ export async function apiRequest(url, method, payload = null, customHeaders) {
         targetId: TARGET_ID.DATA_OUTPUT,
       });
 
-      // Return a special object to indicate token expiry instead of throwing an error
       return { tokenExpired: true };
     }
 

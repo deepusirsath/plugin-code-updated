@@ -114,39 +114,15 @@ Promise.all([
   importComponent(
     "/src/component/outlook_loading_screen/outlook_loading_screen.js"
   ),
-]).then(([emailStatus, blockPopup, loadingScreen]) => {
+  importComponent(
+    "/src/component/outlook_loading_screen/outlook_loading_screen.js"
+  ),
+]).then(([emailStatus, blockPopup, loadingScreen, hideLoadingScreen]) => {
   showAlert = emailStatus.showAlert;
   showBlockedPopup = blockPopup.showBlockedPopup;
   showLoadingScreen = loadingScreen.showLoadingScreen;
-  hideLoadingScreen = loadingScreen.hideLoadingScreen;
+  hideLoadingScreen = hideLoadingScreen.hideLoadingScreen;
 });
-
-/**
- * Continuously checks for the presence of elements with the class "nH a98 iY" in the DOM.
- * The function attempts to locate these elements up to a maximum of 15 times, with a 1-second interval between attempts.
- * If the elements are found within the attempts, the `blockEmailBody` function is executed, and the interval is cleared.
- * This function replaces the previous setTimeout-based approach to ensure elements are detected dynamically.
- */
-
-const waitForElements = () => {
-  const maxAttempts = 15;
-  let attempts = 0;
-
-  const checkElements = setInterval(() => {
-    const elements = document.getElementsByClassName("nH a98 iY");
-    attempts++;
-
-    if (elements && elements.length > 0) {
-      blockEmailBody();
-      clearInterval(checkElements);
-    } else if (attempts >= maxAttempts) {
-      clearInterval(checkElements);
-    }
-  }, 1000);
-};
-
-// Replace the original setTimeout with the new function
-waitForElements();
 
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden && !emailId) {
@@ -160,6 +136,41 @@ let emailId = null;
 let messageId = null;
 let isValidSegmentLength = 30;
 let messageReason = " ";
+
+const decodeJWT = (token) => {
+  const payloadBase64Url = token.split(".")[1];
+  const payloadBase64 = payloadBase64Url.replace(/-/g, "+").replace(/_/g, "/");
+
+  // Decode base64 string
+  const payloadJson = decodeURIComponent(
+    atob(payloadBase64)
+      .split("")
+      .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+      .join("")
+  );
+
+  return JSON.parse(payloadJson);
+};
+
+const checkTokenValidate = async () => {
+  const { refresh_token, access_token } = await chrome.storage.local.get([
+    "refresh_token",
+    "access_token",
+  ]);
+
+  if (refresh_token || access_token) {
+    const accessDecoded = decodeJWT(access_token);
+    const refreshDecoded = decodeJWT(refresh_token);
+    const currentTime = Math.floor(Date.now() / 1000);
+
+    if (accessDecoded.exp > currentTime || refreshDecoded.exp > currentTime) {
+      return true;
+    } else {
+      await chrome.storage.local.set({ registration: false });
+      return false;
+    }
+  }
+};
 
 /**
  * Chrome extension message listener for Gmail email detection and processing
@@ -189,9 +200,16 @@ let messageReason = " ";
  * - Validates registration data
  * - Ensures minimum segment length
  */
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (message.action === "GmailDetectedForExtraction") {
-    // console.log("clearInterval(intervalId);")
+    const { access_token } = await chrome.storage.local.get("access_token");
+    const isTokenValid = await checkTokenValidate(access_token);
+    if (!isTokenValid || !access_token) {
+      await chrome.storage.local.set({ registration: false });
+      return;
+    }
+    // console.log("GmailDetectedForExtraction");
+    blockEmailBody();
     clearInterval(intervalId);
     setTimeout(() => {
       let url = window.location.href;
@@ -214,11 +232,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (afterHash.includes("?compose=")) {
         const beforeCompose = afterHash.split("?compose=")[0];
         if (beforeCompose.length < 30) {
-          // console.log("compose found return=================================");
           return;
         }
       }
-      // console.log("compose not found ===========================");
+
       chrome.storage.local.get("registration", (data) => {
         if (chrome.runtime.lastError) {
           return;
@@ -227,8 +244,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (data.registration) {
           const lastSegment = url.split("/").pop().split("#").pop();
           if (lastSegment.length >= isValidSegmentLength) {
-            console.log("init called");
-            init();
+            // Poll for elements with a maximum number of attempts
+            const maxAttempts = 200;
+            let attempts = 0;
+
+            const checkForElements = setInterval(() => {
+              const elements = document.getElementsByClassName("nH a98 iY");
+              attempts++;
+
+              if (elements && elements.length > 0) {
+                // console.log("Elements found, init called");
+                init();
+                clearInterval(checkForElements);
+              } else if (attempts >= maxAttempts) {
+                // console.log("Failed to find elements after maximum attempts");
+                alert(
+                  "Please check your internet connection and refresh the page."
+                );
+                clearInterval(checkForElements);
+              }
+            }, 500); // Check every 500ms
           }
         }
       });
@@ -322,7 +357,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     request.action === "EmailNotFoundInPendingRequest" &&
     request.client === "gmail"
   ) {
-    console.log("EmailNotFoundInPendingRequest");
+    // console.log("EmailNotFoundInPendingRequest");
     init();
   }
 });
@@ -715,6 +750,7 @@ document.addEventListener("click", function removeAlertOnClick(event) {
  * true, interaction with these elements is disabled (`pointer-events: none`).
  * Otherwise, interaction is enabled (`pointer-events: all`).
  */
+
 function blockEmailBody() {
   const elements = document.getElementsByClassName("nH a98 iY");
   if (elements && elements.length > 0) {

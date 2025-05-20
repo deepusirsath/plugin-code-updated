@@ -1,7 +1,12 @@
 import { BASEPATH } from "/src/constant/basepath.js";
 import { COMPONENTS } from "/src/constant/component.js";
 import { loadCSS } from "/src/helper/content_loader_helper.js";
+import { VALIDATE_CDR_PASSWORD } from "/src/routes/api_route.js";
+import config from "/config.js";
+import { showCustomAlert } from "/src/component/custom_alert/custom_alert.js";
+const baseUrl = config.BASE_URL;
 
+const validateCdrPasswordUrl = `${baseUrl}${VALIDATE_CDR_PASSWORD}`;
 /**
  * Common download handler for both CDR files and attachments
  * @param {Object} file - The file object containing download information
@@ -18,7 +23,7 @@ const handleFileDownload = (file, isCDR = false) => {
       conflictAction: "uniquify",
     });
   } else {
-    alert("Download URL is not available.");
+    showAlert("Download URL is not available.");
   }
 };
 
@@ -102,6 +107,146 @@ const handleCDRFiles = (createViewDetail) => {
 };
 
 /**
+ * Processes password-protected files and creates an interface
+ * @param {Object} createViewDetail - The view detail configuration object
+ * @param {Array<Object>} [createViewDetail.password_protect_file=[]] - Array of password-protected files
+ */
+const handlePasswordProtectedFiles = (createViewDetail) => {
+  const passwordProtectedFiles = createViewDetail?.password_protect_file || [];
+  if (passwordProtectedFiles.length === 0) return;
+
+  const passwordContainer = document.createElement("div");
+  passwordContainer.className = "password-protect-container";
+
+  // Add the title at the top of the container
+  const title = document.createElement("h3");
+  title.textContent =
+    "These files are protected with a password. Please enter the password to generate CDR.";
+  title.style.marginBottom = "10px";
+  passwordContainer.appendChild(title);
+
+  passwordProtectedFiles.forEach((file) => {
+    const fileRow = document.createElement("div");
+    fileRow.className = "password-protect-row";
+    fileRow.innerHTML = `
+      <span>${file.file_name}</span>
+      <button class="password-protect-button" data-row-id="${file.row_id}">Enter Password</button>
+    `;
+
+    fileRow
+      .querySelector(".password-protect-button")
+      .addEventListener("click", () => {
+        handlePasswordProtectedFile(file);
+      });
+
+    passwordContainer.appendChild(fileRow);
+  });
+
+  document
+    .getElementById("password-protect-container")
+    .appendChild(passwordContainer);
+};
+
+/**
+ * Handles password-protected file download by opening a password input popup
+ * @param {Object} file - The file object containing information
+ * @param {string} file.file_name - Name of the file
+ * @param {number} file.row_id - Row ID for the file
+ */
+const handlePasswordProtectedFile = (file) => {
+  // Create the background overlay
+  const overlay = document.createElement("div");
+  overlay.className = "password-popup-overlay";
+
+  // Create the password input popup
+  const passwordPopup = document.createElement("div");
+  passwordPopup.className = "password-popup";
+  passwordPopup.innerHTML = `
+    <div class="password-popup-content">
+      <h3>This file (${file.file_name}) is protected by a password. Please enter the password to continue.</h3>
+      <div class="password-input-container">
+        <input type="password" id="password-input" placeholder="Enter the password" />
+        <span id="toggle-password-visibility" class="toggle-password">🔒</span>
+      </div>
+      <div class="password-popup-actions">
+        <button id="submit-password">Submit</button>
+        <button id="cancel-password-popup">Cancel</button>
+      </div>
+    </div>
+  `;
+
+  // Add event listener to toggle password visibility
+  const togglePasswordVisibility = passwordPopup.querySelector(
+    "#toggle-password-visibility"
+  );
+  const passwordInput = passwordPopup.querySelector("#password-input");
+
+  togglePasswordVisibility.addEventListener("click", () => {
+    if (passwordInput.type === "password") {
+      passwordInput.type = "text";
+      togglePasswordVisibility.textContent = "🔓"; // Open lock icon for visible password
+    } else {
+      passwordInput.type = "password";
+      togglePasswordVisibility.textContent = "🔒"; // Closed lock icon for hidden password
+    }
+  });
+
+  // Add event listeners for submit and cancel buttons
+  passwordPopup
+    .querySelector("#submit-password")
+    .addEventListener("click", async () => {
+      const password = passwordInput.value;
+      if (!password) {
+        showAlert("Please enter a password.");
+        return;
+      }
+      try {
+        const response = await fetch(validateCdrPasswordUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            row_id: file.row_id,
+            password: password,
+          }),
+        });
+
+        const result = await response.json();
+        if (result.STATUS === "Success") {
+          showAlert(result.message);
+        } 
+        else {
+          showAlert("Please re-enter the password.");
+        }
+      } catch (error) {
+        showAlert(
+          "An error occurred while validating the password. Please re-enter the password after some time."
+        );
+      }
+      // Close the popup
+      overlay.remove();
+    });
+
+  passwordPopup
+    .querySelector("#cancel-password-popup")
+    .addEventListener("click", () => {
+      overlay.remove();
+    });
+
+  // Close the popup if the user clicks outside of it
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) {
+      overlay.remove();
+    }
+  });
+
+  // Append the popup and overlay to the document body
+  overlay.appendChild(passwordPopup);
+  document.body.appendChild(overlay);
+};
+
+/**
  * Creates and renders a detailed email view popup
  * @param {Object} createViewDetail - The email details configuration object
  * @param {string} createViewDetail.sender - Email sender address
@@ -135,7 +280,7 @@ export const createViewDetail = (createViewDetail) => {
   const popup = document.createElement("div");
   popup.className = "popup-test";
   popup.innerHTML = `
-  <div class="popup-content">
+    <div class="popup-content">
       <div class="popup-header">
         <h3>Email Details</h3>
         <button class="close-popup">×</button>
@@ -188,6 +333,7 @@ export const createViewDetail = (createViewDetail) => {
           </div>
         </div>
         <div id="cdr-files-container"></div>
+        <div id="password-protect-container"></div>
       </div>
     </div>
   `;
@@ -214,6 +360,71 @@ export const createViewDetail = (createViewDetail) => {
 
   document.body.appendChild(popup);
   handleCDRFiles(createViewDetail);
+  handlePasswordProtectedFiles(createViewDetail);
 
   return popup;
+};
+
+export const showAlert = (message) => {
+  // Create overlay
+  const overlay = document.createElement("div");
+  overlay.className = "simple-alert-overlay";
+  overlay.style.position = "fixed";
+  overlay.style.top = "0";
+  overlay.style.left = "0";
+  overlay.style.width = "100%";
+  overlay.style.height = "100%";
+  overlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+  overlay.style.display = "flex";
+  overlay.style.justifyContent = "center";
+  overlay.style.alignItems = "center";
+  overlay.style.zIndex = "10000";
+
+  // Create alert box
+  const alertBox = document.createElement("div");
+  alertBox.className = "simple-alert";
+  alertBox.style.backgroundColor = "#ffffff";
+  alertBox.style.borderRadius = "5px";
+  alertBox.style.boxShadow = "0 2px 10px rgba(0, 0, 0, 0.2)";
+  alertBox.style.padding = "30px"; // Increased padding for more height
+  alertBox.style.width = "50%"; // Set width to 50%
+  alertBox.style.minHeight = "100px"; // Added minimum height
+  alertBox.style.display = "flex";
+  alertBox.style.flexDirection = "column";
+  alertBox.style.justifyContent = "space-between";
+  alertBox.style.textAlign = "center";
+
+  // Add message and close button
+  alertBox.innerHTML = `
+    <div style="margin-bottom: 20px; font-size: 16px; flex-grow: 1; display: flex; align-items: center; justify-content: center; font-weight: bold;">${message}</div>
+    <div>
+      <button class="simple-alert-close" style="
+        padding: 10px 20px;
+        background-color: #4285f4;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;">Close</button>
+    </div>
+  `;
+
+  // Add close functionality
+  const closeButton = alertBox.querySelector(".simple-alert-close");
+  closeButton.addEventListener("click", () => {
+    overlay.remove();
+  });
+
+  // Close when clicking outside the alert box
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) {
+      overlay.remove();
+    }
+  });
+
+  // Append to DOM
+  overlay.appendChild(alertBox);
+  document.body.appendChild(overlay);
+
+  return overlay;
 };

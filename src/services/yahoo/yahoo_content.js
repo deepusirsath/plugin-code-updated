@@ -127,6 +127,41 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return true; // Keeps the message channel open for async sendResponse
 });
 
+const decodeJWT = (token) => {
+  const payloadBase64Url = token.split(".")[1];
+  const payloadBase64 = payloadBase64Url.replace(/-/g, "+").replace(/_/g, "/");
+
+  // Decode base64 string
+  const payloadJson = decodeURIComponent(
+    atob(payloadBase64)
+      .split("")
+      .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+      .join("")
+  );
+
+  return JSON.parse(payloadJson);
+};
+
+const checkTokenValidate = async () => {
+  const { refresh_token, access_token } = await chrome.storage.local.get([
+    "refresh_token",
+    "access_token",
+  ]);
+
+  if (refresh_token || access_token) {
+    const accessDecoded = decodeJWT(access_token);
+    const refreshDecoded = decodeJWT(refresh_token);
+    const currentTime = Math.floor(Date.now() / 1000);
+
+    if (accessDecoded.exp > currentTime || refreshDecoded.exp > currentTime) {
+      return true;
+    } else {
+      await chrome.storage.local.set({ registration: false });
+      return false;
+    }
+  }
+};
+
 /**
  * Listens for messages sent to the extension and performs actions based on the request.
  *
@@ -137,8 +172,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
  * @param {Object} sender - Information about the script or extension sending the message.
  * @param {Function} sendResponse - A function to send a response back to the sender.
  */
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(async function (
+  request,
+  sender,
+  sendResponse
+) {
   if (request.action === "runScript") {
+    const { access_token } = await chrome.storage.local.get("access_token");
+    const isTokenValid = await checkTokenValidate(access_token);
+    if (!isTokenValid || !access_token) {
+      await chrome.storage.local.set({ registration: false });
+      return;
+    }
     // Exit early since reload will reset the script
     window.location.reload();
     return;
@@ -198,8 +243,7 @@ chrome.runtime.onMessage.addListener((request) => {
     showAlert("badRequest");
     hideLoadingScreen();
   }
-})
-
+});
 
 let lastUrl = location.href;
 new MutationObserver(() => {
@@ -524,23 +568,21 @@ function createUrl(selectedMailboxId, lastMessageId, userEmail) {
 }
 
 // Add these event listeners to detect network status changes
-window.addEventListener('offline', function() {
+window.addEventListener("offline", function () {
   showAlert("networkError");
   hideLoadingScreen();
   chrome.storage.local.set({ networkWentOffline: true });
 });
 
-window.addEventListener('online', function() {
+window.addEventListener("online", function () {
   // Check if the network previously went offline
-  chrome.storage.local.get("networkWentOffline", function(result) {
+  chrome.storage.local.get("networkWentOffline", function (result) {
     if (result.networkWentOffline) {
       chrome.storage.local.remove("networkWentOffline");
       window.location.reload();
     }
   });
 });
-
-
 
 /**
  * Listens for messages sent from the background script or other parts of the extension.
@@ -571,31 +613,29 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // Add this function to handle different size categories
 function handleEmailSizeCategory(sizeCategory) {
   let sizeMessage = "";
-  
-  switch(sizeCategory) {
+
+  switch (sizeCategory) {
     case "underTwo":
-      showAlert("pending", "underTwo")
+      showAlert("pending", "underTwo");
       sizeMessage = "Email size is under 2 MB";
       break;
     case "underTen":
-      showAlert("pending", "underTen")
+      showAlert("pending", "underTen");
       sizeMessage = "Email size is between 2-10 MB";
       break;
     case "underTwenty":
-      showAlert("pending", "underTwenty")
+      showAlert("pending", "underTwenty");
       sizeMessage = "Email size is between 10-20 MB";
       break;
     case "overTwenty":
-      showAlert("pending", "overTwenty")
+      showAlert("pending", "overTwenty");
       sizeMessage = "Email size is over 20 MB";
       break;
     default:
-      showAlert("pending", "Some time")
+      showAlert("pending", "Some time");
       sizeMessage = "Email size unknown";
   }
-  
 }
-
 
 /**
  * Listens for messages sent to the content script from other parts of the Chrome extension.
@@ -680,6 +720,15 @@ window.addEventListener("click", (e) => {
     showBlockedPopup();
   }
 });
+
+// window.addEventListener("click", (e) => {
+//   const element = document.querySelector(
+//     'div[data-test-id="message-group-view-scroller"]'
+//   );
+//   if (shouldApplyPointerEvents && element) {
+//     showBlockedPopup();
+//   }
+// });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "ExtractEMailForYahoo") {

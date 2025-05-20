@@ -254,6 +254,7 @@ const attachViewButtonListeners = () => {
  * @throws {Error} Displays error message if component loading fails
  */
 const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
+
   try {
     await getEmailIds();
     const noDataFoundElement = document.getElementById("noDataFound");
@@ -284,13 +285,12 @@ const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
     }
 
     if (!spamMailResponse.results || spamMailResponse.results.length === 0) {
+      // Clear all container elements that might cause gaps
+      const dataOutputElement = document.getElementById(TARGET_ID.DATA_OUTPUT);
+      if (dataOutputElement) {
+        dataOutputElement.innerHTML = ""; // Clear the entire data output container
+      }
 
-       // Clear all container elements that might cause gaps
-  const dataOutputElement = document.getElementById(TARGET_ID.DATA_OUTPUT);
-  if (dataOutputElement) {
-    dataOutputElement.innerHTML = ""; // Clear the entire data output container
-  }
-  
       const SearchElement = document.getElementById("search-container");
       if (SearchElement) {
         SearchElement.innerHTML = "";
@@ -312,6 +312,7 @@ const loadSpamMailComponent = async (page = 1, searchQuery = "") => {
       }
 
       handleRefresh(() => {
+        currentSearchQuery = "";
         const searchInput = document.getElementById("search-input");
         const clearButton = document.getElementById("clearButton");
         if (searchInput) {
