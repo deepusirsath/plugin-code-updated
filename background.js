@@ -30,7 +30,7 @@ chrome.storage.local.get(null, function (items) {
 
 const fetchDeviceDataToSend = async () => {
   try {
-    const response = await fetch("http://localhost:64321/deviceIdentifiers");
+    const response = await fetch("http://localhost:3000/deviceIdentifiers");
 
     if (response.ok) {
       const data = await response.json();
@@ -330,12 +330,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "checkDispute") {
+    console.log("checkDispute");  
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      
       const activeTab = tabs[0];
       chrome.tabs.sendMessage(
         activeTab.id,
         { action: "fetchDisputeMessageId" },
         (response) => {
+          console.log("resposdsdfdfdnse", response);
           if (!response || !response.emailId) {
             sendResponse({ error: "Not found" });
             return;
