@@ -327,18 +327,27 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     message.action == "fetchDisputeMessageId"
   ) {
     const node = document.querySelector("[data-legacy-message-id]");
-    const messageId = node.getAttribute("data-legacy-message-id");
+    const messageId = node?.getAttribute("data-legacy-message-id");
     const gmailContainer = document.querySelector("div[role='main']");
+
     if (gmailContainer) {
       const senderEmail = gmailContainer
         .querySelector("span[email]")
         ?.getAttribute("email");
 
-      if (messageId && emailId) {
+      // Receiver Email (To: field)
+      let receiverEmail = null;
+      const receiverElement = gmailContainer.querySelectorAll("span[email]");
+      if (receiverElement.length > 1) {
+        // Assuming the first is sender, second is receiver (approx logic)
+        receiverEmail = receiverElement[1].getAttribute("email");
+      }
+
+      if (messageId && receiverEmail) {
         sendResponse({
           emailBodyExists: true,
           messageId: messageId,
-          emailId: emailId,
+          emailId: receiverEmail,
           senderEmail: senderEmail,
         });
       } else {
