@@ -224,6 +224,76 @@ const checkTokenValidate = async () => {
  * - Validates registration data
  * - Ensures minimum segment length
  */
+// chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+//   if (message.action === "GmailDetectedForExtraction") {
+//     const { access_token } = await chrome.storage.local.get("access_token");
+//     const isTokenValid = await checkTokenValidate(access_token);
+//     if (!isTokenValid || !access_token) {
+//       await chrome.storage.local.set({ registration: false });
+//       return;
+//     }
+//     blockEmailBody();
+//     clearInterval(intervalId);
+//     setTimeout(() => {
+//       let url = window.location.href;
+//       // Extract the part after #
+//       const hashParts = url.split("#");
+//       if (hashParts.length < 2) return;
+
+//       const afterHash = hashParts[1];
+
+//       // Check if compose appears immediately after folder name
+//       if (
+//         afterHash.match(
+//           /^(inbox|starred|snoozed|imp|label|search|scheduled|all|spam|trash|category)\/?\?compose=/
+//         )
+//       ) {
+//         return;
+//       }
+
+//       // If compose exists but has a long string before it, proceed
+//       if (afterHash.includes("?compose=")) {
+//         const beforeCompose = afterHash.split("?compose=")[0];
+//         if (beforeCompose.length < 30) {
+//           return;
+//         }
+//       }
+//       chrome.storage.local.get("registration", (data) => {
+//         if (chrome.runtime.lastError) {
+//           return;
+//         }
+//         if (data.registration) {
+//           const lastSegment = url.split("/").pop().split("#").pop();
+//           if (lastSegment.length >= isValidSegmentLength) {
+//             // Poll for elements with a maximum number of attempts
+//             const maxAttempts = 200;
+//             let attempts = 0;
+
+//             const checkForElements = setInterval(() => {
+//               const elements = document.getElementsByClassName("nH a98 iY");
+//               attempts++;
+
+//               if (elements && elements.length > 0) {
+//                 // console.log("Elements found, init called");
+//                 init();
+//                 clearInterval(checkForElements);
+//               } else if (attempts >= maxAttempts) {
+//                 // console.log("Failed to find elements after maximum attempts");
+//                 alert(
+//                   "Please check your internet connection and refresh the page."
+//                 );
+//                 clearInterval(checkForElements);
+//               }
+//             }, 500); // Check every 500ms
+//           }
+//         }
+//       });
+//     }, 100);
+//     sendResponse({ status: "received" });
+//   }
+// });
+
+
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (message.action === "GmailDetectedForExtraction") {
     const { access_token } = await chrome.storage.local.get("access_token");
@@ -232,7 +302,8 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
       await chrome.storage.local.set({ registration: false });
       return;
     }
-    blockEmailBody();
+    
+    // console.log("clearInterval(intervalId);")
     clearInterval(intervalId);
     setTimeout(() => {
       let url = window.location.href;
@@ -255,36 +326,21 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
       if (afterHash.includes("?compose=")) {
         const beforeCompose = afterHash.split("?compose=")[0];
         if (beforeCompose.length < 30) {
+          // console.log("compose found return=================================");
           return;
         }
       }
+      // console.log("compose not found ===========================");
       chrome.storage.local.get("registration", (data) => {
         if (chrome.runtime.lastError) {
           return;
         }
+
         if (data.registration) {
           const lastSegment = url.split("/").pop().split("#").pop();
           if (lastSegment.length >= isValidSegmentLength) {
-            // Poll for elements with a maximum number of attempts
-            const maxAttempts = 200;
-            let attempts = 0;
-
-            const checkForElements = setInterval(() => {
-              const elements = document.getElementsByClassName("nH a98 iY");
-              attempts++;
-
-              if (elements && elements.length > 0) {
-                // console.log("Elements found, init called");
-                init();
-                clearInterval(checkForElements);
-              } else if (attempts >= maxAttempts) {
-                // console.log("Failed to find elements after maximum attempts");
-                alert(
-                  "Please check your internet connection and refresh the page."
-                );
-                clearInterval(checkForElements);
-              }
-            }, 500); // Check every 500ms
+            console.log("init called");
+            init();
           }
         }
       });
