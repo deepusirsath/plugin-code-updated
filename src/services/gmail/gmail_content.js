@@ -265,7 +265,7 @@ const checkTokenValidate = async () => {
 //         if (data.registration) {
 //           const lastSegment = url.split("/").pop().split("#").pop();
 //           if (lastSegment.length >= isValidSegmentLength) {
-//             // Poll for elements with a maximum number of attempts
+//             // Poll for elements with a maximum of attempts
 //             const maxAttempts = 200;
 //             let attempts = 0;
 
@@ -754,6 +754,8 @@ new MutationObserver(() => {
   const currentUrl = location.href;
   if (currentUrl !== lastUrl) {
     lastUrl = currentUrl;
+    shouldApplyPointerEvents = true;
+    blockEmailBody(); // Block email body ASAP on URL change
     hideLoadingScreen();
   }
 }).observe(document, { subtree: true, childList: true });
