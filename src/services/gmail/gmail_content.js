@@ -337,25 +337,37 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
       // Receiver Email (To: field)
       let receiverEmail = null;
-      const receiverElement = gmailContainer.querySelectorAll("span[email]");
-      if (receiverElement.length > 1) {
-        // Assuming the first is sender, second is receiver (approx logic)
-        receiverEmail = receiverElement[1].getAttribute("email");
-      }
+      const receiverElements = gmailContainer.querySelectorAll("span[email]");
+      
+      // Get the current user's email from storage
+      chrome.storage.local.get(["gmail_email"], (result) => {
+        const currentUserEmail = result.gmail_email;
+        
+        if (receiverElements.length > 0) {
+          // Find the receiver element that matches the current user's email
+          for (const element of receiverElements) {
+            const email = element.getAttribute("email");
+            if (email === currentUserEmail) {
+              receiverEmail = email;
+              break;
+            }
+          }
+        }
 
-      if (messageId && receiverEmail) {
-        sendResponse({
-          emailBodyExists: true,
-          messageId: messageId,
-          emailId: receiverEmail,
-          senderEmail: senderEmail,
-        });
-      } else {
-        sendResponse({
-          emailBodyExists: false,
-          error: "Failed to extract Gmail message ID or email ID",
-        });
-      }
+        if (messageId && receiverEmail) {
+          sendResponse({
+            emailBodyExists: true,
+            messageId: messageId,
+            emailId: receiverEmail,
+            senderEmail: senderEmail,
+          });
+        } else {
+          sendResponse({
+            emailBodyExists: false,
+            error: "Failed to extract Gmail message ID or receiver email",
+          });
+        }
+      });
       return true;
     }
   }
