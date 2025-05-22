@@ -235,11 +235,17 @@ async function executeExtractionScript() {
     extractionDone = true;
   }, 2500);
 }
-chrome.runtime.onMessage.addListener((request) => {
+chrome.runtime.onMessage.addListener(async (request) => {
   if (
     request.action === "badRequestServerError" &&
     request.client === "yahoo"
   ) {
+    const { access_token } = await chrome.storage.local.get("access_token");
+    const isTokenValid = await checkTokenValidate(access_token);
+    if (!isTokenValid || !access_token) {
+      await chrome.storage.local.set({ registration: false });
+      return;
+    }
     showAlert("badRequest");
     hideLoadingScreen();
   }
@@ -430,7 +436,13 @@ function extractIdsFromNonceScripts() {
   }
 
   if (lastMessageId) {
-    chrome.storage.local.get("messages", function (result) {
+    chrome.storage.local.get("messages", async function (result) {
+      const { access_token } = await chrome.storage.local.get("access_token");
+      const isTokenValid = await checkTokenValidate(access_token);
+      if (!isTokenValid || !access_token) {
+        await chrome.storage.local.set({ registration: false });
+        return;
+      }
       let messages = JSON.parse(result.messages || "{}");
       if (messages[lastMessageId]) {
         const status = messages[lastMessageId].status;
@@ -568,7 +580,13 @@ function createUrl(selectedMailboxId, lastMessageId, userEmail) {
 }
 
 // Add these event listeners to detect network status changes
-window.addEventListener("offline", function () {
+window.addEventListener("offline", async function () {
+  const { access_token } = await chrome.storage.local.get("access_token");
+  const isTokenValid = await checkTokenValidate(access_token);
+  if (!isTokenValid || !access_token) {
+    await chrome.storage.local.set({ registration: false });
+    return;
+  }
   showAlert("networkError");
   hideLoadingScreen();
   chrome.storage.local.set({ networkWentOffline: true });
@@ -593,11 +611,17 @@ window.addEventListener("online", function () {
  * @param {Object} sender - The sender of the message (not used in this case).
  * @param {Function} sendResponse - A function to send a response back to the sender (not used in this case).
  */
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
   if (
     request.action === "erroRecievedFromServer" &&
     request.client === "yahoo"
   ) {
+    const { access_token } = await chrome.storage.local.get("access_token");
+    const isTokenValid = await checkTokenValidate(access_token);
+    if (!isTokenValid || !access_token) {
+      await chrome.storage.local.set({ registration: false });
+      return;
+    }
     showAlert("inform");
     hideLoadingScreen();
   }
@@ -611,7 +635,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 // Add this function to handle different size categories
-function handleEmailSizeCategory(sizeCategory) {
+async function handleEmailSizeCategory(sizeCategory) {
+  const { access_token } = await chrome.storage.local.get("access_token");
+  const isTokenValid = await checkTokenValidate(access_token);
+  if (!isTokenValid || !access_token) {
+    await chrome.storage.local.set({ registration: false });
+    return;
+  }
   let sizeMessage = "";
 
   switch (sizeCategory) {
@@ -667,8 +697,14 @@ function pendingStatusCallForYahoo() {
 
 let intervalId = null;
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (message.client === "yahoo") {
+    const { access_token } = await chrome.storage.local.get("access_token");
+    const isTokenValid = await checkTokenValidate(access_token);
+    if (!isTokenValid || !access_token) {
+      await chrome.storage.local.set({ registration: false });
+      return;
+    }
     messageReason = message.unsafeReason;
     if (message.action === "blockUrls") {
       clearInterval(intervalId);
@@ -706,7 +742,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
  * This function is used to enforce restrictions on certain UI elements by displaying
  * a blocked popup when interactions are detected.
  */
-window.addEventListener("click", (e) => {
+window.addEventListener("click", async (e) => {
+  const { access_token } = await chrome.storage.local.get("access_token");
+  const isTokenValid = await checkTokenValidate(access_token);
+  if (!isTokenValid || !access_token) {
+    await chrome.storage.local.set({ registration: false });
+    return;
+  }
   const element = document.querySelector(
     'div[data-test-id="message-group-view-scroller"]'
   );
