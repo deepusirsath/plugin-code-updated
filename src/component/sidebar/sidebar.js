@@ -11,6 +11,7 @@ import {
   loadCssAndHtmlFile,
   loadScript,
 } from "/src/helper/content_loader_helper.js";
+import { hideUiElement } from "/src/helper/hide_ui_element_helper.js";
 import { SIDEBAR_CONFIG } from "./sidebar_config.js";
 import { loadUnauthenticatedComponents } from "/src/routes/unauthenticated_route.js";
 
@@ -113,15 +114,7 @@ const handleDisputeButton = async (componentName) => {
   const { access_token } = await chrome.storage.local.get("access_token");
 
   if (!access_token) {
-    const dataOutputElement = document.getElementById(TARGET_ID.DATA_OUTPUT);
-    if (dataOutputElement) {
-      dataOutputElement.innerHTML = "";
-    }
-
-    const sidebarElement = document.getElementById(TARGET_ID.SIDEBAR);
-    if (sidebarElement) {
-      sidebarElement.style.display = "none";
-    }
+    hideUiElement();
     await loadUnauthenticatedComponents();
     return;
   }
@@ -172,6 +165,7 @@ const handleDisputeButton = async (componentName) => {
             { action: "checkDispute" },
             async function (disputeResponse) {
               if (disputeResponse?.tokenExpired) {
+                hideUiElement();
                 await loadUnauthenticatedComponents();
                 hideLoader();
                 return;
