@@ -8,7 +8,7 @@
 // local_aws -  http://3.109.178.115:8009/plugin
 
 const config = {
-  BASE_URL: "http://3.109.178.115:8006/plugin",
+  BASE_URL: "http://192.168.0.127:8000/plugin",
 };
 
 export default config;

@@ -759,7 +759,7 @@ new MutationObserver(() => {
     hideLoadingScreen();
     chrome.storage.local.get("registration", (data) => {
       if (!data.registration) {
-        shouldApplyPointerEvents = true;
+        shouldApplyPointerEvents = false;
         blockEmailBody();       
       }
     });
