@@ -10,6 +10,7 @@ import {
   checkEmailPageStatus,
   checkGmailUrl,
 } from "./src/helper/background_helper.js";
+import { postData } from "/src/api/api_method.js";
 
 // Define constants
 const baseUrl = config.BASE_URL;
@@ -330,9 +331,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "checkDispute") {
-    console.log("checkDispute");  
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      
       const activeTab = tabs[0];
       chrome.tabs.sendMessage(
         activeTab.id,
@@ -423,21 +422,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  * `handleEmailScanResponse` and returns the status.
  */
 async function checkDisputeStatus(messageId, email, sendResponse, client) {
-  const url = `${baseUrl}${PENDING_STATUS_CHECK}`;
   try {
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
     const activeTabId = tabs && tabs[0] ? tabs[0].id : null;
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messageId: messageId, email: email }),
-    });
-    const data = await response.json();
-    const serverData = data.data;
-
-    if (data?.data?.eml_status) {
+    const requestData = { messageId: messageId, email: email };
+    const response = await postData(`${PENDING_STATUS_CHECK}`, requestData);
+    const serverData = response.data;
+    if (response?.data?.eml_status) {
       handleEmailScanResponse(serverData, activeTabId, client);
-      return data?.data?.eml_status || null;
+      return response?.data?.eml_status || null;
     }
   } catch (err) {
     console.error(err);
@@ -729,8 +722,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
  * @throws {Error} Logs an error message if the fetch request fails.
  */
 async function checkPendingResponseStatus(messageId, email, client) {
-  const url = `${baseUrl}${PENDING_STATUS_CHECK}`;
-
   try {
     // Get active tab first and handle potential empty results
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -739,16 +730,11 @@ async function checkPendingResponseStatus(messageId, email, client) {
     if (!activeTabId) {
       return;
     }
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        messageId: messageId,
-        email: email,
-      }),
-    });
-    const data = await response.json();
-    const serverData = data.data;
+
+    const requestData = { messageId: messageId, email: email };
+    const response = await postData(`${PENDING_STATUS_CHECK}`, requestData);
+
+    const serverData = response && response?.data;
 
     handleEmailScanResponseOfPending(serverData, activeTabId, client);
   } catch (error) {
@@ -851,7 +837,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         chrome.tabs.sendMessage(
           tabId,
           { action: "GmailDetectedForExtraction" },
-          (response) => { }
+          (response) => {}
         );
       }, 1000);
     }
