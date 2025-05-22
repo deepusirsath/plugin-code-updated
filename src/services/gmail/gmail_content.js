@@ -302,7 +302,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
       await chrome.storage.local.set({ registration: false });
       return;
     }
-    
+
     // console.log("clearInterval(intervalId);")
     clearInterval(intervalId);
     setTimeout(() => {
@@ -394,11 +394,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       // Receiver Email (To: field)
       let receiverEmail = null;
       const receiverElements = gmailContainer.querySelectorAll("span[email]");
-      
+
       // Get the current user's email from storage
       chrome.storage.local.get(["gmail_email"], (result) => {
         const currentUserEmail = result.gmail_email;
-        
+
         if (receiverElements.length > 0) {
           // Find the receiver element that matches the current user's email
           for (const element of receiverElements) {
@@ -755,8 +755,14 @@ new MutationObserver(() => {
   if (currentUrl !== lastUrl) {
     lastUrl = currentUrl;
     shouldApplyPointerEvents = true;
-    blockEmailBody(); // Block email body ASAP on URL change
+    blockEmailBody();    
     hideLoadingScreen();
+    chrome.storage.local.get("registration", (data) => {
+      if (!data.registration) {
+        shouldApplyPointerEvents = true;
+        blockEmailBody();       
+      }
+    });
   }
 }).observe(document, { subtree: true, childList: true });
 
