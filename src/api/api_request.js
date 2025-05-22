@@ -56,7 +56,7 @@ export async function apiRequest(url, method, payload = null, customHeaders) {
         sidebarElement.style.display = "none";
       }
 
-      loadComponent({
+      await loadComponent({
         componentName: COMPONENTS.TOKEN_EXPIRE,
         basePath: BASEPATH.PAGES,
         targetId: TARGET_ID.DATA_OUTPUT,

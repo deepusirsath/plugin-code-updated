@@ -104,15 +104,12 @@ const handleRegularButton = async (componentName) => {
  */
 
 const handleDisputeButton = async (componentName) => {
-  // Clear any existing "No Data Found" component
   const noDataFoundElement = document.getElementById("noDataFound");
   if (noDataFoundElement) {
     noDataFoundElement.innerHTML = "";
   }
-  
   // Clear the data output area to prevent component stacking
   document.getElementById("data-output").innerHTML = "";
-  
   const { access_token } = await chrome.storage.local.get("access_token");
 
   if (!access_token) {
@@ -168,19 +165,18 @@ const handleDisputeButton = async (componentName) => {
               !disputeResponseProcessed
             ) {
               disputeResponseProcessed = true;
-
-              await loadCssAndHtmlFile({
-                componentName: COMPONENTS.OPENED_MAIL_NOT_FOUND,
-                basePath: BASEPATH.COMPONENT,
-                targetId: TARGET_ID.DATA_OUTPUT,
-              });
-              hideLoader();
             }
           });
 
           chrome.runtime.sendMessage(
             { action: "checkDispute" },
             async function (disputeResponse) {
+              if (disputeResponse?.tokenExpired) {
+                await loadUnauthenticatedComponents();
+                hideLoader();
+                return;
+              }
+
               if (disputeResponseProcessed) {
                 return;
               }
@@ -211,24 +207,9 @@ const handleDisputeButton = async (componentName) => {
                     detail: { componentName, disputeData: disputeResponse },
                   })
                 );
-              } else {
-                // Handle case when disputeResponse is falsy but not "Not found"
-                await loadCssAndHtmlFile({
-                  componentName: COMPONENTS.OPENED_MAIL_NOT_FOUND,
-                  basePath: BASEPATH.COMPONENT,
-                  targetId: TARGET_ID.DATA_OUTPUT,
-                });
-                hideLoader();
               }
             }
           );
-        } else {
-          await loadCssAndHtmlFile({
-            componentName: COMPONENTS.OPENED_MAIL_NOT_FOUND,
-            basePath: BASEPATH.COMPONENT,
-            targetId: TARGET_ID.DATA_OUTPUT,
-          });
-          hideLoader();
         }
       }
     );

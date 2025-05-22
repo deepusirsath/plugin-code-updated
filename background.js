@@ -337,7 +337,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         activeTab.id,
         { action: "fetchDisputeMessageId" },
         (response) => {
-          console.log("resposdsdfdfdnse", response);
           if (!response || !response.emailId) {
             sendResponse({ error: "Not found" });
             return;
@@ -349,6 +348,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               const { dispute_count } = await checkDisputeCount(
                 response.messageId
               );
+
               const emailStatus = await new Promise((resolve) => {
                 chrome.storage.local.get("email_status", function (data) {
                   resolve(data.email_status);
@@ -388,7 +388,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 });
               }
             } catch (error) {
-              sendResponse({ error });
+              sendResponse({ tokenExpired: true });
             }
           }
 
