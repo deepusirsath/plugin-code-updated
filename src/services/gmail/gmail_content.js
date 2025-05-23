@@ -293,7 +293,6 @@ const checkTokenValidate = async () => {
 //   }
 // });
 
-
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (message.action === "GmailDetectedForExtraction") {
     const { access_token } = await chrome.storage.local.get("access_token");
@@ -387,22 +386,35 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const gmailContainer = document.querySelector("div[role='main']");
 
     if (gmailContainer) {
+      // Get sender email
       const senderEmail = gmailContainer
         .querySelector("span[email]")
         ?.getAttribute("email");
 
-      // Receiver Email (To: field)
-      let receiverEmail = null;
+      // Get all recipient elements
       const receiverElements = gmailContainer.querySelectorAll("span[email]");
 
       // Get the current user's email from storage
       chrome.storage.local.get(["gmail_email"], (result) => {
         const currentUserEmail = result.gmail_email;
+        let receiverEmail = null;
 
-        if (receiverElements.length > 0) {
-          // Find the receiver element that matches the current user's email
+        // First try to find the logged-in user's email from Gmail's interface
+        const loggedInEmailElement = document.querySelector(
+          'a[aria-label*="Google Account"]'
+        );
+        const loggedInEmail = loggedInEmailElement
+          ?.getAttribute("aria-label")
+          ?.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)?.[0];
+
+        // If we found the logged-in email, use it
+        if (loggedInEmail) {
+          receiverEmail = loggedInEmail;
+        } else if (receiverElements.length > 0) {
+          // If we couldn't find logged-in email, check all recipients
           for (const element of receiverElements) {
             const email = element.getAttribute("email");
+            // If this is the current user's email, use it
             if (email === currentUserEmail) {
               receiverEmail = email;
               break;
@@ -755,12 +767,12 @@ new MutationObserver(() => {
   if (currentUrl !== lastUrl) {
     lastUrl = currentUrl;
     shouldApplyPointerEvents = true;
-    blockEmailBody();    
+    blockEmailBody();
     hideLoadingScreen();
     chrome.storage.local.get("registration", (data) => {
       if (!data.registration) {
         shouldApplyPointerEvents = false;
-        blockEmailBody();       
+        blockEmailBody();
       }
     });
   }
