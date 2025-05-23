@@ -365,6 +365,7 @@ export const sendDisputeToServer = async (reason, email, messageId) => {
 export const checkDisputeCount = async (messageId) => {
   try {
     const data = await postData(PLUGIN_COUNTER, { messageId });
+
     const dispute_count = data.counter || 0;
     if (dispute_count) {
       chrome.storage.local.set({
