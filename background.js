@@ -33,7 +33,7 @@ chrome.storage.local.get(null, function (items) {
 
 const fetchDeviceDataToSend = async () => {
   try {
-    const response = await fetch("http://localhost:3000/deviceIdentifiers");
+    const response = await fetch("http://localhost:64321/deviceIdentifiers");
 
     if (response.ok) {
       const data = await response.json();
