@@ -119,7 +119,7 @@ document.addEventListener(
 );
 
 // Also run the check periodically to catch dynamically added elements
-setInterval(findAndBlockBrdElements, 5000);
+setInterval(findAndBlockBrdElements, 10000);
 
 // Initialize UI components
 let showAlert = null;
