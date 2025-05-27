@@ -2,7 +2,33 @@ const importComponent = async (path) => {
   const src = chrome.runtime.getURL(path);
   return await import(src);
 };
-// console.log("gmail content script executed")
+
+console.log("gmail content script executed");
+
+const waitForElements = () => {
+  const maxAttempts = 200;
+  let attempts = 0;
+  const checkElements = setInterval(() => {
+    const elements = document.getElementsByClassName("nH a98 iY");
+    attempts++;
+    if (elements && elements.length > 0) {
+      shouldApplyPointerEvents = true;
+      blockEmailBody();
+      clearInterval(checkElements);
+    } else if (attempts >= maxAttempts) {
+      clearInterval(checkElements);
+    }
+  }, 500);
+};
+chrome.storage.local.get("registration", (data) => {
+  if (chrome.runtime.lastError) {
+    return;
+  }
+
+  if (data.registration) {
+    waitForElements(); // Call after definition
+  }
+});
 
 // Function to find and block elements with class "brd"
 const findAndBlockBrdElements = () => {
@@ -128,25 +154,7 @@ Promise.all([
  * This function replaces the previous setTimeout-based approach to ensure elements are detected dynamically.
  */
 
-// const waitForElements = () => {
-//   const maxAttempts = 15;
-//   let attempts = 0;
-
-//   const checkElements = setInterval(() => {
-//     const elements = document.getElementsByClassName("nH a98 iY");
-//     attempts++;
-
-//     if (elements && elements.length > 0) {
-//       blockEmailBody();
-//       clearInterval(checkElements);
-//     } else if (attempts >= maxAttempts) {
-//       clearInterval(checkElements);
-//     }
-//   }, 1000);
-// };
-
 // Replace the original setTimeout with the new function
-//waitForElements();
 
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden && !emailId) {
@@ -292,7 +300,6 @@ const checkTokenValidate = async () => {
 //     sendResponse({ status: "received" });
 //   }
 // });
-
 
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (message.action === "GmailDetectedForExtraction") {
@@ -755,12 +762,12 @@ new MutationObserver(() => {
   if (currentUrl !== lastUrl) {
     lastUrl = currentUrl;
     shouldApplyPointerEvents = true;
-    blockEmailBody();    
+    blockEmailBody();
     hideLoadingScreen();
     chrome.storage.local.get("registration", (data) => {
       if (!data.registration) {
         shouldApplyPointerEvents = false;
-        blockEmailBody();       
+        blockEmailBody();
       }
     });
   }
