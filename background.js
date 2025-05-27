@@ -819,23 +819,6 @@ function handleEmailScanResponseOfPending(serverData, activeTabId, client) {
 
 /** ________________________________________ Gmail ______________________________________________*/
 
-// chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-//   if (changeInfo.url) {
-//     const matchedKeyword = checkGmailUrl(changeInfo.url);
-//     if (matchedKeyword) {
-//       setTimeout(() => {
-//         chrome.tabs.sendMessage(
-//           tabId,
-//           { action: "GmailDetectedForExtraction" },
-//           (response) => {
-//             // Handle response or error
-//           }
-//         );
-//       }, 100);
-//     }
-//   }
-// });
-
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === "complete") {
     const urlToCheck = tab.url;
@@ -843,6 +826,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
     if (matchedKeyword) {
       setTimeout(() => {
+        console.log("Gmail detected for extraction");
         chrome.tabs.sendMessage(
           tabId,
           { action: "GmailDetectedForExtraction" },

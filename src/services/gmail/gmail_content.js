@@ -2,7 +2,33 @@ const importComponent = async (path) => {
   const src = chrome.runtime.getURL(path);
   return await import(src);
 };
-// console.log("gmail content script executed")
+
+console.log("gmail content script executed");
+
+const waitForElements = () => {
+  const maxAttempts = 200;
+  let attempts = 0;
+  const checkElements = setInterval(() => {
+    const elements = document.getElementsByClassName("nH a98 iY");
+    attempts++;
+    if (elements && elements.length > 0) {
+      shouldApplyPointerEvents = true;
+      blockEmailBody();
+      clearInterval(checkElements);
+    } else if (attempts >= maxAttempts) {
+      clearInterval(checkElements);
+    }
+  }, 500);
+};
+chrome.storage.local.get("registration", (data) => {
+  if (chrome.runtime.lastError) {
+    return;
+  }
+
+  if (data.registration) {
+    waitForElements(); // Call after definition
+  }
+});
 
 // Function to find and block elements with class "brd"
 const findAndBlockBrdElements = () => {
@@ -93,7 +119,7 @@ document.addEventListener(
 );
 
 // Also run the check periodically to catch dynamically added elements
-setInterval(findAndBlockBrdElements, 5000);
+setInterval(findAndBlockBrdElements, 10000);
 
 // Initialize UI components
 let showAlert = null;
@@ -128,25 +154,7 @@ Promise.all([
  * This function replaces the previous setTimeout-based approach to ensure elements are detected dynamically.
  */
 
-// const waitForElements = () => {
-//   const maxAttempts = 15;
-//   let attempts = 0;
-
-//   const checkElements = setInterval(() => {
-//     const elements = document.getElementsByClassName("nH a98 iY");
-//     attempts++;
-
-//     if (elements && elements.length > 0) {
-//       blockEmailBody();
-//       clearInterval(checkElements);
-//     } else if (attempts >= maxAttempts) {
-//       clearInterval(checkElements);
-//     }
-//   }, 1000);
-// };
-
 // Replace the original setTimeout with the new function
-//waitForElements();
 
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden && !emailId) {
@@ -293,7 +301,6 @@ const checkTokenValidate = async () => {
 //   }
 // });
 
-
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (message.action === "GmailDetectedForExtraction") {
     const { access_token } = await chrome.storage.local.get("access_token");
@@ -387,22 +394,35 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const gmailContainer = document.querySelector("div[role='main']");
 
     if (gmailContainer) {
+      // Get sender email
       const senderEmail = gmailContainer
         .querySelector("span[email]")
         ?.getAttribute("email");
 
-      // Receiver Email (To: field)
-      let receiverEmail = null;
+      // Get all recipient elements
       const receiverElements = gmailContainer.querySelectorAll("span[email]");
 
       // Get the current user's email from storage
       chrome.storage.local.get(["gmail_email"], (result) => {
         const currentUserEmail = result.gmail_email;
+        let receiverEmail = null;
 
-        if (receiverElements.length > 0) {
-          // Find the receiver element that matches the current user's email
+        // First try to find the logged-in user's email from Gmail's interface
+        const loggedInEmailElement = document.querySelector(
+          'a[aria-label*="Google Account"]'
+        );
+        const loggedInEmail = loggedInEmailElement
+          ?.getAttribute("aria-label")
+          ?.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)?.[0];
+
+        // If we found the logged-in email, use it
+        if (loggedInEmail) {
+          receiverEmail = loggedInEmail;
+        } else if (receiverElements.length > 0) {
+          // If we couldn't find logged-in email, check all recipients
           for (const element of receiverElements) {
             const email = element.getAttribute("email");
+            // If this is the current user's email, use it
             if (email === currentUserEmail) {
               receiverEmail = email;
               break;
@@ -754,12 +774,12 @@ new MutationObserver(() => {
   if (currentUrl !== lastUrl) {
     lastUrl = currentUrl;
     shouldApplyPointerEvents = true;
-    blockEmailBody();    
+    blockEmailBody();
     hideLoadingScreen();
     chrome.storage.local.get("registration", (data) => {
       if (!data.registration) {
         shouldApplyPointerEvents = false;
-        blockEmailBody();       
+        blockEmailBody();
       }
     });
   }
