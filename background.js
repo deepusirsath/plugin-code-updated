@@ -354,7 +354,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                   resolve(data.email_status);
                 });
               });
-              const adminRemark = await checkAdminComment(
+              const { adminRemark, disputeStatus } = await checkAdminComment(
                 response.messageId,
                 response.emailId
               );
@@ -362,11 +362,24 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 response.messageId,
                 response.emailId
               );
-
-              if (dispute_count > 0) {
+              if (dispute_count == 1) {
+                sendResponse({
+                  status: disputeStatus
+                    ? "Dispute"
+                    : emailStatusData
+                    ? emailStatusData
+                    : "-",
+                  messageId: response.messageId,
+                  countRaise: dispute_count,
+                  emailId: response.emailId,
+                  senderEmail: response.senderEmail,
+                  adminRemark: adminRemark,
+                });
+              }
+              if (dispute_count >= 2) {
                 sendResponse({
                   status:
-                    emailStatus === "Dispute" && !adminRemark
+                    emailStatus === "Dispute" && disputeStatus === false
                       ? "Dispute"
                       : emailStatusData
                       ? emailStatusData
@@ -429,6 +442,8 @@ async function checkDisputeStatus(messageId, email, sendResponse, client) {
     const response = await postData(`${PENDING_STATUS_CHECK}`, requestData);
     const serverData = response.data;
     if (response?.data?.eml_status) {
+      chrome.storage.local.set({ email_status: response?.data?.eml_status });
+
       handleEmailScanResponse(serverData, activeTabId, client);
       return response?.data?.eml_status || null;
     }
