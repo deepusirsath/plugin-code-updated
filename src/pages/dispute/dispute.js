@@ -320,7 +320,10 @@ export const checkAdminComment = async (messageId, email) => {
       messageId,
       email,
     });
-    return data?.data[0]?.admin_comment || null;
+    return {
+      adminRemark: data?.data[0]?.admin_comment || null,
+      disputeStatus: data?.data[0]?.dispute_status || false,
+    };
   } catch (err) {
     displayError();
   }
