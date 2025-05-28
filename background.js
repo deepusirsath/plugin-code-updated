@@ -333,11 +333,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "checkDispute") {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const activeTab = tabs[0];
+      console.log(activeTab, "activeTab");
       chrome.tabs.sendMessage(
         activeTab.id,
         { action: "fetchDisputeMessageId" },
         (response) => {
-          if (!response || !response.emailId) {
+          console.log(response, "response");
+
+          if (!response || !response.emailId || !response.senderEmail) {
             sendResponse({ error: "Not found" });
             return;
           }
