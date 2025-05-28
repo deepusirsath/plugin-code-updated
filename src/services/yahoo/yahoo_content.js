@@ -114,6 +114,12 @@ function handleYahooMailCheck(message, sendResponse) {
         emailId: sendUserEmail,
         senderEmail: senderEmail,
       });
+    } else if (emailBodySearch === null) {
+      sendResponse({
+        emailBodyExists: true,
+        error: "did't get the messasge Id",
+        senderEmail: null,
+      });
     } else {
       sendResponse({
         emailBodyExists: false,
