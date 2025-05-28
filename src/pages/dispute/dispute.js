@@ -9,6 +9,7 @@ import { showLoader, hideLoader } from "/src/component/loader/loader.js";
 import { displayError } from "/src/helper/display_error.js";
 
 let isSubmitting = false;
+
 /**
  * Initializes and manages a dispute form interface with validation and submission handling
  *
