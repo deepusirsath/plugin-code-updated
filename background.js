@@ -25,7 +25,7 @@ let macId = null;
 
 /** ___________________________________________________________Extension___________________________________________________________ */
 
-chrome.storage.local.get(null, function (items) {
+browser.storage.local.get(null, function (items) {
   console.log("All Local Storage Data:", items);
 });
 
@@ -35,33 +35,33 @@ const fetchDeviceDataToSend = async () => {
 
     if (response.ok) {
       const data = await response.json();
-      await chrome.storage.local.set({ registration: true });
+      await browser.storage.local.set({ registration: true });
 
-      await chrome.storage.local.set({
+      await browser.storage.local.set({
         access_token: data?.licenseStatus?.access_token,
       });
-      await chrome.storage.local.set({
+      await browser.storage.local.set({
         revoke_status: data?.licenseStatus?.revoke_status,
       });
-      await chrome.storage.local.set({
+      await browser.storage.local.set({
         refresh_token: data?.licenseStatus?.refresh_token,
       });
-      await chrome.storage.local.set({
+      await browser.storage.local.set({
         validFrom: data?.licenseStatus?.validFrom,
       });
-      await chrome.storage.local.set({
+      await browser.storage.local.set({
         validTill: data?.licenseStatus?.validTill,
       });
-      await chrome.storage.local.set({
+      await browser.storage.local.set({
         mac_address: data?.deviceDetails?.macAdress,
       });
-      await chrome.storage.local.set({
+      await browser.storage.local.set({
         allocation_date: data?.licenseStatus?.allocation_date,
       });
-      await chrome.storage.local.set({
+      await browser.storage.local.set({
         licenseId: data?.licenseStatus?.licenseId,
       });
-      await chrome.storage.local.set({
+      await browser.storage.local.set({
         browsers: data?.deviceDetails?.browsers,
       });
     }
@@ -71,8 +71,8 @@ const fetchDeviceDataToSend = async () => {
 };
 
 // Listener for chrome startup
-chrome.runtime.onStartup.addListener(async () => {
-  const access_token_data = await chrome.storage.local.get(["access_token"]);
+browser.runtime.onStartup.addListener(async () => {
+  const access_token_data = await browser.storage.local.get(["access_token"]);
   if (!access_token_data?.access_token) {
     await fetchDeviceDataToSend();
   }
@@ -80,8 +80,8 @@ chrome.runtime.onStartup.addListener(async () => {
 });
 
 // Listener for chrome installation
-chrome.runtime.onInstalled.addListener(async () => {
-  const access_token_data = await chrome.storage.local.get(["access_token"]);
+browser.runtime.onInstalled.addListener(async () => {
+  const access_token_data = await browser.storage.local.get(["access_token"]);
   if (!access_token_data?.access_token) {
     await fetchDeviceDataToSend();
   }
@@ -89,13 +89,13 @@ chrome.runtime.onInstalled.addListener(async () => {
 });
 
 // Reloads the current page
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+browser.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === "reloadPage") {
     // Query the active tab in the current window
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    browser.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       let currentTab = tabs[0];
       // Reload the current tab
-      chrome.tabs.reload(currentTab.id, function () {
+      browser.tabs.reload(currentTab.id, function () {
         sendResponse({ success: true });
       });
     });
@@ -108,9 +108,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 // fetching user Extensionid
 async function getExtensionid() {
   return new Promise((resolve) => {
-    const extensionId = chrome.runtime.id;
+    const extensionId = browser.runtime.id;
     pluginId = extensionId;
-    chrome.storage.local.set({ extensionId: extensionId }, () => {
+    browser.storage.local.set({ extensionId: extensionId }, () => {
       resolve();
     });
   });
@@ -122,7 +122,7 @@ async function fetchIpAddress() {
     .then((response) => response.json())
     .then((data) => {
       ipAddress = data.ip;
-      chrome.storage.local.set({ ipAddress: data.ip }, () => {
+      browser.storage.local.set({ ipAddress: data.ip }, () => {
         return data.ip;
       });
     })
@@ -155,7 +155,7 @@ function userBrowserInfo() {
       return M.join(" ");
     })();
     browserInfo = navigator.sayswho;
-    chrome.storage.local.set({ browserInfo: navigator.sayswho }, () => {
+    browser.storage.local.set({ browserInfo: navigator.sayswho }, () => {
       resolve();
     });
   });
@@ -164,9 +164,9 @@ function userBrowserInfo() {
 // This function will gets the Operation system of user
 function getPlatformInfo() {
   return new Promise((resolve) => {
-    chrome.runtime.getPlatformInfo(function (platformInfo) {
+    browser.runtime.getPlatformInfo(function (platformInfo) {
       operatingSystem = platformInfo.os;
-      chrome.storage.local.set({ operatingSystem: platformInfo.os }, () => {
+      browser.storage.local.set({ operatingSystem: platformInfo.os }, () => {
         resolve();
       });
     });
@@ -188,15 +188,15 @@ function getPlatformInfo() {
  * @description
  * If the received message has a `type` of `"geoLocationUpdate"`, the function extracts latitude
  * and longitude from `request.coordinates`, updates global variables, and stores the coordinates
- * in `chrome.storage.local`.
+ * in `browser.storage.local`.
  */
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type == "geoLocationUpdate") {
     const coordinates = request.coordinates;
     latitude = coordinates.latitude;
     longitude = coordinates.longitude;
-    chrome.storage.local.set({ coordinates: coordinates }, () => {
-      chrome.storage.local.get("coordinates");
+    browser.storage.local.set({ coordinates: coordinates }, () => {
+      browser.storage.local.get("coordinates");
     });
   }
 });
@@ -232,7 +232,7 @@ async function userDetails() {
  * Listens for messages sent to the extension and responds with stored extension data.
  *
  * This listener handles messages with the action "getExtensiondata" and retrieves
- * the extension ID, browser information, and IP address from `chrome.storage.local`.
+ * the extension ID, browser information, and IP address from `browser.storage.local`.
  * If any data is unavailable, it falls back to default values.
  *
  * @param {Object} request - The message sent to the extension.
@@ -240,16 +240,16 @@ async function userDetails() {
  * @param {Function} sendResponse - The function to send a response back to the sender.
  * @returns {boolean} Returns true to indicate that the response will be sent asynchronously.
  */
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "getExtensiondata") {
-    chrome.storage.local.get(
+    browser.storage.local.get(
       ["extensionId", "browserInfo", "ipAddress"],
       (data) => {
-        if (chrome.runtime.lastError) {
-          sendResponse({ error: chrome.runtime.lastError });
+        if (browser.runtime.lastError) {
+          sendResponse({ error: browser.runtime.lastError });
           return;
         }
-        const pluginId = data.extensionId || chrome.runtime.id;
+        const pluginId = data.extensionId || browser.runtime.id;
         const browserInfo = data.browserInfo || "Unknown";
         const ipAddress = data.ipAddress || "Unknown";
         sendResponse({
@@ -281,10 +281,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  * - The extracted URL and tab ID are passed to the `checkEmailPageStatus` function along with `sendResponse`.
  * - Returning `true` ensures that `sendResponse` is used asynchronously after the timeout.
  */
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "checkEmailPage") {
     setTimeout(() => {
-      chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      browser.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         if (!tabs || tabs.length === 0) {
           sendResponse(null);
           return;
@@ -329,20 +329,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  *
  * The function returns `true` to indicate that it will asynchronously send a response.
  */
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "checkDispute") {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    browser.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const activeTab = tabs[0];
-      chrome.tabs.sendMessage(
+      console.log(activeTab, "activeTab");
+      browser.tabs.sendMessage(
         activeTab.id,
         { action: "fetchDisputeMessageId" },
         (response) => {
-          if (!response || !response.emailId) {
+          console.log(response, "response");
+
+          if (!response || !response.emailId || !response.senderEmail) {
             sendResponse({ error: "Not found" });
             return;
           }
           let disputeEmail = response.emailId;
-          chrome.storage.local.set({ receiver_email: disputeEmail });
+          browser.storage.local.set({ receiver_email: disputeEmail });
           async function fetchCombinedData() {
             try {
               const { dispute_count } = await checkDisputeCount(
@@ -350,7 +353,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               );
 
               const emailStatus = await new Promise((resolve) => {
-                chrome.storage.local.get("email_status", function (data) {
+                browser.storage.local.get("email_status", function (data) {
                   resolve(data.email_status);
                 });
               });
@@ -436,13 +439,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  */
 async function checkDisputeStatus(messageId, email, sendResponse, client) {
   try {
-    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    const tabs = await browser.tabs.query({ active: true, currentWindow: true });
     const activeTabId = tabs && tabs[0] ? tabs[0].id : null;
     const requestData = { messageId: messageId, email: email };
     const response = await postData(`${PENDING_STATUS_CHECK}`, requestData);
     const serverData = response.data;
     if (response?.data?.eml_status) {
-      chrome.storage.local.set({ email_status: response?.data?.eml_status });
+      browser.storage.local.set({ email_status: response?.data?.eml_status });
 
       handleEmailScanResponse(serverData, activeTabId, client);
       return response?.data?.eml_status || null;
@@ -469,14 +472,14 @@ async function checkDisputeStatus(messageId, email, sendResponse, client) {
  * @returns {boolean} Returns `true` to indicate an asynchronous response.
  *
  * @example
- * chrome.runtime.sendMessage({
+ * browser.runtime.sendMessage({
  *   action: "dispute",
  *   messageId: "12345",
  *   reason: "Incorrect classification",
  *   emailId: "user@example.com"
  * });
  */
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action == "dispute") {
     const messageId = request.messageId;
     const reason = request.reason;
@@ -540,14 +543,14 @@ async function sendEmlToServer(messageId, blob = null, client, user_email) {
       }
 
       // Get active tab to send message
-      const tabs = await chrome.tabs.query({
+      const tabs = await browser.tabs.query({
         active: true,
         currentWindow: true,
       });
       if (tabs && tabs.length > 0) {
         const activeTabId = tabs[0].id;
         // Send message to content script with size category
-        chrome.tabs.sendMessage(activeTabId, {
+        browser.tabs.sendMessage(activeTabId, {
           action: "emailSizeCategory",
           sizeCategory: sizeCategory,
           client: client,
@@ -557,7 +560,7 @@ async function sendEmlToServer(messageId, blob = null, client, user_email) {
       console.log("No blob provided to sendEmlToServer");
     }
 
-    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    const tabs = await browser.tabs.query({ active: true, currentWindow: true });
     if (!tabs || !tabs.length) {
       throw new Error("No active tab available");
     }
@@ -595,7 +598,7 @@ async function sendEmlToServer(messageId, blob = null, client, user_email) {
 
     if (serverData.status === "error" || serverData.message === "Bad Request") {
       // Send error message to content script
-      chrome.tabs.sendMessage(activeTabId, {
+      browser.tabs.sendMessage(activeTabId, {
         action: "badRequestServerError",
         client: client,
         details: serverData.details || "",
@@ -619,7 +622,7 @@ async function sendEmlToServer(messageId, blob = null, client, user_email) {
  * The function extracts the email's status (`resStatus`) and message ID (`messId`) from the response.
  * If either is missing, it sends an error message to the extension runtime.
  *
- * It then updates `chrome.storage.local` with the status and unsafe reason for the given `messId`.
+ * It then updates `browser.storage.local` with the status and unsafe reason for the given `messId`.
  * If the `currentMessageId` matches `messId`, it determines an action based on `resStatus`:
  * - `"unsafe"` or `"Unsafe"` → `"blockUrls"`
  * - `"safe"` or `"Safe"` → `"unblock"`
@@ -635,13 +638,13 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
   let unsafeReason = serverData.unsafe_reasons || " ";
 
   if (typeof resStatus === "undefined" || typeof messId === "undefined") {
-    chrome.runtime.sendMessage({
+    browser.runtime.sendMessage({
       action: "erroRecievedFromServer",
       client: client,
     });
   }
 
-  chrome.storage.local.get("messages", function (result) {
+  browser.storage.local.get("messages", function (result) {
     let messages = result.messages ? JSON.parse(result.messages) : {};
 
     // Store both status and unsafeReason for each messageId
@@ -650,7 +653,7 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
       unsafeReason: unsafeReason,
     };
 
-    chrome.storage.local.set({ messages: JSON.stringify(messages) });
+    browser.storage.local.set({ messages: JSON.stringify(messages) });
 
     if (currentMessageId == messId) {
       const statusActions = {
@@ -665,7 +668,7 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
       const action = statusActions[resStatus];
 
       if (action) {
-        chrome.tabs
+        browser.tabs
           .sendMessage(activeTabId, { action, client, unsafeReason })
           .then((response) => {})
           .catch((error) => {
@@ -673,7 +676,7 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
           });
       }
     } else {
-      chrome.runtime.sendMessage({
+      browser.runtime.sendMessage({
         action: "erroRecievedFromServer",
         client: client,
       });
@@ -700,7 +703,7 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
  * The function updates `currentMessageId` and calls `checkPendingResponseStatus`
  * with the corresponding email provider.
  */
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "pendingStatusGmail") {
     const messageId = message.messageId;
     currentMessageId = messageId;
@@ -739,7 +742,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 async function checkPendingResponseStatus(messageId, email, client) {
   try {
     // Get active tab first and handle potential empty results
-    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    const tabs = await browser.tabs.query({ active: true, currentWindow: true });
     const activeTabId = tabs && tabs[0] ? tabs[0].id : null;
 
     if (!activeTabId) {
@@ -753,7 +756,7 @@ async function checkPendingResponseStatus(messageId, email, client) {
 
     handleEmailScanResponseOfPending(serverData, activeTabId, client);
   } catch (error) {
-    chrome.runtime.sendMessage({
+    browser.runtime.sendMessage({
       action: "erroRecievedFromServer",
       client: client,
     });
@@ -779,13 +782,13 @@ function handleEmailScanResponseOfPending(serverData, activeTabId, client) {
   let unsafeReason = serverData.unsafe_reasons || " ";
 
   if (typeof resStatus === "undefined" || typeof messId === "undefined") {
-    chrome.runtime.sendMessage({
+    browser.runtime.sendMessage({
       action: "erroRecievedFromServer",
       client: client,
     });
   }
 
-  chrome.storage.local.get("messages", function (result) {
+  browser.storage.local.get("messages", function (result) {
     let messages = result.messages ? JSON.parse(result.messages) : {};
 
     // Store both status and unsafeReason for each messageId
@@ -794,7 +797,7 @@ function handleEmailScanResponseOfPending(serverData, activeTabId, client) {
       unsafeReason: unsafeReason,
     };
 
-    chrome.storage.local.set({ messages: JSON.stringify(messages) });
+    browser.storage.local.set({ messages: JSON.stringify(messages) });
 
     if (currentMessageId == messId) {
       const statusActions = {
@@ -807,7 +810,7 @@ function handleEmailScanResponseOfPending(serverData, activeTabId, client) {
       const action = statusActions[resStatus];
 
       if (action) {
-        chrome.tabs
+        browser.tabs
           .sendMessage(activeTabId, { action, client, unsafeReason })
           .then((response) => {})
           .catch((error) => {
@@ -815,7 +818,7 @@ function handleEmailScanResponseOfPending(serverData, activeTabId, client) {
           });
       }
     } else {
-      chrome.runtime.sendMessage({
+      browser.runtime.sendMessage({
         action: "erroRecievedFromServer",
         client: client,
       });
@@ -825,7 +828,7 @@ function handleEmailScanResponseOfPending(serverData, activeTabId, client) {
 
 /** ________________________________________ Gmail ______________________________________________*/
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === "complete") {
     const urlToCheck = tab.url;
     const matchedKeyword = checkGmailUrl(urlToCheck);
@@ -833,7 +836,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (matchedKeyword) {
       setTimeout(() => {
         console.log("Gmail detected for extraction");
-        chrome.tabs.sendMessage(
+        browser.tabs.sendMessage(
           tabId,
           { action: "GmailDetectedForExtraction" },
           (response) => {}
@@ -844,7 +847,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 });
 
 /**
- * Listens for messages sent via chrome.runtime.onMessage and processes Gmail data.
+ * Listens for messages sent via browser.runtime.onMessage and processes Gmail data.
  * This event listener listens for messages with the action `"sendGmailData"` and extracts
  * the `messageId`, `emailId`, and `eml_Url` from the received message. It logs the extracted data
  *
@@ -856,7 +859,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
  * @param {Object} sender - The sender of the message, contains metadata about the sender.
  * @param {Function} sendResponse - A function to send a response back to the sender (unused).
  */
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "sendGmailData") {
     currentMessageId = message.messageId;
     const { messageId, emailId, eml_Url } = message;
@@ -928,7 +931,7 @@ async function emlExtractionGmail(emlUrl, currentMessageId, emailId) {
  * @param {Object} sender - The sender of the message (not used in this function).
  * @param {Function} sendResponse - A callback function to send a response back (not used in this function).
  */
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   let user_email = null;
   if (message.action === "outlookEmlContent") {
     const emailContent = message.emailContent;
@@ -943,7 +946,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 /** ________________________________________ Yahoo ______________________________________________*/
-chrome.storage.local.remove("messages", function () {});
+browser.storage.local.remove("messages", function () {});
 
 /**
  * Listens for tab updates and checks if the URL changes.
@@ -954,13 +957,13 @@ chrome.storage.local.remove("messages", function () {});
  * @param {object} changeInfo - Contains information about the changes in the tab.
  * @param {object} tab - The updated tab object.
  */
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.url) {
     if (
       changeInfo.url.includes("mail.yahoo.com") &&
       changeInfo.url.includes("messages")
     ) {
-      chrome.tabs.sendMessage(tabId, { action: "runScript" });
+      browser.tabs.sendMessage(tabId, { action: "runScript" });
     }
   }
 });
@@ -1041,7 +1044,7 @@ async function emlExtractionYahoo(emlUrl, currentMessageId, userEmail) {
  * 2. Logs extracted data for debugging
  * 3. Calls emlExtractionYahoo() to process the email content
  */
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "sendYahooData") {
     let userEmail = message.userEmail;
     currentMessageId = message.lastMessageId;
@@ -1071,7 +1074,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
  *
  * Example usage:
  * ```js
- * chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+ * browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
  *   if (request.action === "reload") {
  *     handleReload(request.messageId, request.email, request.client, sendResponse);
  *     return true;
@@ -1112,7 +1115,7 @@ const handleReload = async (messageIdData, email, client, sendResponse) => {
  *
  * @returns {boolean} - Returns `true` to indicate that `sendResponse` will be called asynchronously.
  */
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "reload") {
     const messageIdData = request.messageId;
     const email = request.emailId;
@@ -1140,7 +1143,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  *
  * @returns {boolean} Returns `true` to indicate an asynchronous response.
  */
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const client = message.client;
   const messageId = message.messageId;
   const email = message.email;
@@ -1195,22 +1198,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
  * @param {Object} sender - Information about the sender of the message.
  * @param {function} sendResponse - Function to send a response back.
  */
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.popupOpened) {
     console.log("Popup opened!+++++++++++++++++++++++++++++");
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    browser.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const currentUrl = tabs[0].url;
       console.log("Popup opened! and current url is ", currentUrl);
       if (currentUrl.includes("mail.yahoo.com")) {
-        chrome.tabs.sendMessage(tabs[0].id, { action: "ExtractEMailForYahoo" });
+        browser.tabs.sendMessage(tabs[0].id, { action: "ExtractEMailForYahoo" });
         console.log("Yahoo mail detected with the POPUP opened");
       }
       if (currentUrl.includes("mail.google.com")) {
-        chrome.tabs.sendMessage(tabs[0].id, { action: "ExtractEMailForGmail" });
+        browser.tabs.sendMessage(tabs[0].id, { action: "ExtractEMailForGmail" });
         console.log("Google mail detected with the POPUP opened");
       }
       if (currentUrl.includes("outlook.live.com")) {
-        chrome.tabs.sendMessage(tabs[0].id, {
+        browser.tabs.sendMessage(tabs[0].id, {
           action: "ExtractEMailForOutlook",
         });
         console.log("Outlook mail detected with the POPUP opened");

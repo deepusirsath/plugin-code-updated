@@ -4,33 +4,33 @@ export const fetchDeviceDataToSend = async () => {
 
     if (response.ok) {
       const data = await response.json();
-      await chrome.storage.local.set({ registration: true });
+      await browser.storage.local.set({ registration: true });
 
-      await chrome.storage.local.set({
+      await browser.storage.local.set({
         access_token: data?.licenseStatus?.access_token,
       });
-      await chrome.storage.local.set({
+      await browser.storage.local.set({
         revoke_status: data?.licenseStatus?.revoke_status,
       });
-      await chrome.storage.local.set({
+      await browser.storage.local.set({
         refresh_token: data?.licenseStatus?.refresh_token,
       });
-      await chrome.storage.local.set({
+      await browser.storage.local.set({
         validFrom: data?.licenseStatus?.validFrom,
       });
-      await chrome.storage.local.set({
+      await browser.storage.local.set({
         validTill: data?.licenseStatus?.validTill,
       });
-      await chrome.storage.local.set({
+      await browser.storage.local.set({
         mac_address: data?.deviceDetails?.macAdress,
       });
-      await chrome.storage.local.set({
+      await browser.storage.local.set({
         allocation_date: data?.licenseStatus?.allocation_date,
       });
-      await chrome.storage.local.set({
+      await browser.storage.local.set({
         licenseId: data?.licenseStatus?.licenseId,
       });
-      await chrome.storage.local.set({
+      await browser.storage.local.set({
         browsers: data?.deviceDetails?.browsers,
       });
     }

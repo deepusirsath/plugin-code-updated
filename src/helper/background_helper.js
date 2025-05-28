@@ -50,7 +50,7 @@ export const checkEmailPageStatus = (currentUrl, tabId, sendResponse) => {
   // Then handle specific email service cases
   switch (true) {
     case isGmailMailOpened(currentUrl):
-      chrome.tabs.sendMessage(tabId, { action: "checkGmailmail" }, (response) =>
+      browser.tabs.sendMessage(tabId, { action: "checkGmailmail" }, (response) =>
         handleMailResponse(response, sendResponse, "Gmail")
       );
       return true;
@@ -60,7 +60,7 @@ export const checkEmailPageStatus = (currentUrl, tabId, sendResponse) => {
       return true;
 
     case isOutlookPage(currentUrl):
-      chrome.tabs.sendMessage(
+      browser.tabs.sendMessage(
         tabId,
         { action: "checkOutlookmail" },
         (response) => handleMailResponse(response, sendResponse, "Outlook")
@@ -68,7 +68,7 @@ export const checkEmailPageStatus = (currentUrl, tabId, sendResponse) => {
       return true;
 
     case isYahooPage(currentUrl):
-      chrome.tabs.sendMessage(tabId, { action: "checkYahoomail" }, (response) =>
+      browser.tabs.sendMessage(tabId, { action: "checkYahoomail" }, (response) =>
         handleMailResponse(response, sendResponse, "Yahoo")
       );
       return true;

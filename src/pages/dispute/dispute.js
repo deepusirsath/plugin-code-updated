@@ -25,7 +25,7 @@ let isSubmitting = false;
  * - Manages submit button state based on validation
  * - Handles dispute submission with count limits (0-2 allowed)
  * - Provides real-time status updates via reload functionality
- * - Integrates with Chrome storage and messaging systems
+ * - Integrates with browser storage and messaging systems
  *
  * @example
  * initializeDisputeForm({
@@ -173,7 +173,7 @@ export const initializeDisputeForm = (disputeData) => {
    * - Extracts form data including:
    *   - User's reason text
    *   - Message ID
-   *   - Receiver's email from Chrome storage
+   *   - Receiver's email from browser storage
    * - Sends dispute if count is within limits (0-2)
    * - Shows alert and disables submission if:
    *   - Previous dispute is pending
@@ -186,10 +186,10 @@ export const initializeDisputeForm = (disputeData) => {
    */
   submitButton.addEventListener("click", async () => {
     // Prevent multiple submissions
-    if (isSubmitting) return;
-    isSubmitting = true;
+    // if (isSubmitting) return;
+    // isSubmitting = true;
 
-    try {
+    // try {
       disableSubmitButton();
       const disputeCount = disputeData.countRaise || 0;
       const currentStatus = disputeData.status;
@@ -218,7 +218,7 @@ export const initializeDisputeForm = (disputeData) => {
       if (disputeCount < 3 && disputeCount >= 0) {
         const reasonText = reasonTextarea.value.trim();
         const messageId = document.getElementById("messageId").textContent;
-        const receiver_email = await chrome.storage.local.get("receiver_email");
+        const receiver_email = await browser.storage.local.get("receiver_email");
         sendDispute(reasonText, messageId, receiver_email?.receiver_email);
       } else {
         disableSubmitButton();
@@ -227,10 +227,10 @@ export const initializeDisputeForm = (disputeData) => {
           "error"
         );
       }
-    } finally {
-      isSubmitting = false;
-      enableSubmitButton();
-    }
+    // } finally {
+    //   isSubmitting = false;
+    //   enableSubmitButton();
+    // }
   });
 
   /**
@@ -240,7 +240,7 @@ export const initializeDisputeForm = (disputeData) => {
    * @param {string} emailId - The email ID associated with the message.
    */
   const sendDispute = (reason, messageId, emailId) => {
-    chrome.runtime.sendMessage(
+    browser.runtime.sendMessage(
       { action: "dispute", reason, messageId, emailId },
       handleResponse
     );
@@ -284,11 +284,11 @@ export const initializeDisputeForm = (disputeData) => {
     reloadIcon.innerHTML = "";
     showLoader();
     const messageId = document.getElementById("messageId").textContent;
-    const email = await chrome.storage.local.get("receiver_email");
+    const email = await browser.storage.local.get("receiver_email");
     const emailId = email.receiver_email;
     const client = emailId.match(/@(\w+)\./);
 
-    chrome.runtime.sendMessage(
+    browser.runtime.sendMessage(
       { action: "reload", messageId, emailId, client: client },
       (response) => {
         hideLoader();
@@ -338,8 +338,14 @@ export const checkAdminComment = async (messageId, email) => {
  */
 export const sendDisputeToServer = async (reason, email, messageId) => {
   //add a submission lock to prevent multiple submissions
-  if (isSubmitting) return;
-  isSubmitting = true;
+  // if (isSubmitting) return;
+  // isSubmitting = true;
+
+   if (window.isSubmitting) {
+    return;
+  }
+
+  window.isSubmitting = true;
 
   try {
     const data = await postData(DISPUTES_RAISE, {
@@ -349,14 +355,15 @@ export const sendDisputeToServer = async (reason, email, messageId) => {
     });
 
     if (data) {
-      chrome.storage.local.set({ email_status: "Dispute" });
+      browser.storage.local.set({ email_status: "Dispute" });
     }
 
     return data;
   } catch (error) {
     displayError();
   } finally {
-    isSubmitting = false;
+    // isSubmitting = false;
+    window.isSubmitting = false;
   }
 };
 
@@ -371,7 +378,7 @@ export const checkDisputeCount = async (messageId) => {
 
     const dispute_count = data.counter || 0;
     if (dispute_count) {
-      chrome.storage.local.set({
+      browser.storage.local.set({
         dispute_count: data.counter || 0,
       });
     }

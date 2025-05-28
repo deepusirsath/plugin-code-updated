@@ -75,7 +75,7 @@
   scrollbar-color: rgba(0, 0, 0, 0.2) transparent; /* Firefox */
 }
 
-/* WebKit browsers (Chrome, Safari, Edge) */
+/* WebKit browsers (browser, Safari, Edge) */
 .email-body::-webkit-scrollbar {
   width: 6px;
 }
@@ -194,7 +194,7 @@
   scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
 }
 
-/* WebKit browsers (Chrome, Safari, Edge) */
+/* WebKit browsers (browser, Safari, Edge) */
 .popup-content::-webkit-scrollbar,
 .email-body::-webkit-scrollbar,
 .popup-body::-webkit-scrollbar,

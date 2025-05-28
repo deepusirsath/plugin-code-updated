@@ -17,7 +17,7 @@ const validateCdrPasswordUrl = `${baseUrl}${VALIDATE_CDR_PASSWORD}`;
  */
 const handleFileDownload = (file, isCDR = false) => {
   if (file.download_url || file.file_url) {
-    chrome.downloads.download({
+    browser.downloads.download({
       url: file.download_url || file.file_url,
       filename: isCDR ? `CDR_${file.file_name}` : file.file_name,
       conflictAction: "uniquify",

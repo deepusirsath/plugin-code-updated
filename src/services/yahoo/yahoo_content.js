@@ -1,6 +1,6 @@
 // Component imports
 const importComponent = async (path) => {
-  const src = chrome.runtime.getURL(path);
+  const src = browser.runtime.getURL(path);
   return await import(src);
 };
 
@@ -33,7 +33,7 @@ const ERROR_MESSAGES = {
 let messageReason = " ";
 
 document.addEventListener("visibilitychange", function () {
-  chrome.storage.local.remove(["gmail_email", "outlook_email"], () => {});
+  browser.storage.local.remove(["gmail_email", "outlook_email"], () => {});
 
   if (document.visibilityState === "visible") {
     // Extract only email from scripts
@@ -52,9 +52,9 @@ document.addEventListener("visibilitychange", function () {
     });
 
     if (userEmail) {
-      chrome.storage.local.set({ currentMailId: userEmail });
-      chrome.storage.local.remove(["gmail_email", "outlook_email"], () => {
-        chrome.storage.local.set({ yahoo_email: userEmail }, () => {});
+      browser.storage.local.set({ currentMailId: userEmail });
+      browser.storage.local.remove(["gmail_email", "outlook_email"], () => {
+        browser.storage.local.set({ yahoo_email: userEmail }, () => {});
       });
     }
   }
@@ -105,7 +105,7 @@ function handleYahooMailCheck(message, sendResponse) {
       }
     }
 
-    chrome.storage.local.remove(["gmail_email", "outlook_email"], () => {});
+    browser.storage.local.remove(["gmail_email", "outlook_email"], () => {});
 
     if (emailBodySearch) {
       sendResponse({
@@ -113,6 +113,12 @@ function handleYahooMailCheck(message, sendResponse) {
         messageId: sendMessageId,
         emailId: sendUserEmail,
         senderEmail: senderEmail,
+      });
+    } else if (emailBodySearch === null) {
+      sendResponse({
+        emailBodyExists: true,
+        error: "did't get the messasge Id",
+        senderEmail: null,
       });
     } else {
       sendResponse({
@@ -123,7 +129,7 @@ function handleYahooMailCheck(message, sendResponse) {
   }
 }
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   handleYahooMailCheck(message, sendResponse);
   return true; // Keeps the message channel open for async sendResponse
 });
@@ -144,7 +150,7 @@ const decodeJWT = (token) => {
 };
 
 const checkTokenValidate = async () => {
-  const { refresh_token, access_token } = await chrome.storage.local.get([
+  const { refresh_token, access_token } = await browser.storage.local.get([
     "refresh_token",
     "access_token",
   ]);
@@ -157,7 +163,7 @@ const checkTokenValidate = async () => {
     if (accessDecoded.exp > currentTime || refreshDecoded.exp > currentTime) {
       return true;
     } else {
-      await chrome.storage.local.set({ registration: false });
+      await browser.storage.local.set({ registration: false });
       return false;
     }
   }
@@ -173,16 +179,16 @@ const checkTokenValidate = async () => {
  * @param {Object} sender - Information about the script or extension sending the message.
  * @param {Function} sendResponse - A function to send a response back to the sender.
  */
-chrome.runtime.onMessage.addListener(async function (
+browser.runtime.onMessage.addListener(async function (
   request,
   sender,
   sendResponse
 ) {
   if (request.action === "runScript") {
-    const { access_token } = await chrome.storage.local.get("access_token");
+    const { access_token } = await browser.storage.local.get("access_token");
     const isTokenValid = await checkTokenValidate(access_token);
     if (!isTokenValid || !access_token) {
-      await chrome.storage.local.set({ registration: false });
+      await browser.storage.local.set({ registration: false });
       return;
     }
     // Exit early since reload will reset the script
@@ -205,8 +211,8 @@ chrome.runtime.onMessage.addListener(async function (
  */
 const yahooMailRegex = /^https:\/\/(in\.)?mail\.yahoo\.com.*message/;
 if (yahooMailRegex.test(url) && !extractionDone) {
-  chrome.storage.local.get("registration", (data) => {
-    if (chrome.runtime.lastError) {
+  browser.storage.local.get("registration", (data) => {
+    if (browser.runtime.lastError) {
       return;
     }
     if (data.registration) {
@@ -234,15 +240,15 @@ async function executeExtractionScript() {
     extractionDone = true;
   }, 2500);
 }
-chrome.runtime.onMessage.addListener(async (request) => {
+browser.runtime.onMessage.addListener(async (request) => {
   if (
     request.action === "badRequestServerError" &&
     request.client === "yahoo"
   ) {
-    const { access_token } = await chrome.storage.local.get("access_token");
+    const { access_token } = await browser.storage.local.get("access_token");
     const isTokenValid = await checkTokenValidate(access_token);
     if (!isTokenValid || !access_token) {
-      await chrome.storage.local.set({ registration: false });
+      await browser.storage.local.set({ registration: false });
       return;
     }
     showAlert("badRequest");
@@ -289,7 +295,7 @@ async function executeExtractionScriptIfFailed() {
  * @param {Object} sender - The sender of the message.
  * @param {Function} sendResponse - A function to send a response back to the sender (not used in this case).
  */
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (
     request.action === "EmailNotFoundInPendingRequest" &&
     request.client === "yahoo"
@@ -324,7 +330,7 @@ function fetchLocation() {
         const longitude = position.coords.longitude;
 
         // // Send the coordinates to the background script
-        // chrome.runtime.sendMessage({
+        // browser.runtime.sendMessage({
         //   type: "geoLocationUpdate",
         //   coordinates: {
         //     latitude: latitude,
@@ -375,7 +381,7 @@ function blockEmailBody() {
  *
  * Key Features:
  * - Extracts `messageId`, `selectedMailboxId`, and `userEmail` from scripts.
- * - Stores the extracted email ID in `chrome.storage.local`.
+ * - Stores the extracted email ID in `browser.storage.local`.
  * - If message data is missing, retries extraction after a short delay.
  * - Checks local storage for message safety status and applies appropriate UI changes.
  * - Sends requests to the background script to verify email safety if status is unknown.
@@ -420,7 +426,7 @@ function extractIdsFromNonceScripts() {
         selectedMailboxId = selectedMailboxMatch[1];
         userEmail = selectedMailboxMatch[2];
       }
-      chrome.storage.local.set({ yahoo_email: userEmail }, () => {});
+      browser.storage.local.set({ yahoo_email: userEmail }, () => {});
     } else {
     }
   });
@@ -435,11 +441,11 @@ function extractIdsFromNonceScripts() {
   }
 
   if (lastMessageId) {
-    chrome.storage.local.get("messages", async function (result) {
-      const { access_token } = await chrome.storage.local.get("access_token");
+    browser.storage.local.get("messages", async function (result) {
+      const { access_token } = await browser.storage.local.get("access_token");
       const isTokenValid = await checkTokenValidate(access_token);
       if (!isTokenValid || !access_token) {
-        await chrome.storage.local.set({ registration: false });
+        await browser.storage.local.set({ registration: false });
         return;
       }
       let messages = JSON.parse(result.messages || "{}");
@@ -464,7 +470,7 @@ function extractIdsFromNonceScripts() {
         } else if (status === "pending" || status === "Pending") {
           hideLoadingScreen();
           // showAlert("pending", "Some time");
-          chrome.runtime.sendMessage({
+          browser.runtime.sendMessage({
             action: "pendingStatusYahoo",
             emailId: sendUserEmail,
             messageId: sendMessageId,
@@ -475,7 +481,7 @@ function extractIdsFromNonceScripts() {
         shouldApplyPointerEvents = true;
         blockEmailBody();
 
-        chrome.runtime.sendMessage(
+        browser.runtime.sendMessage(
           {
             client: "yahoo",
             action: "firstCheckForEmail",
@@ -483,7 +489,7 @@ function extractIdsFromNonceScripts() {
             email: userEmail,
           },
           (response) => {
-            if (chrome.runtime.lastError) {
+            if (browser.runtime.lastError) {
               return;
             }
             let error = response.status;
@@ -497,14 +503,14 @@ function extractIdsFromNonceScripts() {
                 const unsafeReason = serverData.unsafe_reasons || " ";
 
                 if (["safe", "unsafe", "pending"].includes(resStatus)) {
-                  chrome.storage.local.get("messages", function (result) {
+                  browser.storage.local.get("messages", function (result) {
                     let messages = JSON.parse(result.messages || "{}");
                     messages[messId] = {
                       status: resStatus,
                       unsafeReason: unsafeReason,
                     };
 
-                    chrome.storage.local.set(
+                    browser.storage.local.set(
                       { messages: JSON.stringify(messages) },
                       () => {
                         hideLoadingScreen();
@@ -567,7 +573,7 @@ function extractIdsFromNonceScripts() {
 function createUrl(selectedMailboxId, lastMessageId, userEmail) {
   const url = `https://apis.mail.yahoo.com/ws/v3/mailboxes/@.id==${selectedMailboxId}/messages/@.id==${lastMessageId}/content/rawplaintext?appId=YMailNovation`;
   try {
-    chrome.runtime.sendMessage({
+    browser.runtime.sendMessage({
       action: "sendYahooData",
       lastMessageId,
       userEmail,
@@ -580,22 +586,22 @@ function createUrl(selectedMailboxId, lastMessageId, userEmail) {
 
 // Add these event listeners to detect network status changes
 window.addEventListener("offline", async function () {
-  const { access_token } = await chrome.storage.local.get("access_token");
+  const { access_token } = await browser.storage.local.get("access_token");
   const isTokenValid = await checkTokenValidate(access_token);
   if (!isTokenValid || !access_token) {
-    await chrome.storage.local.set({ registration: false });
+    await browser.storage.local.set({ registration: false });
     return;
   }
   showAlert("networkError");
   hideLoadingScreen();
-  chrome.storage.local.set({ networkWentOffline: true });
+  browser.storage.local.set({ networkWentOffline: true });
 });
 
 window.addEventListener("online", function () {
   // Check if the network previously went offline
-  chrome.storage.local.get("networkWentOffline", function (result) {
+  browser.storage.local.get("networkWentOffline", function (result) {
     if (result.networkWentOffline) {
-      chrome.storage.local.remove("networkWentOffline");
+      browser.storage.local.remove("networkWentOffline");
       window.location.reload();
     }
   });
@@ -610,15 +616,15 @@ window.addEventListener("online", function () {
  * @param {Object} sender - The sender of the message (not used in this case).
  * @param {Function} sendResponse - A function to send a response back to the sender (not used in this case).
  */
-chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
+browser.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
   if (
     request.action === "erroRecievedFromServer" &&
     request.client === "yahoo"
   ) {
-    const { access_token } = await chrome.storage.local.get("access_token");
+    const { access_token } = await browser.storage.local.get("access_token");
     const isTokenValid = await checkTokenValidate(access_token);
     if (!isTokenValid || !access_token) {
-      await chrome.storage.local.set({ registration: false });
+      await browser.storage.local.set({ registration: false });
       return;
     }
     showAlert("inform");
@@ -627,7 +633,7 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
 });
 
 // Add this with the other message listeners
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "emailSizeCategory" && message.client === "yahoo") {
     handleEmailSizeCategory(message.sizeCategory);
   }
@@ -635,10 +641,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // Add this function to handle different size categories
 async function handleEmailSizeCategory(sizeCategory) {
-  const { access_token } = await chrome.storage.local.get("access_token");
+  const { access_token } = await browser.storage.local.get("access_token");
   const isTokenValid = await checkTokenValidate(access_token);
   if (!isTokenValid || !access_token) {
-    await chrome.storage.local.set({ registration: false });
+    await browser.storage.local.set({ registration: false });
     return;
   }
   let sizeMessage = "";
@@ -677,7 +683,7 @@ async function handleEmailSizeCategory(sizeCategory) {
  * Behavior:
  * - If the message is from the Yahoo client (`message.client === "yahoo"`):
  *   - Stores the unsafe reason from the message.
- *   - Removes stored email data (`gmail_email` and `outlook_email`) from `chrome.storage.local`.
+ *   - Removes stored email data (`gmail_email` and `outlook_email`) from `browser.storage.local`.
  *   - Depending on the `message.action`, the script performs different tasks:
  *     - `"blockUrls"`: Enables pointer events restriction, displays an "unsafe" alert, and logs blocking action.
  *     - `"unblock"`: Disables pointer events restriction, displays a "safe" alert, and logs unblocking action.
@@ -687,7 +693,7 @@ async function handleEmailSizeCategory(sizeCategory) {
  */
 
 function pendingStatusCallForYahoo() {
-  chrome.runtime.sendMessage({
+  browser.runtime.sendMessage({
     action: "pendingStatusYahoo",
     emailId: sendUserEmail,
     messageId: sendMessageId,
@@ -696,12 +702,12 @@ function pendingStatusCallForYahoo() {
 
 let intervalId = null;
 
-chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (message.client === "yahoo") {
-    const { access_token } = await chrome.storage.local.get("access_token");
+    const { access_token } = await browser.storage.local.get("access_token");
     const isTokenValid = await checkTokenValidate(access_token);
     if (!isTokenValid || !access_token) {
-      await chrome.storage.local.set({ registration: false });
+      await browser.storage.local.set({ registration: false });
       return;
     }
     messageReason = message.unsafeReason;
@@ -742,10 +748,10 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
  * a blocked popup when interactions are detected.
  */
 window.addEventListener("click", async (e) => {
-  const { access_token } = await chrome.storage.local.get("access_token");
+  const { access_token } = await browser.storage.local.get("access_token");
   const isTokenValid = await checkTokenValidate(access_token);
   if (!isTokenValid || !access_token) {
-    await chrome.storage.local.set({ registration: false });
+    await browser.storage.local.set({ registration: false });
     return;
   }
   const element = document.querySelector(
@@ -771,7 +777,7 @@ window.addEventListener("click", async (e) => {
 //   }
 // });
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "ExtractEMailForYahoo") {
     // console.log("Received message from background script:==========", request);
     setTimeout(() => {
@@ -781,7 +787,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       if (match && match[1]) {
         const email = match[1];
         // console.log("Extracted Email:", email);
-        chrome.storage.local.set({ currentMailId: email });
+        browser.storage.local.set({ currentMailId: email });
       }
     }, 1000);
   }

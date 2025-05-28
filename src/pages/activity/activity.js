@@ -261,12 +261,12 @@ const getGraphData = async () => {
     const minLoadingTime = new Promise((resolve) => setTimeout(resolve, 100));
 
     const emailPromise = new Promise((resolve) => {
-      chrome.storage.local.get(["currentMailId"], function (result) {
+      browser.storage.local.get(["currentMailId"], function (result) {
         if (result.currentMailId) {
           resolve(result.currentMailId);
         } else {
           setTimeout(() => {
-            chrome.storage.local.get(["currentMailId"], function (retryResult) {
+            browser.storage.local.get(["currentMailId"], function (retryResult) {
               resolve(retryResult.currentMailId || null);
             });
           }, 500);

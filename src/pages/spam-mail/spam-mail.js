@@ -87,14 +87,14 @@ const getViewDetailOfSpamMail = async (msg_id) => {
 const getAllSpamMail = async (page = 1) => {
   showLoader();
   const minLoadingTime = new Promise((resolve) => setTimeout(resolve, 100));
-  // Get the current email from chrome.storage
+  // Get the current email from browser.storage
   const emailPromise = new Promise((resolve) => {
-    chrome.storage.local.get(["currentMailId"], function (result) {
+    browser.storage.local.get(["currentMailId"], function (result) {
       if (result.currentMailId) {
         resolve(result.currentMailId);
       } else {
         setTimeout(() => {
-          chrome.storage.local.get(["currentMailId"], function (retryResult) {
+          browser.storage.local.get(["currentMailId"], function (retryResult) {
             resolve(retryResult.currentMailId || null);
           });
         }, 500);

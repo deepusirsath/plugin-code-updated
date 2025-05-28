@@ -1,8 +1,7 @@
 const importComponent = async (path) => {
-  const src = chrome.runtime.getURL(path);
+  const src = browser.runtime.getURL(path);
   return await import(src);
 };
-
 console.log("gmail content script executed");
 
 const waitForElements = () => {
@@ -20,8 +19,8 @@ const waitForElements = () => {
     }
   }, 500);
 };
-chrome.storage.local.get("registration", (data) => {
-  if (chrome.runtime.lastError) {
+browser.storage.local.get("registration", (data) => {
+  if (browser.runtime.lastError) {
     return;
   }
 
@@ -119,7 +118,7 @@ document.addEventListener(
 );
 
 // Also run the check periodically to catch dynamically added elements
-setInterval(findAndBlockBrdElements, 10000);
+setInterval(findAndBlockBrdElements, 5000);
 
 // Initialize UI components
 let showAlert = null;
@@ -146,15 +145,6 @@ Promise.all([
   showLoadingScreen = loadingScreen.showLoadingScreen;
   hideLoadingScreen = loadingScreen.hideLoadingScreen;
 });
-
-/**
- * Continuously checks for the presence of elements with the class "nH a98 iY" in the DOM.
- * The function attempts to locate these elements up to a maximum of 15 times, with a 1-second interval between attempts.
- * If the elements are found within the attempts, the `blockEmailBody` function is executed, and the interval is cleared.
- * This function replaces the previous setTimeout-based approach to ensure elements are detected dynamically.
- */
-
-// Replace the original setTimeout with the new function
 
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden && !emailId) {
@@ -185,7 +175,7 @@ const decodeJWT = (token) => {
 };
 
 const checkTokenValidate = async () => {
-  const { refresh_token, access_token } = await chrome.storage.local.get([
+  const { refresh_token, access_token } = await browser.storage.local.get([
     "refresh_token",
     "access_token",
   ]);
@@ -198,14 +188,14 @@ const checkTokenValidate = async () => {
     if (accessDecoded.exp > currentTime || refreshDecoded.exp > currentTime) {
       return true;
     } else {
-      await chrome.storage.local.set({ registration: false });
+      await browser.storage.local.set({ registration: false });
       return false;
     }
   }
 };
 
 /**
- * Chrome extension message listener for Gmail email detection and processing
+ * browser extension message listener for Gmail email detection and processing
  *
  * @param {Object} message - Message object containing the action type
  * @param {Object} sender - Sender information object
@@ -228,88 +218,13 @@ const checkTokenValidate = async () => {
  * - Sends confirmation response
  *
  * Security:
- * - Checks chrome.runtime.lastError
+ * - Checks browser.runtime.lastError
  * - Validates registration data
  * - Ensures minimum segment length
  */
-// chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-//   if (message.action === "GmailDetectedForExtraction") {
-//     const { access_token } = await chrome.storage.local.get("access_token");
-//     const isTokenValid = await checkTokenValidate(access_token);
-//     if (!isTokenValid || !access_token) {
-//       await chrome.storage.local.set({ registration: false });
-//       return;
-//     }
-//     blockEmailBody();
-//     clearInterval(intervalId);
-//     setTimeout(() => {
-//       let url = window.location.href;
-//       // Extract the part after #
-//       const hashParts = url.split("#");
-//       if (hashParts.length < 2) return;
-
-//       const afterHash = hashParts[1];
-
-//       // Check if compose appears immediately after folder name
-//       if (
-//         afterHash.match(
-//           /^(inbox|starred|snoozed|imp|label|search|scheduled|all|spam|trash|category)\/?\?compose=/
-//         )
-//       ) {
-//         return;
-//       }
-
-//       // If compose exists but has a long string before it, proceed
-//       if (afterHash.includes("?compose=")) {
-//         const beforeCompose = afterHash.split("?compose=")[0];
-//         if (beforeCompose.length < 30) {
-//           return;
-//         }
-//       }
-//       chrome.storage.local.get("registration", (data) => {
-//         if (chrome.runtime.lastError) {
-//           return;
-//         }
-//         if (data.registration) {
-//           const lastSegment = url.split("/").pop().split("#").pop();
-//           if (lastSegment.length >= isValidSegmentLength) {
-//             // Poll for elements with a maximum of attempts
-//             const maxAttempts = 200;
-//             let attempts = 0;
-
-//             const checkForElements = setInterval(() => {
-//               const elements = document.getElementsByClassName("nH a98 iY");
-//               attempts++;
-
-//               if (elements && elements.length > 0) {
-//                 // console.log("Elements found, init called");
-//                 init();
-//                 clearInterval(checkForElements);
-//               } else if (attempts >= maxAttempts) {
-//                 // console.log("Failed to find elements after maximum attempts");
-//                 alert(
-//                   "Please check your internet connection and refresh the page."
-//                 );
-//                 clearInterval(checkForElements);
-//               }
-//             }, 500); // Check every 500ms
-//           }
-//         }
-//       });
-//     }, 100);
-//     sendResponse({ status: "received" });
-//   }
-// });
-
-chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener( (message, sender, sendResponse) => {
   if (message.action === "GmailDetectedForExtraction") {
-    const { access_token } = await chrome.storage.local.get("access_token");
-    const isTokenValid = await checkTokenValidate(access_token);
-    if (!isTokenValid || !access_token) {
-      await chrome.storage.local.set({ registration: false });
-      return;
-    }
-
+    
     // console.log("clearInterval(intervalId);")
     clearInterval(intervalId);
     setTimeout(() => {
@@ -338,11 +253,10 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         }
       }
       // console.log("compose not found ===========================");
-      chrome.storage.local.get("registration", (data) => {
-        if (chrome.runtime.lastError) {
+      browser.storage.local.get("registration", (data) => {
+        if (browser.runtime.lastError) {
           return;
         }
-
         if (data.registration) {
           const lastSegment = url.split("/").pop().split("#").pop();
           if (lastSegment.length >= isValidSegmentLength) {
@@ -357,7 +271,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 });
 
 /**
- * Chrome runtime message listener for Gmail-related actions
+ * browser runtime message listener for Gmail-related actions
  *
  * Listens for specific message actions to extract Gmail message details from the current page.
  * Handles two main actions:
@@ -384,17 +298,15 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
  *   error: string
  * }
  */
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (
     message.action === "checkGmailmail" ||
     message.action == "fetchDisputeMessageId"
   ) {
     const node = document.querySelector("[data-legacy-message-id]");
-    const messageId = node?.getAttribute("data-legacy-message-id");
+    const messageId = node.getAttribute("data-legacy-message-id");
     const gmailContainer = document.querySelector("div[role='main']");
-
     if (gmailContainer) {
-      // Get sender email
       const senderEmail = gmailContainer
         .querySelector("span[email]")
         ?.getAttribute("email");
@@ -402,61 +314,63 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       // Get all recipient elements
       const receiverElements = gmailContainer.querySelectorAll("span[email]");
 
-      // Get the current user's email from storage
-      chrome.storage.local.get(["gmail_email"], (result) => {
-        const currentUserEmail = result.gmail_email;
-        let receiverEmail = null;
+      const currentUserEmail = browser.storage.local.get(
+        ["gmail_email"],
+        (result) => {
+          return result.gmail_email;
+        }
+      );
+      let receiverEmail = null;
 
-        // First try to find the logged-in user's email from Gmail's interface
-        const loggedInEmailElement = document.querySelector(
-          'a[aria-label*="Google Account"]'
-        );
-        const loggedInEmail = loggedInEmailElement
-          ?.getAttribute("aria-label")
-          ?.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)?.[0];
+      // First try to find the logged-in user's email from Gmail's interface
+      const loggedInEmailElement = document.querySelector(
+        'a[aria-label*="Google Account"]'
+      );
+      const loggedInEmail = loggedInEmailElement
+        ?.getAttribute("aria-label")
+        ?.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)?.[0];
 
-        // If we found the logged-in email, use it
-        if (loggedInEmail) {
-          receiverEmail = loggedInEmail;
-        } else if (receiverElements.length > 0) {
-          // If we couldn't find logged-in email, check all recipients
-          for (const element of receiverElements) {
-            const email = element.getAttribute("email");
-            // If this is the current user's email, use it
-            if (email === currentUserEmail) {
-              receiverEmail = email;
-              break;
-            }
+      if (loggedInEmail) {
+        receiverEmail = loggedInEmail;
+      } else if (receiverElements.length > 0) {
+        // If we couldn't find logged-in email, check all recipients
+        for (const element of receiverElements) {
+          const email = element.getAttribute("email");
+          // If this is the current user's email, use it
+          if (email === currentUserEmail) {
+            receiverEmail = email;
+            break;
           }
         }
+      }
 
-        if (messageId && receiverEmail) {
-          sendResponse({
-            emailBodyExists: true,
-            messageId: messageId,
-            emailId: receiverEmail,
-            senderEmail: senderEmail,
-          });
-        } else {
-          sendResponse({
-            emailBodyExists: false,
-            error: "Failed to extract Gmail message ID or receiver email",
-          });
-        }
-      });
+      if (messageId && receiverEmail) {
+        sendResponse({
+          emailBodyExists: true,
+          messageId: messageId,
+          emailId: receiverEmail,
+          senderEmail: senderEmail,
+        });
+      } else {
+        sendResponse({
+          emailBodyExists: false,
+          error: "Failed to extract Gmail message ID or email ID",
+        });
+      }
+
       return true;
     }
   }
 });
 
 /**
- * Chrome runtime message listener for handling email-related events
+ * browser runtime message listener for handling email-related events
  *
  * @param {Object} request - The message request object
  * @param {string} request.action - Action type, specifically "EmailNotFoundInPendingRequest"
  * @param {string} request.client - Client type, specifically "gmail"
  * @param {string} request.messageId - The message ID from the email
- * @param {Object} sender - Chrome runtime sender information
+ * @param {Object} sender - browser runtime sender information
  * @param {Function} sendResponse - Callback function to send response
  *
  * Features:
@@ -470,20 +384,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
  * - Only processes Gmail client requests
  * - Specifically handles "EmailNotFoundInPendingRequest" action
  */
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (
     request.action === "EmailNotFoundInPendingRequest" &&
     request.client === "gmail"
   ) {
+    console.log("EmailNotFoundInPendingRequest");
     init();
   }
 });
 
 /**
- * Chrome runtime message listener for handling server error notifications
+ * browser runtime message listener for handling server error notifications
  * specifically for Gmail client.
  *
- * @listens chrome.runtime.onMessage
+ * @listens browser.runtime.onMessage
  * @param {Object} request - The message request object
  * @param {string} request.action - Action type, checks for "erroRecievedFromServer"
  * @param {string} request.client - Client type, checks for "gmail"
@@ -494,11 +409,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  * - Triggers showAlert with "inform" parameter when conditions match
  * - Handles Gmail-specific error notifications
  */
-chrome.runtime.onMessage.addListener(async (request) => {
-  const { access_token } = await chrome.storage.local.get("access_token");
+browser.runtime.onMessage.addListener(async (request) => {
+  const { access_token } = await browser.storage.local.get("access_token");
   const isTokenValid = await checkTokenValidate(access_token);
   if (!isTokenValid || !access_token) {
-    await chrome.storage.local.set({ registration: false });
+    await browser.storage.local.set({ registration: false });
     return;
   }
   if (
@@ -509,34 +424,32 @@ chrome.runtime.onMessage.addListener(async (request) => {
     hideLoadingScreen();
   }
 });
-
 window.addEventListener("offline", async function () {
-  const { access_token } = await chrome.storage.local.get("access_token");
+  const { access_token } = await browser.storage.local.get("access_token");
   const isTokenValid = await checkTokenValidate(access_token);
   if (!isTokenValid || !access_token) {
-    await chrome.storage.local.set({ registration: false });
+    await browser.storage.local.set({ registration: false });
     return;
   }
   showAlert("networkError");
   hideLoadingScreen();
-  chrome.storage.local.set({ networkWentOffline: true });
+  browser.storage.local.set({ networkWentOffline: true });
 });
-
 window.addEventListener("online", function () {
   // Check if the network previously went offline
-  chrome.storage.local.get("networkWentOffline", function (result) {
+  browser.storage.local.get("networkWentOffline", function (result) {
     if (result.networkWentOffline) {
-      chrome.storage.local.remove("networkWentOffline");
+      browser.storage.local.remove("networkWentOffline");
       window.location.reload();
     }
   });
 });
 
-chrome.runtime.onMessage.addListener(async (request) => {
-  const { access_token } = await chrome.storage.local.get("access_token");
+browser.runtime.onMessage.addListener(async (request) => {
+  const { access_token } = await browser.storage.local.get("access_token");
   const isTokenValid = await checkTokenValidate(access_token);
   if (!isTokenValid || !access_token) {
-    await chrome.storage.local.set({ registration: false });
+    await browser.storage.local.set({ registration: false });
     return;
   }
   if (
@@ -549,34 +462,21 @@ chrome.runtime.onMessage.addListener(async (request) => {
 });
 
 function pendingStatusCallForGmail() {
-  chrome.runtime.sendMessage({
+  browser.runtime.sendMessage({
     action: "pendingStatusGmail",
     emailId: emailId,
     messageId: messageId,
   });
 }
 
-/**
- * Listens for messages from the background or content script and processes actions based on the message.
- *
- * This event listener checks for messages sent by Gmail client, specifically performing actions based
- * on the `action` type. It handles three types of actions:
- * - "blockUrls": Clears the interval, hides the loading screen, and applies the "unsafe" status with the provided reason.
- * - "unblock": Clears the interval, hides the loading screen, and applies the "safe" status.
- * - "pending": Hides the loading screen, sets the pointer events to true, and starts an interval to check for the pending status every 5 seconds.
- *
- * The function also calls `blockEmailBody()` for each action and responds with a status of "success".
- *
- * @param {Object} message - The message object containing details about the action, client, and unsafe reason.
- * @param {Object} sender - Information about the script that sent the message.
- * @param {Function} sendResponse - A function to send a response back to the sender, with the status "success".
- */
-chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+// Do not start automatically
+
+browser.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (message.client === "gmail") {
-    const { access_token } = await chrome.storage.local.get("access_token");
+    const { access_token } = await browser.storage.local.get("access_token");
     const isTokenValid = await checkTokenValidate(access_token);
     if (!isTokenValid || !access_token) {
-      await chrome.storage.local.set({ registration: false });
+      await browser.storage.local.set({ registration: false });
       return;
     }
     messageReason = message.unsafeReason;
@@ -624,19 +524,19 @@ const init = () => {
  * This function:
  * - Blocks the email body initially.
  * - Extracts the `data-legacy-message-id` attribute from the email element.
- * - Retrieves stored messages from `chrome.storage.local` to check the email's security status.
+ * - Retrieves stored messages from `browser.storage.local` to check the email's security status.
  * - Displays appropriate alerts based on the status (`safe`, `unsafe`, or `pending`).
  * - Sends a request to the background script if the email's status is unknown,
  *   fetching security details from the server and updating local storage accordingly.
  * - Ensures proper handling of email security enforcement by setting pointer events.
  *
- * The function interacts with Chrome's storage API and messaging system to process
+ * The function interacts with browser's storage API and messaging system to process
  * security checks dynamically.
  *
  * Dependencies:
  * - `blockEmailBody()`: Blocks or unblocks email content.
  * - `showAlert(status, reason)`: Displays a security alert.
- * - `chrome.runtime.sendMessage()`: Sends messages to the background script for processing.
+ * - `browser.runtime.sendMessage()`: Sends messages to the background script for processing.
  * - `createUrl(newUrl, messageId)`: Handles URL-based operations for message identification.
  *
  * @async
@@ -644,10 +544,10 @@ const init = () => {
  */
 
 async function extractMessageIdAndEml() {
-  const { access_token } = await chrome.storage.local.get("access_token");
+  const { access_token } = await browser.storage.local.get("access_token");
   const isTokenValid = await checkTokenValidate(access_token);
   if (!isTokenValid || !access_token) {
-    await chrome.storage.local.set({ registration: false });
+    await browser.storage.local.set({ registration: false });
     return;
   }
   // console.log("start the extractMessageIdAndEml");
@@ -667,7 +567,7 @@ async function extractMessageIdAndEml() {
     return;
   }
 
-  chrome.storage.local.get("messages", function (result) {
+  browser.storage.local.get("messages", function (result) {
     let messages = JSON.parse(result.messages || "{}");
 
     if (messages[messageId]) {
@@ -692,7 +592,7 @@ async function extractMessageIdAndEml() {
         blockEmailBody();
         pendingEmailId = emailId;
         pendingMessageId = messageId;
-        chrome.runtime.sendMessage({
+        browser.runtime.sendMessage({
           action: "pendingStatusGmail",
           emailId: emailId,
           messageId: messageId,
@@ -703,7 +603,7 @@ async function extractMessageIdAndEml() {
       showLoadingScreen();
       shouldApplyPointerEvents = true;
       blockEmailBody();
-      chrome.runtime.sendMessage(
+      browser.runtime.sendMessage(
         {
           client: "gmail",
           action: "firstCheckForEmail",
@@ -720,13 +620,13 @@ async function extractMessageIdAndEml() {
               const messId = serverData.messageId || serverData.msg_id;
               const unsafeReason = serverData.unsafe_reasons || " ";
               if (["safe", "unsafe", "pending"].includes(resStatus)) {
-                chrome.storage.local.get("messages", function (result) {
+                browser.storage.local.get("messages", function (result) {
                   let messages = JSON.parse(result.messages || "{}");
                   messages[messId] = {
                     status: resStatus,
                     unsafeReason: unsafeReason,
                   };
-                  chrome.storage.local.set(
+                  browser.storage.local.set(
                     { messages: JSON.stringify(messages) },
                     () => {
                       shouldApplyPointerEvents = resStatus !== "safe";
@@ -777,7 +677,7 @@ new MutationObserver(() => {
     shouldApplyPointerEvents = true;
     blockEmailBody();
     hideLoadingScreen();
-    chrome.storage.local.get("registration", (data) => {
+    browser.storage.local.get("registration", (data) => {
       if (!data.registration) {
         shouldApplyPointerEvents = false;
         blockEmailBody();
@@ -843,7 +743,7 @@ function createUrl(url, messageId) {
   let eml_Url = `${prefixUrl}/?view=att&th=${messageId}&attid=0&disp=comp&safe=1&zw`;
   // console.log("eml_Url", eml_Url);
   try {
-    chrome.runtime.sendMessage({
+    browser.runtime.sendMessage({
       action: "sendGmailData",
       messageId,
       emailId,
@@ -858,7 +758,7 @@ function createUrl(url, messageId) {
  * Asynchronously extracts an email ID from the document title.
  *
  * This function searches for an email address in the page's title using a regular expression.
- * If an email is found, it stores the last matched email in Chrome's local storage under
+ * If an email is found, it stores the last matched email in browser's local storage under
  * the key `gmail_email`, while removing any previously stored Yahoo or Outlook email entries.
  *
  * @returns {Promise<void>} - A promise that resolves once the storage update is complete.
@@ -869,9 +769,9 @@ async function findEmailId() {
   const emailMatches = titleContent.match(emailPattern);
   emailId = emailMatches ? emailMatches[emailMatches.length - 1] : null;
   if (emailId) {
-    chrome.storage.local.set({ currentMailId: emailId });
-    chrome.storage.local.remove(["yahoo_email", "outlook_email"], () => {
-      chrome.storage.local.set({ gmail_email: emailId });
+    browser.storage.local.set({ currentMailId: emailId });
+    browser.storage.local.remove(["yahoo_email", "outlook_email"], () => {
+      browser.storage.local.set({ gmail_email: emailId });
     });
   }
 }
@@ -887,7 +787,6 @@ async function findEmailId() {
  *
  * @param {Event} event - The click event triggered by the user.
  */
-
 document.addEventListener("click", function removeAlertOnClick(event) {
   const alertContainer = document.querySelector("div[style*='z-index: 1000']");
   if (alertContainer && alertContainer.parentNode) {
@@ -920,10 +819,10 @@ function blockEmailBody() {
 
 // Add a click event listener to the window to detect the click event on the email body
 window.addEventListener("click", async (e) => {
-  const { access_token } = await chrome.storage.local.get("access_token");
+  const { access_token } = await browser.storage.local.get("access_token");
   const isTokenValid = await checkTokenValidate(access_token);
   if (!isTokenValid || !access_token) {
-    await chrome.storage.local.set({ registration: false });
+    await browser.storage.local.set({ registration: false });
     return;
   }
   const elements = document.getElementsByClassName("nH a98 iY");
@@ -936,7 +835,7 @@ window.addEventListener("click", async (e) => {
   }
 });
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "ExtractEMailForGmail") {
     // console.log("ExtractEMailForGmailExtractEMailForGmailExtractEMailForGmail");
     const extractEmail = () => {
@@ -948,7 +847,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       const emailId = emailMatch ? emailMatch[0] : null;
       // console.log("mail : ", emailId);
       if (emailId) {
-        chrome.storage.local.set({ currentMailId: emailId });
+        browser.storage.local.set({ currentMailId: emailId });
       } else {
         // Retry after 1 second if email not found
         setTimeout(extractEmail, 200);
@@ -1073,7 +972,7 @@ if (document.body) {
 setInterval(checkForContextMenu, 500);
 
 // Add this with the other message listeners
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "emailSizeCategory" && message.client === "gmail") {
     // console.log(`message.action === "emailSizeCategory" && message.client === "gmail"`)
     handleEmailSizeCategory(message.sizeCategory);
@@ -1082,10 +981,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // Add this function to handle different size categories
 async function handleEmailSizeCategory(sizeCategory) {
-  const { access_token } = await chrome.storage.local.get("access_token");
+  const { access_token } = await browser.storage.local.get("access_token");
   const isTokenValid = await checkTokenValidate(access_token);
   if (!isTokenValid || !access_token) {
-    await chrome.storage.local.set({ registration: false });
+    await browser.storage.local.set({ registration: false });
     return;
   }
   let sizeMessage = "";
