@@ -35,7 +35,7 @@ export const getAllDetails = async () => {
       validTill = "",
       licenseId = "No Data Found",
       browsers = {},
-    } = await chrome.storage.local.get([
+    } = await browser.storage.local.get([
       "mac_address",
       "validFrom",
       "validTill",

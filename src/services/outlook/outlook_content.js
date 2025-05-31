@@ -1,6 +1,6 @@
 // Component imports
 const importComponent = async (path) => {
-  const src = chrome.runtime.getURL(path);
+  const src = browser.runtime.getURL(path);
   return await import(src);
 };
 
@@ -50,8 +50,8 @@ let intervalId = null;
  *
  * These operations are executed in parallel using `Promise.all()`.
  */
-chrome.storage.local.get("registration", (data) => {
-  if (chrome.runtime.lastError) {
+browser.storage.local.get("registration", (data) => {
+  if (browser.runtime.lastError) {
     return;
   }
   if (data.registration) {
@@ -137,7 +137,7 @@ function handleEmailInteractions() {
  * - Ensures the function only executes on `outlook.live.com`.
  * - Checks if geolocation is supported by the browser.
  * - Retrieves the user's current latitude and longitude if permission is granted.
- * - Sends the coordinates to the background script via `chrome.runtime.sendMessage`.
+ * - Sends the coordinates to the background script via `browser.runtime.sendMessage`.
  * - Handles errors if geolocation access is denied or unavailable.
  *
  * If the script is not running on Outlook, Yahoo, or Gmail, it logs a message and exits.
@@ -157,7 +157,7 @@ function fetchLocation() {
         const longitude = position.coords.longitude;
 
         // Send the coordinates to the background script
-        chrome.runtime.sendMessage({
+        browser.runtime.sendMessage({
           type: "geoLocationUpdate",
           coordinates: {
             latitude: latitude,
@@ -244,7 +244,7 @@ window.addEventListener("popstate", () => {
   }
 });
 
-chrome.runtime.onMessage.addListener((request) => {
+browser.runtime.onMessage.addListener((request) => {
   if (
     request.action === "badRequestServerError" &&
     request.client === "outlook"
@@ -273,7 +273,7 @@ chrome.runtime.onMessage.addListener((request) => {
  * @param {Function} sendResponse - A callback function to send a response.
  * @returns {boolean} - Returns `true` to indicate an asynchronous response.
  */
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (
     message.action == "checkOutlookmail" ||
     message.action == "fetchDisputeMessageId"
@@ -501,7 +501,7 @@ function blockEmailBody() {
  * and if found, it listens for clicks on email elements (`.EeHm8`). When an email is clicked,
  * it extracts the `data-convid` attribute from the selected email and constructs a unique
  * message ID using timestamp data. It then verifies the email status against stored data
- * in `chrome.storage.local` and applies necessary actions based on its classification
+ * in `browser.storage.local` and applies necessary actions based on its classification
  * (safe, unsafe, or pending).
  *
  * Behavior:
@@ -511,7 +511,7 @@ function blockEmailBody() {
  * - Constructs a unique message identifier based on the email's timestamp.
  * - Checks if the email belongs to "Sent Items" or "Drafts".
  * - Determines whether the email should be blocked based on stored statuses.
- * - Interacts with `chrome.storage.local` to retrieve and update email safety status.
+ * - Interacts with `browser.storage.local` to retrieve and update email safety status.
  * - If no stored data is found, it sends a request to the background script for verification.
  * - If necessary, executes an email extraction process after applying safety checks.
  *
@@ -603,7 +603,7 @@ function setupClickListener(attempts = 500) {
               blockEmailBody();
               return;
             } else if (dataConvid) {
-              chrome.storage.local.get("messages", function (result) {
+              browser.storage.local.get("messages", function (result) {
                 let messages = JSON.parse(result.messages || "{}");
 
                 if (messages[dataConvid]) {
@@ -625,8 +625,8 @@ function setupClickListener(attempts = 500) {
                   } else if (status === "pending") {
                     hideLoadingScreen();
                     showAlert("pending", "Some time");
-                    chrome.storage.local.get("outlook_email", (data) => {
-                      chrome.runtime.sendMessage({
+                    browser.storage.local.get("outlook_email", (data) => {
+                      browser.runtime.sendMessage({
                         action: "pendingStatusOutlook",
                         emailId: data.outlook_email,
                         messageId: dataConvid,
@@ -641,7 +641,7 @@ function setupClickListener(attempts = 500) {
                 } else {
                   shouldApplyPointerEvents = true;
                   blockEmailBody();
-                  chrome.runtime
+                  browser.runtime
                     .sendMessage(
                       {
                         client: "outlook",
@@ -664,7 +664,7 @@ function setupClickListener(attempts = 500) {
                             if (
                               ["safe", "unsafe", "pending"].includes(resStatus)
                             ) {
-                              chrome.storage.local.get(
+                              browser.storage.local.get(
                                 "messages",
                                 function (result) {
                                   let messages = JSON.parse(
@@ -675,7 +675,7 @@ function setupClickListener(attempts = 500) {
                                     unsafeReason: unsafeReason,
                                   };
 
-                                  chrome.storage.local.set(
+                                  browser.storage.local.set(
                                     {
                                       messages: JSON.stringify(messages),
                                     },
@@ -747,20 +747,20 @@ function setupClickListener(attempts = 500) {
 window.addEventListener('offline', function () {
   showAlert("networkError");
   hideLoadingScreen();
-  chrome.storage.local.set({ networkWentOffline: true });
+  browser.storage.local.set({ networkWentOffline: true });
 });
 
 window.addEventListener('online', function () {
-  chrome.storage.local.get("networkWentOffline", function (result) {
+  browser.storage.local.get("networkWentOffline", function (result) {
     if (result.networkWentOffline) {
-      chrome.storage.local.remove("networkWentOffline");
+      browser.storage.local.remove("networkWentOffline");
       window.location.reload();
     }
   });
 });
 
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (
     request.action === "erroRecievedFromServer" &&
     request.client === "outlook"
@@ -875,7 +875,7 @@ async function runEmailExtraction() {
 
   const sendContentToBackground = async (emailContent) => {
     return new Promise((resolve, reject) => {
-      chrome.runtime.sendMessage(
+      browser.runtime.sendMessage(
         { action: "outlookEmlContent", emailContent, dataConvid, userEmailId },
         function (response) {
           resolve();
@@ -949,14 +949,14 @@ async function runEmailExtraction() {
  * A success response is sent back to acknowledge message handling.
  */
 function pendingStatusCallForOutlook() {
-  chrome.runtime.sendMessage({
+  browser.runtime.sendMessage({
     action: "pendingStatusOutlook",
     emailId: userEmailId,
     messageId: dataConvid,
   });
 }
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.client === "outlook") {
     messageReason = message.unsafeReason;
     if (message.action === "blockUrls") {
@@ -1019,24 +1019,24 @@ function findOutlookEmailId() {
         clearInterval(searchInterval); // Stop searching once email ID is found
 
         // Add the storage code here
-        chrome.storage.local.remove(["gmail_email", "yahoo_email"], () => {
-          chrome.storage.local.set({ outlook_email: userEmailId }, () => { });
+        browser.storage.local.remove(["gmail_email", "yahoo_email"], () => {
+          browser.storage.local.set({ outlook_email: userEmailId }, () => { });
         });
-        chrome.storage.local.set({ currentMailId: userEmailId });
+        browser.storage.local.set({ currentMailId: userEmailId });
         return;
       }
     }
   }, 500); // Run the search every 0.5 second (adjust interval as needed)
 }
 
-chrome.storage.local.get(null, function (data) { });
+browser.storage.local.get(null, function (data) { });
 
-chrome.storage.local.get("messages", function (result) {
+browser.storage.local.get("messages", function (result) {
   let messages = JSON.parse(result.messages || "{}"); // Ensure messages is an object
 });
 
-chrome.storage.local.get("registration", (data) => {
-  if (chrome.runtime.lastError) {
+browser.storage.local.get("registration", (data) => {
+  if (browser.runtime.lastError) {
     return;
   }
 
@@ -1164,7 +1164,7 @@ function checkReloadStatusOutlook() {
   }
 
   function checkThecurrentStatus(dataConvid) {
-    chrome.storage.local.get("messages", function (result) {
+    browser.storage.local.get("messages", function (result) {
       let messages = JSON.parse(result.messages || "{}");
 
       if (messages[dataConvid]) {
@@ -1186,13 +1186,13 @@ function checkReloadStatusOutlook() {
         } else if (status === "pending") {
           // showAlert("pending", "Some time");
 
-          chrome.storage.local.get("outlook_email", (data) => {
+          browser.storage.local.get("outlook_email", (data) => {
             setTimeout(() => {
               shouldApplyPointerEvents = true;
               blockEmailBody();
             }, 1000);
 
-            chrome.runtime.sendMessage({
+            browser.runtime.sendMessage({
               action: "pendingStatusOutlook",
               emailId: data.outlook_email,
               messageId: dataConvid,
@@ -1233,7 +1233,7 @@ window.addEventListener("click", (e) => {
 //   }
 // });
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "ExtractEMailForOutlook") {
     findOutlookEmailId();
   }
@@ -1446,7 +1446,7 @@ document.addEventListener(
 );
 
 // Add this with the other message listeners
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "emailSizeCategory" && message.client === "outlook") {
     handleEmailSizeCategory(message.sizeCategory);
   }

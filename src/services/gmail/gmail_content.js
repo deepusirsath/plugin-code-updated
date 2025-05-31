@@ -1,5 +1,5 @@
 const importComponent = async (path) => {
-  const src = chrome.runtime.getURL(path);
+  const src = browser.runtime.getURL(path);
   return await import(src);
 };
 
@@ -20,8 +20,8 @@ const waitForElements = () => {
     }
   }, 500);
 };
-chrome.storage.local.get("registration", (data) => {
-  if (chrome.runtime.lastError) {
+browser.storage.local.get("registration", (data) => {
+  if (browser.runtime.lastError) {
     return;
   }
 
@@ -193,11 +193,11 @@ let messageReason = " ";
  * - Sends confirmation response
  *
  * Security:
- * - Checks chrome.runtime.lastError
+ * - Checks browser.runtime.lastError
  * - Validates registration data
  * - Ensures minimum segment length
  */
-chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (message.action === "GmailDetectedForExtraction") {
     // console.log("clearInterval(intervalId);")
     clearInterval(intervalId);
@@ -227,8 +227,8 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         }
       }
       // console.log("compose not found ===========================");
-      chrome.storage.local.get("registration", (data) => {
-        if (chrome.runtime.lastError) {
+      browser.storage.local.get("registration", (data) => {
+        if (browser.runtime.lastError) {
           return;
         }
 
@@ -273,7 +273,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
  *   error: string
  * }
  */
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (
     message.action === "checkGmailmail" ||
     message.action == "fetchDisputeMessageId"
@@ -292,7 +292,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const receiverElements = gmailContainer.querySelectorAll("span[email]");
 
       // Get the current user's email from storage
-      chrome.storage.local.get(["gmail_email"], (result) => {
+      browser.storage.local.get(["gmail_email"], (result) => {
         const currentUserEmail = result.gmail_email;
         let receiverEmail = null;
 
@@ -359,7 +359,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
  * - Only processes Gmail client requests
  * - Specifically handles "EmailNotFoundInPendingRequest" action
  */
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (
     request.action === "EmailNotFoundInPendingRequest" &&
     request.client === "gmail"
@@ -372,7 +372,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  * Chrome runtime message listener for handling server error notifications
  * specifically for Gmail client.
  *
- * @listens chrome.runtime.onMessage
+ * @listens browser.runtime.onMessage
  * @param {Object} request - The message request object
  * @param {string} request.action - Action type, checks for "erroRecievedFromServer"
  * @param {string} request.client - Client type, checks for "gmail"
@@ -383,7 +383,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  * - Triggers showAlert with "inform" parameter when conditions match
  * - Handles Gmail-specific error notifications
  */
-chrome.runtime.onMessage.addListener(async (request) => {
+browser.runtime.onMessage.addListener(async (request) => {
   if (
     request.action === "erroRecievedFromServer" &&
     request.client === "gmail"
@@ -396,20 +396,20 @@ chrome.runtime.onMessage.addListener(async (request) => {
 window.addEventListener("offline", async function () {
   showAlert("networkError");
   hideLoadingScreen();
-  chrome.storage.local.set({ networkWentOffline: true });
+  browser.storage.local.set({ networkWentOffline: true });
 });
 
 window.addEventListener("online", function () {
   // Check if the network previously went offline
-  chrome.storage.local.get("networkWentOffline", function (result) {
+  browser.storage.local.get("networkWentOffline", function (result) {
     if (result.networkWentOffline) {
-      chrome.storage.local.remove("networkWentOffline");
+      browser.storage.local.remove("networkWentOffline");
       window.location.reload();
     }
   });
 });
 
-chrome.runtime.onMessage.addListener(async (request) => {
+browser.runtime.onMessage.addListener(async (request) => {
   if (
     request.action === "badRequestServerError" &&
     request.client === "gmail"
@@ -420,7 +420,7 @@ chrome.runtime.onMessage.addListener(async (request) => {
 });
 
 function pendingStatusCallForGmail() {
-  chrome.runtime.sendMessage({
+  browser.runtime.sendMessage({
     action: "pendingStatusGmail",
     emailId: emailId,
     messageId: messageId,
@@ -442,7 +442,7 @@ function pendingStatusCallForGmail() {
  * @param {Object} sender - Information about the script that sent the message.
  * @param {Function} sendResponse - A function to send a response back to the sender, with the status "success".
  */
-chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (message.client === "gmail") {
     messageReason = message.unsafeReason;
 
@@ -489,7 +489,7 @@ const init = () => {
  * This function:
  * - Blocks the email body initially.
  * - Extracts the `data-legacy-message-id` attribute from the email element.
- * - Retrieves stored messages from `chrome.storage.local` to check the email's security status.
+ * - Retrieves stored messages from `browser.storage.local` to check the email's security status.
  * - Displays appropriate alerts based on the status (`safe`, `unsafe`, or `pending`).
  * - Sends a request to the background script if the email's status is unknown,
  *   fetching security details from the server and updating local storage accordingly.
@@ -501,7 +501,7 @@ const init = () => {
  * Dependencies:
  * - `blockEmailBody()`: Blocks or unblocks email content.
  * - `showAlert(status, reason)`: Displays a security alert.
- * - `chrome.runtime.sendMessage()`: Sends messages to the background script for processing.
+ * - `browser.runtime.sendMessage()`: Sends messages to the background script for processing.
  * - `createUrl(newUrl, messageId)`: Handles URL-based operations for message identification.
  *
  * @async
@@ -526,7 +526,7 @@ async function extractMessageIdAndEml() {
     return;
   }
 
-  chrome.storage.local.get("messages", function (result) {
+  browser.storage.local.get("messages", function (result) {
     let messages = JSON.parse(result.messages || "{}");
 
     if (messages[messageId]) {
@@ -551,7 +551,7 @@ async function extractMessageIdAndEml() {
         blockEmailBody();
         pendingEmailId = emailId;
         pendingMessageId = messageId;
-        chrome.runtime.sendMessage({
+        browser.runtime.sendMessage({
           action: "pendingStatusGmail",
           emailId: emailId,
           messageId: messageId,
@@ -562,7 +562,7 @@ async function extractMessageIdAndEml() {
       showLoadingScreen();
       shouldApplyPointerEvents = true;
       blockEmailBody();
-      chrome.runtime.sendMessage(
+      browser.runtime.sendMessage(
         {
           client: "gmail",
           action: "firstCheckForEmail",
@@ -579,13 +579,13 @@ async function extractMessageIdAndEml() {
               const messId = serverData.messageId || serverData.msg_id;
               const unsafeReason = serverData.unsafe_reasons || " ";
               if (["safe", "unsafe", "pending"].includes(resStatus)) {
-                chrome.storage.local.get("messages", function (result) {
+                browser.storage.local.get("messages", function (result) {
                   let messages = JSON.parse(result.messages || "{}");
                   messages[messId] = {
                     status: resStatus,
                     unsafeReason: unsafeReason,
                   };
-                  chrome.storage.local.set(
+                  browser.storage.local.set(
                     { messages: JSON.stringify(messages) },
                     () => {
                       shouldApplyPointerEvents = resStatus !== "safe";
@@ -636,7 +636,7 @@ new MutationObserver(() => {
     shouldApplyPointerEvents = true;
     blockEmailBody();
     hideLoadingScreen();
-    chrome.storage.local.get("registration", (data) => {
+    browser.storage.local.get("registration", (data) => {
       if (!data.registration) {
         shouldApplyPointerEvents = false;
         blockEmailBody();
@@ -702,7 +702,7 @@ function createUrl(url, messageId) {
   let eml_Url = `${prefixUrl}/?view=att&th=${messageId}&attid=0&disp=comp&safe=1&zw`;
   // console.log("eml_Url", eml_Url);
   try {
-    chrome.runtime.sendMessage({
+    browser.runtime.sendMessage({
       action: "sendGmailData",
       messageId,
       emailId,
@@ -728,9 +728,9 @@ async function findEmailId() {
   const emailMatches = titleContent.match(emailPattern);
   emailId = emailMatches ? emailMatches[emailMatches.length - 1] : null;
   if (emailId) {
-    chrome.storage.local.set({ currentMailId: emailId });
-    chrome.storage.local.remove(["yahoo_email", "outlook_email"], () => {
-      chrome.storage.local.set({ gmail_email: emailId });
+    browser.storage.local.set({ currentMailId: emailId });
+    browser.storage.local.remove(["yahoo_email", "outlook_email"], () => {
+      browser.storage.local.set({ gmail_email: emailId });
     });
   }
 }
@@ -789,7 +789,7 @@ window.addEventListener("click", async (e) => {
   }
 });
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "ExtractEMailForGmail") {
     // console.log("ExtractEMailForGmailExtractEMailForGmailExtractEMailForGmail");
     const extractEmail = () => {
@@ -801,7 +801,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       const emailId = emailMatch ? emailMatch[0] : null;
       // console.log("mail : ", emailId);
       if (emailId) {
-        chrome.storage.local.set({ currentMailId: emailId });
+        browser.storage.local.set({ currentMailId: emailId });
       } else {
         // Retry after 1 second if email not found
         setTimeout(extractEmail, 200);
@@ -926,7 +926,7 @@ if (document.body) {
 setInterval(checkForContextMenu, 500);
 
 // Add this with the other message listeners
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "emailSizeCategory" && message.client === "gmail") {
     // console.log(`message.action === "emailSizeCategory" && message.client === "gmail"`)
     handleEmailSizeCategory(message.sizeCategory);

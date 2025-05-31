@@ -17,7 +17,7 @@ import { hideUiElement } from "/src/helper/hide_ui_element_helper.js";
 export async function apiRequest(url, method, payload = null, customHeaders) {
   // Construct the request options
 
-  const { access_token } = await chrome.storage.local.get(["access_token"]);
+  const { access_token } = await browser.storage.local.get(["access_token"]);
 
   const headers = {
     "Content-Type": "application/json",
@@ -40,11 +40,11 @@ export async function apiRequest(url, method, payload = null, customHeaders) {
 
     if (response.status === 401) {
       // Set registration to false and ensure it completes
-      await chrome.storage.local.set({ registration: false });
+      await browser.storage.local.set({ registration: false });
       console.log("Registration set to false due to 401 error");
 
       // Remove access token and ensure it completes
-      await chrome.storage.local.remove("access_token");
+      await browser.storage.local.remove("access_token");
       console.log("Access token removed due to 401 error");
 
       hideUiElement()

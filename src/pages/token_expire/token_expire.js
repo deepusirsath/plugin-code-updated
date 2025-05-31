@@ -10,8 +10,8 @@ const getAccessToken = async () => {
   try {
     showLoader();
 
-    const { refresh_token } = await chrome.storage.local.get(["refresh_token"]);
-    const { mac_address } = await chrome.storage.local.get(["mac_address"]);
+    const { refresh_token } = await browser.storage.local.get(["refresh_token"]);
+    const { mac_address } = await browser.storage.local.get(["mac_address"]);
 
     if (!refresh_token || !mac_address) {
       hideLoader();
@@ -31,8 +31,8 @@ const getAccessToken = async () => {
     }
 
     if (response?.data?.access_token) {
-      await chrome.storage.local.set({ registration: true });
-      await chrome.storage.local.set({
+      await browser.storage.local.set({ registration: true });
+      await browser.storage.local.set({
         access_token: response?.data?.access_token,
       });
       window.close();

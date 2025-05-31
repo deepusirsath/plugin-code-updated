@@ -3,15 +3,25 @@
   "name": "Phising Prevention",
   "version": "1.0",
   "description": "Personal shield against phishing attacks! We detect and block fraudulent emails, protecting your sensitive data.",
-  "incognito": "spanning",
+
   "permissions": [
     "activeTab",
     "tabs",
     "storage",
+    "webNavigation",
     "management",
     "geolocation",
-    "downloads"
+    "downloads",
+    "declarativeNetRequest",
+    "webRequest",
+    "webRequestBlocking",
+    "http://3.109.178.115:8006/*"
   ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src'self' http://localhost:3000;",
+    "sandbox": "script-src 'self'; object-src 'self'; connect-src http: https: 'self'"
+  },
+
   "action": {
     "default_popup": "/src/component/popup/popup.html",
     "default_icon": {
@@ -21,27 +31,25 @@
     }
   },
   "background": {
-    "service_worker": "background.js",
+    "persistent": true,
+    "scripts": ["background.js"],
     "type": "module"
   },
   "content_scripts": [
     {
-      "matches": ["*://mail.google.com/*"],
+      "matches": ["://mail.google.com/"],
       "js": ["/src/services/gmail/gmail_content.js"],
-      "run_at": "document_start",
-      "type": "module"
+      "run_at": "document_start"
     },
     {
-      "matches": ["*://outlook.live.com/*"],
+      "matches": ["://outlook.live.com/"],
       "js": ["/src/services/outlook/outlook_content.js"],
-      "run_at": "document_start",
-      "type": "module"
+      "run_at": "document_start"
     },
     {
-      "matches": ["*://mail.yahoo.com/*", "*://in.mail.yahoo.com/*"],
+      "matches": ["://mail.yahoo.com/", "://in.mail.yahoo.com/"],
       "js": ["/src/services/yahoo/yahoo_content.js"],
-      "run_at": "document_start",
-      "type": "module"
+      "run_at": "document_start"
     }
   ],
   "web_accessible_resources": [
@@ -58,7 +66,6 @@
   "host_permissions": [
     "https://mail-attachment.googleusercontent.com/*",
     "https://mail.google.com/*",
-    "https://apis.mail.yahoo.com/*",
-    "http://localhost:64321/deviceIdentifiers"
+    "https://apis.mail.yahoo.com/*"
   ]
 }

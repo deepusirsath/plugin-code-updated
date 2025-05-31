@@ -1,4 +1,4 @@
-chrome.runtime.sendMessage({ popupOpened: true }, () => {
+browser.runtime.sendMessage({ popupOpened: true }, () => {
   console.log("popup opened");
 });
 
@@ -48,7 +48,7 @@ export const handleRegisteredUser = async () => {
  * Flow:
  * - For non-email pages: loads not-email-page components
  * - For email pages:
- *   - Checks registration status in chrome.storage
+ *   - Checks registration status in browser.storage
  *   - Checks if token is expired
  *   - Loads appropriate components based on conditions
  *
@@ -58,11 +58,11 @@ export const handleRegisteredUser = async () => {
  * @throws {Error} Handled by displayError if storage access fails
  */
 const handleEmailPageResponse = async (response) => {
-  // const { access_token } = await chrome.storage.local.get("access_token");
-  // const { revoke_status } = await chrome.storage.local.get("revoke_status");
+  // const { access_token } = await browser.storage.local.get("access_token");
+  // const { revoke_status } = await browser.storage.local.get("revoke_status");
 
   // if (revoke_status) {
-  //   await chrome.storage.local.set({ registration: false });
+  //   await browser.storage.local.set({ registration: false });
   //   await loadUnauthenticatedComponents("licenseExpire");
   //   return;
   // }
@@ -70,12 +70,12 @@ const handleEmailPageResponse = async (response) => {
   // if (access_token) {
   //   const isTokenValid = await checkTokenValidity(access_token);
   //   if (!isTokenValid || !access_token) {
-  //     await chrome.storage.local.set({ registration: false });
+  //     await browser.storage.local.set({ registration: false });
   //     await loadUnauthenticatedComponents("tokenExpire");
   //     return;
   //   }
   // } else {
-  //   await chrome.storage.local.set({ registration: false });
+  //   await browser.storage.local.set({ registration: false });
   //   await loadUnauthenticatedComponents("tokenExpire");
   //   return;
   // }
@@ -116,7 +116,7 @@ const initializePopup = () => {
     document.body.style.width = "550px";
     document.body.style.height = "590px";
     document.body.style.overflow = "hidden";
-    chrome.runtime.sendMessage(
+    browser.runtime.sendMessage(
       { action: "checkEmailPage" },
       handleEmailPageResponse
     );

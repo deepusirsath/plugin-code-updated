@@ -111,7 +111,7 @@ const handleDisputeButton = async (componentName) => {
   }
   // Clear the data output area to prevent component stacking
   document.getElementById("data-output").innerHTML = "";
-  // const { access_token } = await chrome.storage.local.get("access_token");
+  // const { access_token } = await browser.storage.local.get("access_token");
 
   // if (!access_token) {
   //   hideUiElement();
@@ -131,7 +131,7 @@ const handleDisputeButton = async (componentName) => {
   });
 
   try {
-    chrome.runtime.sendMessage(
+    browser.runtime.sendMessage(
       { action: "checkEmailPage" },
       async function (response) {
         if (currentLoadingOperation !== thisOperation) {
@@ -161,7 +161,7 @@ const handleDisputeButton = async (componentName) => {
             }
           });
 
-          chrome.runtime.sendMessage(
+          browser.runtime.sendMessage(
             { action: "checkDispute" },
             async function (disputeResponse) {
               // if (disputeResponse?.tokenExpired) {

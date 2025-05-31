@@ -30,7 +30,7 @@ const validateLicenseId = async (licenseId) => {
 
     if (response.success) {
       document.getElementById("email").value = response.data.email;
-      chrome.storage.local.set({ license_Id: licenseId });
+      browser.storage.local.set({ license_Id: licenseId });
       return true;
     }
 
@@ -74,8 +74,8 @@ document.getElementById("submit").addEventListener("click", async function () {
 
     if (response.success) {
       showCustomAlert("Form submitted successfully.", "success");
-      chrome.storage.local.set({ registration: true });
-      chrome.runtime.sendMessage({ action: "reloadPage" }, function (response) {
+      browser.storage.local.set({ registration: true });
+      browser.runtime.sendMessage({ action: "reloadPage" }, function (response) {
         if (response.success) {
           window.close();
         } 
