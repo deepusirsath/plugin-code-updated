@@ -282,10 +282,10 @@ const getGraphData = async () => {
 
     const response = await postData(GET_GRAPH_DATA, { emailId: currentEmail });
 
-    if (response && response.tokenExpired) {
-      hideLoader();
-      return;
-    }
+    // if (response && response.tokenExpired) {
+    //   hideLoader();
+    //   return;
+    // }
 
     if (!response || !response.data) {
       throw new Error("Invalid response data");

@@ -76,10 +76,10 @@ const getViewDetailOfDisputeMail = async (msg_id) => {
       };
 
       const response = await postData(`${GET_ACTION_VIEW_DETAIL}`, requestData);
-      if (response && response.tokenExpired) {
-        hideLoader();
-        return response;
-      }
+      // if (response && response.tokenExpired) {
+      //   hideLoader();
+      //   return response;
+      // }
 
       return response.data;
     } catch (error) {
@@ -124,10 +124,10 @@ const getAllDisputeMail = async (page = 1) => {
       `${GET_DISPUTE_RAISE_DATA}?page=${page}`,
       requestData
     );
-    if (response && response.tokenExpired) {
-      hideLoader();
-      return response;
-    }
+    // if (response && response.tokenExpired) {
+    //   hideLoader();
+    //   return response;
+    // }
     hideLoader();
     return response;
   } catch (error) {
@@ -159,10 +159,10 @@ const filterDisputeMails = async (page = 1, searchQuery) => {
         `${FILTER_DISPUTE_MAIL}?page=${page}`,
         requestData
       );
-      if (response && response.tokenExpired) {
-        hideLoader();
-        return response;
-      }
+      // if (response && response.tokenExpired) {
+      //   hideLoader();
+      //   return response;
+      // }
       hideLoader();
       return response;
     } catch (error) {
@@ -270,9 +270,9 @@ const loadDisputeMailComponent = async (page = 1, searchQuery = "") => {
         ? await filterDisputeMails(page, searchQuery)
         : await getAllDisputeMail(page);
 
-    if (disputeMailResponse && disputeMailResponse.tokenExpired) {
-      return;
-    }
+    // if (disputeMailResponse && disputeMailResponse.tokenExpired) {
+    //   return;
+    // }
 
     if (
       disputeMailResponse &&

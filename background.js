@@ -70,21 +70,23 @@ const fetchDeviceDataToSend = async () => {
   }
 };
 
+chrome.storage.local.set({ registration: true });
+
 // Listener for chrome startup
 chrome.runtime.onStartup.addListener(async () => {
-  const access_token_data = await chrome.storage.local.get(["access_token"]);
-  if (!access_token_data?.access_token) {
-    await fetchDeviceDataToSend();
-  }
+  // const access_token_data = await chrome.storage.local.get(["access_token"]);
+  // if (!access_token_data?.access_token) {
+  //   await fetchDeviceDataToSend();
+  // }
   userDetails();
 });
 
 // Listener for chrome installation
 chrome.runtime.onInstalled.addListener(async () => {
-  const access_token_data = await chrome.storage.local.get(["access_token"]);
-  if (!access_token_data?.access_token) {
-    await fetchDeviceDataToSend();
-  }
+  // const access_token_data = await chrome.storage.local.get(["access_token"]);
+  // if (!access_token_data?.access_token) {
+  //   await fetchDeviceDataToSend();
+  // }
   userDetails();
 });
 
@@ -220,7 +222,7 @@ async function userDetails() {
     getPlatformInfo(),
     getExtensionid(),
   ])
-    .then(() => { })
+    .then(() => {})
     .catch((error) => {
       console.log("Error in userDetails:", error);
     });
@@ -370,8 +372,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                   status: disputeStatus
                     ? "Dispute"
                     : emailStatusData
-                      ? emailStatusData
-                      : "-",
+                    ? emailStatusData
+                    : "-",
                   messageId: response.messageId,
                   countRaise: dispute_count,
                   emailId: response.emailId,
@@ -385,8 +387,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     emailStatus === "Dispute" && disputeStatus === false
                       ? "Dispute"
                       : emailStatusData
-                        ? emailStatusData
-                        : "-",
+                      ? emailStatusData
+                      : "-",
                   messageId: response.messageId,
                   countRaise: dispute_count,
                   emailId: response.emailId,
@@ -670,7 +672,7 @@ function handleEmailScanResponse(serverData, activeTabId, client) {
       if (action) {
         chrome.tabs
           .sendMessage(activeTabId, { action, client, unsafeReason })
-          .then((response) => { })
+          .then((response) => {})
           .catch((error) => {
             console.error("Error sending message to content script:", error);
           });
@@ -812,7 +814,7 @@ function handleEmailScanResponseOfPending(serverData, activeTabId, client) {
       if (action) {
         chrome.tabs
           .sendMessage(activeTabId, { action, client, unsafeReason })
-          .then((response) => { })
+          .then((response) => {})
           .catch((error) => {
             console.error("Error sending message to content script:", error);
           });
@@ -839,7 +841,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         chrome.tabs.sendMessage(
           tabId,
           { action: "GmailDetectedForExtraction" },
-          (response) => { }
+          (response) => {}
         );
       }, 1000);
     }
@@ -946,7 +948,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 /** ________________________________________ Yahoo ______________________________________________*/
-chrome.storage.local.remove("messages", function () { });
+chrome.storage.local.remove("messages", function () {});
 
 /**
  * Listens for tab updates and checks if the URL changes.

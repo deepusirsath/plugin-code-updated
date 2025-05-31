@@ -58,27 +58,27 @@ export const handleRegisteredUser = async () => {
  * @throws {Error} Handled by displayError if storage access fails
  */
 const handleEmailPageResponse = async (response) => {
-  const { access_token } = await chrome.storage.local.get("access_token");
-  const { revoke_status } = await chrome.storage.local.get("revoke_status");
+  // const { access_token } = await chrome.storage.local.get("access_token");
+  // const { revoke_status } = await chrome.storage.local.get("revoke_status");
 
-  if (revoke_status) {
-    await chrome.storage.local.set({ registration: false });
-    await loadUnauthenticatedComponents("licenseExpire");
-    return;
-  }
+  // if (revoke_status) {
+  //   await chrome.storage.local.set({ registration: false });
+  //   await loadUnauthenticatedComponents("licenseExpire");
+  //   return;
+  // }
 
-  if (access_token) {
-    const isTokenValid = await checkTokenValidity(access_token);
-    if (!isTokenValid || !access_token) {
-      await chrome.storage.local.set({ registration: false });
-      await loadUnauthenticatedComponents("tokenExpire");
-      return;
-    }
-  } else {
-    await chrome.storage.local.set({ registration: false });
-    await loadUnauthenticatedComponents("tokenExpire");
-    return;
-  }
+  // if (access_token) {
+  //   const isTokenValid = await checkTokenValidity(access_token);
+  //   if (!isTokenValid || !access_token) {
+  //     await chrome.storage.local.set({ registration: false });
+  //     await loadUnauthenticatedComponents("tokenExpire");
+  //     return;
+  //   }
+  // } else {
+  //   await chrome.storage.local.set({ registration: false });
+  //   await loadUnauthenticatedComponents("tokenExpire");
+  //   return;
+  // }
 
   await loadCommonComponents();
 
@@ -88,9 +88,10 @@ const handleEmailPageResponse = async (response) => {
   }
 
   try {
-    if (access_token) {
-      await handleRegisteredUser();
-    }
+    await handleRegisteredUser();
+    // if (access_token) {
+    //   await handleRegisteredUser();
+    // }
   } catch (error) {
     displayError();
   }

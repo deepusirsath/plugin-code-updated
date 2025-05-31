@@ -169,41 +169,6 @@ let messageId = null;
 let isValidSegmentLength = 30;
 let messageReason = " ";
 
-const decodeJWT = (token) => {
-  const payloadBase64Url = token.split(".")[1];
-  const payloadBase64 = payloadBase64Url.replace(/-/g, "+").replace(/_/g, "/");
-
-  // Decode base64 string
-  const payloadJson = decodeURIComponent(
-    atob(payloadBase64)
-      .split("")
-      .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-      .join("")
-  );
-
-  return JSON.parse(payloadJson);
-};
-
-const checkTokenValidate = async () => {
-  const { refresh_token, access_token } = await chrome.storage.local.get([
-    "refresh_token",
-    "access_token",
-  ]);
-
-  if (refresh_token || access_token) {
-    const accessDecoded = decodeJWT(access_token);
-    const refreshDecoded = decodeJWT(refresh_token);
-    const currentTime = Math.floor(Date.now() / 1000);
-
-    if (accessDecoded.exp > currentTime || refreshDecoded.exp > currentTime) {
-      return true;
-    } else {
-      await chrome.storage.local.set({ registration: false });
-      return false;
-    }
-  }
-};
-
 /**
  * Chrome extension message listener for Gmail email detection and processing
  *
@@ -232,84 +197,8 @@ const checkTokenValidate = async () => {
  * - Validates registration data
  * - Ensures minimum segment length
  */
-// chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-//   if (message.action === "GmailDetectedForExtraction") {
-//     const { access_token } = await chrome.storage.local.get("access_token");
-//     const isTokenValid = await checkTokenValidate(access_token);
-//     if (!isTokenValid || !access_token) {
-//       await chrome.storage.local.set({ registration: false });
-//       return;
-//     }
-//     blockEmailBody();
-//     clearInterval(intervalId);
-//     setTimeout(() => {
-//       let url = window.location.href;
-//       // Extract the part after #
-//       const hashParts = url.split("#");
-//       if (hashParts.length < 2) return;
-
-//       const afterHash = hashParts[1];
-
-//       // Check if compose appears immediately after folder name
-//       if (
-//         afterHash.match(
-//           /^(inbox|starred|snoozed|imp|label|search|scheduled|all|spam|trash|category)\/?\?compose=/
-//         )
-//       ) {
-//         return;
-//       }
-
-//       // If compose exists but has a long string before it, proceed
-//       if (afterHash.includes("?compose=")) {
-//         const beforeCompose = afterHash.split("?compose=")[0];
-//         if (beforeCompose.length < 30) {
-//           return;
-//         }
-//       }
-//       chrome.storage.local.get("registration", (data) => {
-//         if (chrome.runtime.lastError) {
-//           return;
-//         }
-//         if (data.registration) {
-//           const lastSegment = url.split("/").pop().split("#").pop();
-//           if (lastSegment.length >= isValidSegmentLength) {
-//             // Poll for elements with a maximum of attempts
-//             const maxAttempts = 200;
-//             let attempts = 0;
-
-//             const checkForElements = setInterval(() => {
-//               const elements = document.getElementsByClassName("nH a98 iY");
-//               attempts++;
-
-//               if (elements && elements.length > 0) {
-//                 // console.log("Elements found, init called");
-//                 init();
-//                 clearInterval(checkForElements);
-//               } else if (attempts >= maxAttempts) {
-//                 // console.log("Failed to find elements after maximum attempts");
-//                 alert(
-//                   "Please check your internet connection and refresh the page."
-//                 );
-//                 clearInterval(checkForElements);
-//               }
-//             }, 500); // Check every 500ms
-//           }
-//         }
-//       });
-//     }, 100);
-//     sendResponse({ status: "received" });
-//   }
-// });
-
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (message.action === "GmailDetectedForExtraction") {
-    const { access_token } = await chrome.storage.local.get("access_token");
-    const isTokenValid = await checkTokenValidate(access_token);
-    if (!isTokenValid || !access_token) {
-      await chrome.storage.local.set({ registration: false });
-      return;
-    }
-
     // console.log("clearInterval(intervalId);")
     clearInterval(intervalId);
     setTimeout(() => {
@@ -495,12 +384,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  * - Handles Gmail-specific error notifications
  */
 chrome.runtime.onMessage.addListener(async (request) => {
-  const { access_token } = await chrome.storage.local.get("access_token");
-  const isTokenValid = await checkTokenValidate(access_token);
-  if (!isTokenValid || !access_token) {
-    await chrome.storage.local.set({ registration: false });
-    return;
-  }
   if (
     request.action === "erroRecievedFromServer" &&
     request.client === "gmail"
@@ -511,12 +394,6 @@ chrome.runtime.onMessage.addListener(async (request) => {
 });
 
 window.addEventListener("offline", async function () {
-  const { access_token } = await chrome.storage.local.get("access_token");
-  const isTokenValid = await checkTokenValidate(access_token);
-  if (!isTokenValid || !access_token) {
-    await chrome.storage.local.set({ registration: false });
-    return;
-  }
   showAlert("networkError");
   hideLoadingScreen();
   chrome.storage.local.set({ networkWentOffline: true });
@@ -533,12 +410,6 @@ window.addEventListener("online", function () {
 });
 
 chrome.runtime.onMessage.addListener(async (request) => {
-  const { access_token } = await chrome.storage.local.get("access_token");
-  const isTokenValid = await checkTokenValidate(access_token);
-  if (!isTokenValid || !access_token) {
-    await chrome.storage.local.set({ registration: false });
-    return;
-  }
   if (
     request.action === "badRequestServerError" &&
     request.client === "gmail"
@@ -573,12 +444,6 @@ function pendingStatusCallForGmail() {
  */
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (message.client === "gmail") {
-    const { access_token } = await chrome.storage.local.get("access_token");
-    const isTokenValid = await checkTokenValidate(access_token);
-    if (!isTokenValid || !access_token) {
-      await chrome.storage.local.set({ registration: false });
-      return;
-    }
     messageReason = message.unsafeReason;
 
     if (message.action === "blockUrls") {
@@ -644,12 +509,6 @@ const init = () => {
  */
 
 async function extractMessageIdAndEml() {
-  const { access_token } = await chrome.storage.local.get("access_token");
-  const isTokenValid = await checkTokenValidate(access_token);
-  if (!isTokenValid || !access_token) {
-    await chrome.storage.local.set({ registration: false });
-    return;
-  }
   // console.log("start the extractMessageIdAndEml");
   blockEmailBody();
   const node = document.querySelector("[data-legacy-message-id]");
@@ -920,12 +779,6 @@ function blockEmailBody() {
 
 // Add a click event listener to the window to detect the click event on the email body
 window.addEventListener("click", async (e) => {
-  const { access_token } = await chrome.storage.local.get("access_token");
-  const isTokenValid = await checkTokenValidate(access_token);
-  if (!isTokenValid || !access_token) {
-    await chrome.storage.local.set({ registration: false });
-    return;
-  }
   const elements = document.getElementsByClassName("nH a98 iY");
   if (elements && elements.length > 0) {
     Array.from(elements).forEach(() => {
@@ -1082,12 +935,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // Add this function to handle different size categories
 async function handleEmailSizeCategory(sizeCategory) {
-  const { access_token } = await chrome.storage.local.get("access_token");
-  const isTokenValid = await checkTokenValidate(access_token);
-  if (!isTokenValid || !access_token) {
-    await chrome.storage.local.set({ registration: false });
-    return;
-  }
   let sizeMessage = "";
 
   switch (sizeCategory) {

@@ -134,40 +134,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return true; // Keeps the message channel open for async sendResponse
 });
 
-const decodeJWT = (token) => {
-  const payloadBase64Url = token.split(".")[1];
-  const payloadBase64 = payloadBase64Url.replace(/-/g, "+").replace(/_/g, "/");
-
-  // Decode base64 string
-  const payloadJson = decodeURIComponent(
-    atob(payloadBase64)
-      .split("")
-      .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-      .join("")
-  );
-
-  return JSON.parse(payloadJson);
-};
-
-const checkTokenValidate = async () => {
-  const { refresh_token, access_token } = await chrome.storage.local.get([
-    "refresh_token",
-    "access_token",
-  ]);
-
-  if (refresh_token || access_token) {
-    const accessDecoded = decodeJWT(access_token);
-    const refreshDecoded = decodeJWT(refresh_token);
-    const currentTime = Math.floor(Date.now() / 1000);
-
-    if (accessDecoded.exp > currentTime || refreshDecoded.exp > currentTime) {
-      return true;
-    } else {
-      await chrome.storage.local.set({ registration: false });
-      return false;
-    }
-  }
-};
 
 /**
  * Listens for messages sent to the extension and performs actions based on the request.
@@ -185,12 +151,6 @@ chrome.runtime.onMessage.addListener(async function (
   sendResponse
 ) {
   if (request.action === "runScript") {
-    const { access_token } = await chrome.storage.local.get("access_token");
-    const isTokenValid = await checkTokenValidate(access_token);
-    if (!isTokenValid || !access_token) {
-      await chrome.storage.local.set({ registration: false });
-      return;
-    }
     // Exit early since reload will reset the script
     window.location.reload();
     return;
@@ -245,12 +205,6 @@ chrome.runtime.onMessage.addListener(async (request) => {
     request.action === "badRequestServerError" &&
     request.client === "yahoo"
   ) {
-    const { access_token } = await chrome.storage.local.get("access_token");
-    const isTokenValid = await checkTokenValidate(access_token);
-    if (!isTokenValid || !access_token) {
-      await chrome.storage.local.set({ registration: false });
-      return;
-    }
     showAlert("badRequest");
     hideLoadingScreen();
   }
@@ -442,12 +396,6 @@ function extractIdsFromNonceScripts() {
 
   if (lastMessageId) {
     chrome.storage.local.get("messages", async function (result) {
-      const { access_token } = await chrome.storage.local.get("access_token");
-      const isTokenValid = await checkTokenValidate(access_token);
-      if (!isTokenValid || !access_token) {
-        await chrome.storage.local.set({ registration: false });
-        return;
-      }
       let messages = JSON.parse(result.messages || "{}");
       if (messages[lastMessageId]) {
         const status = messages[lastMessageId].status;
@@ -586,12 +534,6 @@ function createUrl(selectedMailboxId, lastMessageId, userEmail) {
 
 // Add these event listeners to detect network status changes
 window.addEventListener("offline", async function () {
-  const { access_token } = await chrome.storage.local.get("access_token");
-  const isTokenValid = await checkTokenValidate(access_token);
-  if (!isTokenValid || !access_token) {
-    await chrome.storage.local.set({ registration: false });
-    return;
-  }
   showAlert("networkError");
   hideLoadingScreen();
   chrome.storage.local.set({ networkWentOffline: true });
@@ -621,12 +563,6 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
     request.action === "erroRecievedFromServer" &&
     request.client === "yahoo"
   ) {
-    const { access_token } = await chrome.storage.local.get("access_token");
-    const isTokenValid = await checkTokenValidate(access_token);
-    if (!isTokenValid || !access_token) {
-      await chrome.storage.local.set({ registration: false });
-      return;
-    }
     showAlert("inform");
     hideLoadingScreen();
   }
@@ -641,12 +577,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // Add this function to handle different size categories
 async function handleEmailSizeCategory(sizeCategory) {
-  const { access_token } = await chrome.storage.local.get("access_token");
-  const isTokenValid = await checkTokenValidate(access_token);
-  if (!isTokenValid || !access_token) {
-    await chrome.storage.local.set({ registration: false });
-    return;
-  }
   let sizeMessage = "";
 
   switch (sizeCategory) {
@@ -704,12 +634,6 @@ let intervalId = null;
 
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (message.client === "yahoo") {
-    const { access_token } = await chrome.storage.local.get("access_token");
-    const isTokenValid = await checkTokenValidate(access_token);
-    if (!isTokenValid || !access_token) {
-      await chrome.storage.local.set({ registration: false });
-      return;
-    }
     messageReason = message.unsafeReason;
     if (message.action === "blockUrls") {
       clearInterval(intervalId);
@@ -748,12 +672,6 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
  * a blocked popup when interactions are detected.
  */
 window.addEventListener("click", async (e) => {
-  const { access_token } = await chrome.storage.local.get("access_token");
-  const isTokenValid = await checkTokenValidate(access_token);
-  if (!isTokenValid || !access_token) {
-    await chrome.storage.local.set({ registration: false });
-    return;
-  }
   const element = document.querySelector(
     'div[data-test-id="message-group-view-scroller"]'
   );

@@ -111,13 +111,13 @@ const handleDisputeButton = async (componentName) => {
   }
   // Clear the data output area to prevent component stacking
   document.getElementById("data-output").innerHTML = "";
-  const { access_token } = await chrome.storage.local.get("access_token");
+  // const { access_token } = await chrome.storage.local.get("access_token");
 
-  if (!access_token) {
-    hideUiElement();
-    await loadUnauthenticatedComponents();
-    return;
-  }
+  // if (!access_token) {
+  //   hideUiElement();
+  //   await loadUnauthenticatedComponents();
+  //   return;
+  // }
 
   const thisOperation = {};
   currentLoadingOperation = thisOperation;
@@ -164,12 +164,12 @@ const handleDisputeButton = async (componentName) => {
           chrome.runtime.sendMessage(
             { action: "checkDispute" },
             async function (disputeResponse) {
-              if (disputeResponse?.tokenExpired) {
-                hideUiElement();
-                await loadUnauthenticatedComponents();
-                hideLoader();
-                return;
-              }
+              // if (disputeResponse?.tokenExpired) {
+              //   hideUiElement();
+              //   await loadUnauthenticatedComponents();
+              //   hideLoader();
+              //   return;
+              // }
 
               if (disputeResponseProcessed) {
                 return;
